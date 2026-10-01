@@ -53,15 +53,56 @@ end
         end
     end
 
+    @testset "genus 1: jacobian_zeta_function matches zeta_function(coeffs, q, 1)" begin
+        @test DeRham.jacobian_zeta_function(curve_coeffs, q_curve) ==
+              DeRham.zeta_function(curve_coeffs, q_curve, 1)
+        @test DeRham.jacobian_zeta_function(f_curve) ==
+              DeRham.jacobian_zeta_function(curve_coeffs, q_curve)
+    end
+
+    @testset "deg P_i == binomial(2g, i), and P_0 = 1 - T" begin
+        P, T = polynomial_ring(ZZ, "T")
+        for (coeffs, q, g) in [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
+            P_list = DeRham._jacobian_wedge_charpolys(coeffs, q; ring = P)
+            @test [degree(Pi) for Pi in P_list] == [binomial(2g, i) for i = 0:2g]
+            @test P_list[1] == 1 - T
+        end
+    end
+
+    @testset "zeta function series coefficients match jacobian_point_counts (genus 2)" begin
+        Z = DeRham.jacobian_zeta_function(coeffs_g2, q_g2)
+        num = numerator(Z)
+        den = denominator(Z)
+        R, Tser = power_series_ring(QQ, 13, "T"; model = :capped_absolute)
+        numser = sum(coeff(num, i) * Tser^i for i = 0:degree(num))
+        denser = sum(coeff(den, i) * Tser^i for i = 0:degree(den))
+        logz = log(numser * inv(denser))
+        series_counts = [ZZ(coeff(logz, i) * i) for i = 1:3]
+        @test series_counts == DeRham.jacobian_point_counts(coeffs_g2, q_g2, 3)
+    end
+
+    @testset "twisted-input round trip (zeta function)" begin
+        for (coeffs, q, g) in [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
+            tw = DeRham.tate_twist(coeffs, q)
+            normtw = DeRham.normalized_tate_twist(coeffs, q, g)
+
+            Z_raw = DeRham.jacobian_zeta_function(coeffs, q)
+            @test DeRham.jacobian_zeta_function(tw, q) == Z_raw
+            @test DeRham.jacobian_zeta_function(normtw, q) == Z_raw
+        end
+    end
+
     @testset "ArgumentError on a surface" begin
         R5, (x1, x2, x3, x4) = polynomial_ring(GF(5), ["x1", "x2", "x3", "x4"])
         fk3 = x1^4 + x2^4 + x3^4 + x4^4
         @test_throws ArgumentError DeRham.jacobian_zeta_coefficients(fk3)
         @test_throws ArgumentError DeRham.jacobian_point_counts(fk3, 2)
+        @test_throws ArgumentError DeRham.jacobian_zeta_function(fk3)
     end
 
     @testset "non-smooth returns false" begin
         f_singular = y^2 * z - x^3
         @test DeRham.jacobian_point_counts(f_singular, 2) == false
+        @test DeRham.jacobian_zeta_function(f_singular) == false
     end
 end
