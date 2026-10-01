@@ -84,6 +84,7 @@ using GPUFiniteFieldMatrices:
 
 include("Utils.jl")
 include("GradedExpCache.jl")
+include("NemoDerivedWrappers.jl")
 include("LinearAlgebraWrappers.jl")
 include("FindMonomialBasis.jl")
 include("SlopesPolygon.jl")
