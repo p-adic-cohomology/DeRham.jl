@@ -22,12 +22,15 @@ include("Precision.jl")
     @testset "Hodge polygon" begin
         test_hodge_polygon_values()
         test_hodge_polygon_examples()
+        test_hodge_polygon_data_form_matches_f_form()
     end
 
 end
 
 include("TateTwist.jl")
 include("PointCounts.jl")
+include("NewtonPolygon.jl")
+include("HasseWitt.jl")
 include("PicardRank.jl")
 include("ArtinMazurHeight.jl")
 

@@ -12,7 +12,7 @@ function calculate_precision_information(f, basis, verbose = 0)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
 
-    hodge_polygon = hodgepolygon(basis, n)
+    hodge_polygon = _hodge_polygon(basis, n)
     hodge_numbers = hodge_polygon.slopelengths
 
     k = sum(hodge_numbers)
@@ -77,7 +77,7 @@ function precision_information_user_r_m(f, r_m; basis = nothing, verbose = 0)
         Basis = basis
     end
 
-    hodge_polygon = hodgepolygon(Basis, n)
+    hodge_polygon = _hodge_polygon(Basis, n)
     hodge_numbers = hodge_polygon.slopelengths
     if length(r_m_int) != length(hodge_numbers)
         error("r_m must have length $(length(hodge_numbers)) for this basis.")
@@ -127,7 +127,7 @@ function precision_information(f, basis, verbose = 0)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
 
-    hodge_polygon = hodgepolygon(basis, n)
+    hodge_polygon = _hodge_polygon(basis, n)
     hodge_numbers = hodge_polygon.slopelengths
 
     k = sum(hodge_numbers) # dimension of H^n

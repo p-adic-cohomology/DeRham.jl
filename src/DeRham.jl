@@ -3,6 +3,7 @@ module DeRham
 using Oscar:
     Oscar,
     GF,
+    MatElem,
     MPolyBuildCtx,
     MPolyRingElem,
     PadicField,
