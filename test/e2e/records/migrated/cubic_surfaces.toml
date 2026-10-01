@@ -18,3 +18,31 @@ type = "zeta_coefficients"
 runtime = 0.5
 example = "dim_2_deg_3_many_3"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
+
+[[test]]
+name = "cubic_surfaces__dim_2_deg_3_failing_r7"
+type = "zeta_coefficients"
+runtime = 0.5
+example = "dim_2_deg_3_failing_r7"
+parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
+
+[[test]]
+name = "cubic_surfaces__dim_2_deg_3_failing_r8"
+type = "zeta_coefficients"
+runtime = 0.5
+example = "dim_2_deg_3_failing_r8"
+parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
+
+[[test]]
+name = "cubic_surfaces__dim_2_deg_3_failing_r9"
+type = "zeta_coefficients"
+runtime = 0.5
+example = "dim_2_deg_3_failing_r9"
+parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
+
+[[test]]
+name = "cubic_surfaces__dim_2_deg_3_failing_r10"
+type = "zeta_coefficients"
+runtime = 0.5
+example = "dim_2_deg_3_failing_r10"
+parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
