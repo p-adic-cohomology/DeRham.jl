@@ -13,3 +13,19 @@ function artin_mazur_height(coeffs, q)
     end
     return Inf
 end
+
+"""
+    artin_mazur_height(f; kwargs...)
+
+[`artin_mazur_height`](@ref) for the quartic K3 surface in `P^3` defined by
+the homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
+kwargs...)` (with `q` the characteristic of `parent(f)`) and delegating to
+the coefficient method. Returns `false` when `f` is not smooth, matching
+`zeta_coefficients`.
+"""
+function artin_mazur_height(f::MPolyRingElem; kwargs...)
+    q = Int64(characteristic(parent(f)))
+    coeffs = zeta_coefficients(f; kwargs...)
+    coeffs == false && return false
+    return artin_mazur_height(coeffs, q)
+end

@@ -306,4 +306,41 @@
             y1^3 + y2^3 + y3^3 + y4^3,
         )
     end
+
+    @testset "twisted-input round trip" begin
+        q, p5_q4K3_sparse_fk_001 = 5,
+        [
+            -476837158203125,
+            95367431640625,
+            15258789062500,
+            -6103515625000,
+            305175781250,
+            61035156250,
+            36621093750,
+            -7324218750,
+            -1220703125,
+            439453125,
+            0,
+            0,
+            -3515625,
+            390625,
+            93750,
+            -18750,
+            -1250,
+            -250,
+            200,
+            -20,
+            -5,
+            1,
+        ]
+        tw = DeRham.tate_twist(p5_q4K3_sparse_fk_001, q)
+        normtw = DeRham.normalized_tate_twist(p5_q4K3_sparse_fk_001, q, 1)
+
+        for coeffs in (p5_q4K3_sparse_fk_001, tw, normtw)
+            @test DeRham.picard_rank_bound(coeffs, q) == 14
+            @test DeRham.k3_geometric_picard_rank(coeffs, q) == 14
+            @test DeRham.k3_picard_realization_degree(coeffs, q) == 24
+            @test DeRham.k3_picard_rank(coeffs, q, 1) == 4
+        end
+    end
 end
