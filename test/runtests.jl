@@ -27,6 +27,7 @@ include("Precision.jl")
 end
 
 include("TateTwist.jl")
+include("PointCounts.jl")
 include("PicardRank.jl")
 include("ArtinMazurHeight.jl")
 

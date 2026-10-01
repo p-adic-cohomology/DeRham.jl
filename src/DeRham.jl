@@ -29,6 +29,7 @@ using Oscar:
     exponent_vector,
     factor,
     finish,
+    fraction_field,
     gens,
     grade,
     hom,
@@ -128,9 +129,10 @@ include("./invariants/HasseWittMatrix.jl")
 include("./invariants/aNumber.jl")
 include("./invariants/FrobeniusMatrix.jl")
 include("./invariants/CohomologyBasis.jl")
-include("./invariants/PointCounts.jl")
 include("./invariants/LPolynomial.jl")
 include("./invariants/TateTwist.jl")
+include("./invariants/PointCounts.jl")
+include("./invariants/ZetaFunction.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
 
