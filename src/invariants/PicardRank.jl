@@ -104,3 +104,78 @@ function k3_picard_realization_degree(coeffs::AbstractVector, q)
     orders = _cyclotomic_orders(coeffs, q)
     return isempty(orders) ? 1 : reduce(lcm, keys(orders))
 end
+
+function _check_k3_quartic_fourvar(f)
+    (total_degree(f) == 4 && nvars(parent(f)) == 4) || throw(
+        ArgumentError(
+            "k3_* Picard functions require a quartic surface in 4 variables (a hypersurface in P^3), got degree $(total_degree(f)) in $(nvars(parent(f))) variables",
+        ),
+    )
+end
+
+"""
+    picard_rank_bound(f; kwargs...)
+
+[`picard_rank_bound`](@ref) for the smooth surface in `P^3` defined by the
+homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
+kwargs...)` (with `q` the characteristic of `parent(f)`) and delegating to
+the coefficient method. Returns `false` when `f` is not smooth, matching
+`zeta_coefficients`.
+"""
+function picard_rank_bound(f::MPolyRingElem; kwargs...)
+    q = Int64(characteristic(parent(f)))
+    zf = zeta_coefficients(f; kwargs...)
+    zf == false && return false
+    return picard_rank_bound(zf, q)
+end
+
+"""
+    k3_geometric_picard_rank(f; kwargs...)
+
+[`k3_geometric_picard_rank`](@ref) for the quartic K3 surface in `P^3`
+defined by the homogeneous polynomial `f`, computed by calling
+`zeta_coefficients(f; kwargs...)` (with `q` the characteristic of
+`parent(f)`) and delegating to the coefficient method. Returns `false` when
+`f` is not smooth, matching `zeta_coefficients`.
+"""
+function k3_geometric_picard_rank(f::MPolyRingElem; kwargs...)
+    _check_k3_quartic_fourvar(f)
+    q = Int64(characteristic(parent(f)))
+    zf = zeta_coefficients(f; kwargs...)
+    zf == false && return false
+    return k3_geometric_picard_rank(zf, q)
+end
+
+"""
+    k3_picard_rank(f, k; kwargs...)
+
+[`k3_picard_rank`](@ref) for the quartic K3 surface in `P^3` defined by the
+homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
+kwargs...)` (with `q` the characteristic of `parent(f)`) and delegating to
+the coefficient method. Returns `false` when `f` is not smooth, matching
+`zeta_coefficients`.
+"""
+function k3_picard_rank(f::MPolyRingElem, k; kwargs...)
+    _check_k3_quartic_fourvar(f)
+    q = Int64(characteristic(parent(f)))
+    zf = zeta_coefficients(f; kwargs...)
+    zf == false && return false
+    return k3_picard_rank(zf, q, k)
+end
+
+"""
+    k3_picard_realization_degree(f; kwargs...)
+
+[`k3_picard_realization_degree`](@ref) for the quartic K3 surface in `P^3`
+defined by the homogeneous polynomial `f`, computed by calling
+`zeta_coefficients(f; kwargs...)` (with `q` the characteristic of
+`parent(f)`) and delegating to the coefficient method. Returns `false` when
+`f` is not smooth, matching `zeta_coefficients`.
+"""
+function k3_picard_realization_degree(f::MPolyRingElem; kwargs...)
+    _check_k3_quartic_fourvar(f)
+    q = Int64(characteristic(parent(f)))
+    zf = zeta_coefficients(f; kwargs...)
+    zf == false && return false
+    return k3_picard_realization_degree(zf, q)
+end

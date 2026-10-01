@@ -292,4 +292,25 @@
         @test_throws ArgumentError DeRham.k3_picard_realization_degree(fermat_cubic_p11, 11)
         @test_throws ArgumentError DeRham.k3_picard_rank(fermat_cubic_p11, 11, 1)
     end
+
+    @testset "polynomial wrappers" begin
+        R3, (x1, x2, x3, x4) = polynomial_ring(GF(3), ["x1", "x2", "x3", "x4"])
+        f_fermat3 = x1^4 + x2^4 + x3^4 + x4^4
+
+        @test DeRham.picard_rank_bound(f_fermat3) == 22
+        @test DeRham.k3_geometric_picard_rank(f_fermat3) == 22
+        @test DeRham.k3_picard_realization_degree(f_fermat3) == 2
+        @test DeRham.k3_picard_rank(f_fermat3, 1) == 12
+        @test DeRham.k3_picard_rank(f_fermat3, 2) == 22
+
+        R5, (y1, y2, y3, y4) = polynomial_ring(GF(5), ["x1", "x2", "x3", "x4"])
+        f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
+        @test DeRham.zeta_coefficients(f_nonsmooth) == false
+        @test DeRham.picard_rank_bound(f_nonsmooth) == false
+        @test DeRham.k3_geometric_picard_rank(f_nonsmooth) == false
+
+        @test_throws ArgumentError DeRham.k3_geometric_picard_rank(
+            y1^3 + y2^3 + y3^3 + y4^3,
+        )
+    end
 end
