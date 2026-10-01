@@ -7,6 +7,7 @@ using Oscar:
     MPolyRingElem,
     PadicField,
     QQ,
+    QQFieldElem,
     RingElem,
     ZZ,
     ZZMatrix,
@@ -129,6 +130,7 @@ include("./invariants/FrobeniusMatrix.jl")
 include("./invariants/CohomologyBasis.jl")
 include("./invariants/PointCounts.jl")
 include("./invariants/LPolynomial.jl")
+include("./invariants/TateTwist.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
 

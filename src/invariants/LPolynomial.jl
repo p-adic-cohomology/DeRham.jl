@@ -1,24 +1,34 @@
 """
-    LPolynomial
+    L_polynomial(coeffs; ring = nothing)
 
-    converts the output of zeta_coefficients to an Oscar polynomial
+Builds the L-polynomial as an element of `ZZ[T]` from its descending
+`zeta_coefficients`-style coefficients `coeffs` (`coeffs[i]` is the
+coefficient of `T^(deg + 1 - i)`, where `deg = length(coeffs) - 1`; the
+constant term `coeffs[end]` is `1` for raw input). Uses `ring` (an
+`MPolyRing`/`PolyRing` over `ZZ` or a compatible coefficient ring) if given,
+else constructs a fresh `polynomial_ring(ZZ, "T")`.
 """
-function LPolynomial(zeta_coeffs)
-    P, T = polynomial_ring(ZZ, "T")
-    deg = length(zeta_coeffs) - 1
-    return sum(T^(deg+1-i) * ZZ(zeta_coeffs[i]) for i = 1:(deg+1))
+function L_polynomial(coeffs::AbstractVector; ring = nothing)
+    if ring === nothing
+        P, T = polynomial_ring(ZZ, "T")
+    else
+        P = ring
+        T = gens(P)[1]
+    end
+    deg = length(coeffs) - 1
+    return sum(T^(deg + 1 - i) * ZZ(coeffs[i]) for i = 1:(deg+1))
 end
 
 """
-    boat_shape_Lpoly(coeffs, deg, q)
-Converts the coefficients of the L-polynomial into the boat-shaped L-polynomial, via the change of variable q*P(T/q)
-"""
-function boat_shape_Lpoly(coeffs, deg, q)
-    n = deg + 1
-    coeffs_new = [ZZ(0) for i = 1:n]
-    for i = 1:n
-        coeffs_new[i] = div(q*ZZ(coeffs[i]), ZZ(q)^(n-i))
-    end
+    L_polynomial(f; ring = nothing, kwargs...)
 
-    return coeffs_new
+[`L_polynomial`](@ref) for the smooth hypersurface defined by the
+homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
+kwargs...)` and delegating to the coefficient method. Returns `false` when
+`f` is not smooth, matching `zeta_coefficients`.
+"""
+function L_polynomial(f::MPolyRingElem; ring = nothing, kwargs...)
+    coeffs = zeta_coefficients(f; kwargs...)
+    coeffs == false && return false
+    return L_polynomial(coeffs; ring = ring)
 end

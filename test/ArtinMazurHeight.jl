@@ -23,7 +23,7 @@
         -5,
         1,
     ]
-    boat_p5_sparse = DeRham.boat_shape_Lpoly(p5_q4K3_sparse_fk_001, 21, 5)
+    boat_p5_sparse = DeRham.normalized_tate_twist(p5_q4K3_sparse_fk_001, 5, 1)
     @test boat_p5_sparse[1] == -5
     @test DeRham.artin_mazur_height(p5_q4K3_sparse_fk_001, 5) == 2
     @test DeRham.artin_mazur_height(boat_p5_sparse, 5) == 2
@@ -52,7 +52,7 @@
         55,
         1,
     ]
-    boat_fermat_p13 = DeRham.boat_shape_Lpoly(fermat_quartic_p13, 21, 13)
+    boat_fermat_p13 = DeRham.normalized_tate_twist(fermat_quartic_p13, 13, 1)
     @test DeRham.artin_mazur_height(fermat_quartic_p13, 13) == 1
     @test DeRham.artin_mazur_height(boat_fermat_p13, 13) == 1
 end
