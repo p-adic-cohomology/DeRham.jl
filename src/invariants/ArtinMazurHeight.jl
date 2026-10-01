@@ -4,20 +4,12 @@
 """
 function artin_mazur_height(coeffs, q)
     @assert length(coeffs) == 22
-    if _is_boat_shape(coeffs, q)
-        for i = 2:11
-            if mod(coeffs[i], q) != 0
-                return i-1
-            end
+    raw = _normalize_raw_coefficients(coeffs, q)
+    boatshape_coeffs = normalized_tate_twist(raw, q, 1)
+    for i = 2:11
+        if mod(boatshape_coeffs[i], q) != 0
+            return i - 1
         end
-        return Inf
-    else
-        boatshape_coeffs = boat_shape_Lpoly(coeffs, 21, q)
-        for i = 2:11
-            if mod(boatshape_coeffs[i], q) != 0
-                return i-1
-            end
-        end
-        return Inf
     end
+    return Inf
 end

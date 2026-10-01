@@ -1,5 +1,5 @@
 """
-    LPolynomial(FM, q)
+    zeta_coefficients_from_frobenius(FM, n, q, polygon, relative_precision, verbose)
 
 Given the Frobenius matrix, computes the corresponding L-polynomial det(1-tq^{-1}FM)
 returns an Oscar polynomial if as_poly=true, and the coefficients if as_poly=false
@@ -11,7 +11,7 @@ INPUTS:
 
 """
 
-function LPolynomial(FM, n, q, polygon, relative_precision, verbose)
+function zeta_coefficients_from_frobenius(FM, n, q, polygon, relative_precision, verbose)
     @assert size(FM, 1) == size(FM, 2) "FM is not a square matrix"
 
     P, T = polynomial_ring(ZZ, "T")
@@ -265,9 +265,9 @@ function zeta_coefficients(
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
-        (FM, LPolynomial(FM, n, q, hodge_polygon, r_m, verbose))
+        (FM, zeta_coefficients_from_frobenius(FM, n, q, hodge_polygon, r_m, verbose))
     else
-        LPolynomial(FM, n, q, hodge_polygon, r_m, verbose)
+        zeta_coefficients_from_frobenius(FM, n, q, hodge_polygon, r_m, verbose)
     end
 end
 
