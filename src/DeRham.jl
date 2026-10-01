@@ -88,6 +88,7 @@ include("LinearAlgebraWrappers.jl")
 include("FindMonomialBasis.jl")
 include("SlopesPolygon.jl")
 include("PolynomialWithPole.jl")
+include("SeriesPrecisionDefaults.jl")
 include("PrecisionEstimate.jl")
 include("SmoothNondegenerate.jl")
 
