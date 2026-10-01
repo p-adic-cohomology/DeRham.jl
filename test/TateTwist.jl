@@ -1,15 +1,15 @@
 @testset "L_polynomial and Tate twists" begin
-    # Old LPolynomial(zeta_coeffs) formula, reimplemented here (the function
-    # itself was deleted in favor of L_polynomial): T^(deg+1-i) * coeffs[i].
-    function old_Lpolynomial(coeffs)
+    # The old (now-deleted) public L-polynomial constructor's formula,
+    # reimplemented here: T^(deg+1-i) * coeffs[i].
+    function old_Lpolynomial_formula(coeffs)
         P, T = polynomial_ring(ZZ, "T")
         deg = length(coeffs) - 1
         return sum(T^(deg + 1 - i) * ZZ(coeffs[i]) for i = 1:(deg+1))
     end
 
-    # Old boat_shape_Lpoly(coeffs, deg, q) formula, reimplemented here (the
-    # function itself was deleted in favor of normalized_tate_twist).
-    function old_boat_shape_Lpoly(coeffs, deg, q)
+    # The old (now-deleted) "boat shape" L-polynomial formula, reimplemented
+    # here (superseded by normalized_tate_twist).
+    function old_boat_shape_formula(coeffs, deg, q)
         n = deg + 1
         coeffs_new = [ZZ(0) for i = 1:n]
         for i = 1:n
@@ -60,15 +60,15 @@
 
     @testset "L_polynomial matches the old formula" begin
         for (name, coeffs, q) in examples
-            @test DeRham.L_polynomial(coeffs) == old_Lpolynomial(coeffs)
+            @test DeRham.L_polynomial(coeffs) == old_Lpolynomial_formula(coeffs)
         end
     end
 
-    @testset "normalized_tate_twist(c, q, 1) matches the old boat_shape_Lpoly" begin
+    @testset "normalized_tate_twist(c, q, 1) matches the old boat-shape formula" begin
         for (name, coeffs, q) in examples
             deg = length(coeffs) - 1
             @test DeRham.normalized_tate_twist(coeffs, q, 1) ==
-                  old_boat_shape_Lpoly(coeffs, deg, q)
+                  old_boat_shape_formula(coeffs, deg, q)
         end
     end
 

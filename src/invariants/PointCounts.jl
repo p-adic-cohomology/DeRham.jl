@@ -1,39 +1,3 @@
-
-"""
-Extracts the point counts from the zeta function
-"""
-function pointcount(n, d, zeta, p, q)
-    if n != 2 || d != 3 || q != p
-        error("not implement for anything but elliptic curves")
-    end
-
-
-    # right now this if will always hit but in the future
-    # we will implement this for more general things
-    if n == 2 && d == 3 && q == p
-        #t = gens(parent(zeta))[1]
-        #second_coef = coeff(zeta,1)
-
-        # zeta[2] = -a_p
-        # a_p =  p + 1 - #E(F_p)
-        return zeta[2] + p + 1
-    end
-
-    # MARK - general case
-    #P, t = power_series_ring(ZZ,N,:t)
-
-    #TODO:
-    #
-    # * figure out the formula for the extra terms in the
-    #   zeta function
-    # * evaluate log(zeta) here
-    # * extract the coefficients
-    # * multiply by n
-    # * return the point counts
-
-
-end
-
 """
 Counts points in the most naive way possible
 
@@ -87,70 +51,60 @@ function vp(a, p)
 end
 
 """
-zeta_to_pointcount(Z,n)
+    _power_sums_from_L_polynomial(coeffs, k)
 
-    Returns the first n point counts given the zeta function Z
+Given the raw (`ZZRingElem`) descending coefficients `coeffs` of an
+L-polynomial `P(T) = prod_j (1 - alpha_j T)`, returns `[p_1, ..., p_k]`
+where `p_i = sum_j alpha_j^i` is the `i`-th power sum of the inverse roots
+`alpha_j`, computed via Newton's identities in exact integer arithmetic
+(no division).
 """
-function zeta_to_pointcount(Z, n)
-    zeta_log = log(Z)
-    return [coeff(zeta_log, i) * i for i = 1:n]
+function _power_sums_from_L_polynomial(coeffs::AbstractVector{ZZRingElem}, k::Integer)
+    d = length(coeffs) - 1
+    e(i) = i == 0 ? ZZ(1) : (i <= d ? ((-1)^i) * coeffs[d+1-i] : ZZ(0))
+    p = Vector{ZZRingElem}(undef, k)
+    for kk = 1:k
+        s = ZZ(0)
+        for i = 1:(kk-1)
+            s += (-1)^(i - 1) * e(i) * p[kk-i]
+        end
+        s += (-1)^(kk - 1) * kk * e(kk)
+        p[kk] = s
+    end
+    return p
 end
 
 """
-k3boat_shape_Lpoly_to_pointcount(coeffs, q, n)
-    Returns the first n point counts (up to X(F_q^n)) given the boat-shaped L-polynomial of a K3 surface over F_q
-    Z(X,T) = 1/(1-T)(1-qT)(1-q^2T)q^(-1)L(qT)
+    point_counts(coeffs, q, m, k)
 
-    INPUTS:
-    * "coeffs" -- list, the coefficients of the boat-shaped L-polynomial
-    * "q" -- integer, the cardinality of the base field
-    * "n" -- integer
+Given the raw, [`tate_twist`](@ref) or [`normalized_tate_twist`](@ref)
+descending coefficients `coeffs` of the middle (`H^m`) L-polynomial of a
+smooth `m`-dimensional hypersurface over `F_q`, returns
+`[#X(F_q), #X(F_{q^2}), ..., #X(F_{q^k})]` via
+`#X(F_{q^i}) = sum_{t=0}^{m} q^{t i} + (-1)^m p_i`, where `p_i` is the
+`i`-th power sum of the middle-cohomology Frobenius eigenvalues (Newton
+identities on `coeffs`, in exact integer arithmetic).
 """
-function k3boat_shape_Lpoly_to_pointcount(coeffs, q, n)
-    @assert length(coeffs) == 22
-    @assert (coeffs[1] == q) && ((coeffs[22] == q) || (coeffs[22] == -q))
-
-    R, T = power_series_ring(QQ, max(n+10, 25), :T)
-    L = sum([coeffs[i] * (q*T)^(i-1) for i = 1:22])
-    zeta = q/((1-T) * (1-q*T) * (1-q^2*T) * L)
-    return zeta_to_pointcount(zeta, n)
+function point_counts(coeffs::AbstractVector, q, m::Integer, k::Integer)
+    raw = _normalize_raw_coefficients(coeffs, q)
+    p = _power_sums_from_L_polynomial(raw, k)
+    qq = ZZ(q)
+    return [sum(qq^(t * i) for t = 0:m) + (-1)^m * p[i] for i = 1:k]
 end
 
 """
-k3_Lpoly_to_pointcount(coeffs, q, n)
-    Returns the first n point counts (up to X(F_q^n)) given the L-polynomial of a K3 surface over F_q
-    Z(X,T) = 1/(1-T)(1-qT)(1-q^2T)L(T)
+    point_counts(f, k; kwargs...)
 
-    INPUTS:
-    * "coeffs" -- list, the coefficients of the boat-shaped L-polynomial
-    * "q" -- integer, the cardinality of the base field
-    * "n" -- integer
+[`point_counts`](@ref) for the smooth hypersurface defined by the
+homogeneous polynomial `f` (with `q` the characteristic of `parent(f)` and
+`m = nvars(parent(f)) - 2` its dimension), computed by calling
+`zeta_coefficients(f; kwargs...)` and delegating to the coefficient method.
+Returns `false` when `f` is not smooth, matching `zeta_coefficients`.
 """
-function k3_Lpoly_to_pointcount(coeffs, q, n)
-    @assert length(coeffs) == 22
-    @assert coeffs[22] == 1
-
-    R, T = power_series_ring(QQ, max(n+10, 25), :T)
-    L = sum([coeffs[i] * T^(22-i) for i = 1:22])
-    zeta = 1/((1-T) * (1-q*T) * (1-q^2*T) * L)
-    return zeta_to_pointcount(zeta, n)
-end
-
-
-"""
-curve_Lpoly_to_pointcount(coeffs, q, n)
-    Returns the first n point counts (up to X(F_q^n)) given the L-polynomial of a curve X
-    Z(X,T) = L/(1-T)(1-qT)
-
-    INPUTS:
-    * "coeffs" -- list, the coefficients of the boat-shaped L-polynomial
-    * "q" -- integer, the cardinality of the base field
-    * "n" -- integer
-"""
-function curve_Lpoly_to_pointcount(coeffs, q, n)
-    R, T = power_series_ring(QQ, max(n+10, length(coeffs)+1), :T)
-    d = length(coeffs)
-    L = sum([coeffs[i] * T^(d-i) for i = 1:d])
-    zeta = L/((1-T) * (1-q*T))
-    return zeta_to_pointcount(zeta, n)
+function point_counts(f::MPolyRingElem, k::Integer; kwargs...)
+    q = Int64(characteristic(parent(f)))
+    m = nvars(parent(f)) - 2
+    coeffs = zeta_coefficients(f; kwargs...)
+    coeffs == false && return false
+    return point_counts(coeffs, q, m, k)
 end
