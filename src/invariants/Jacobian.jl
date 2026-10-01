@@ -80,7 +80,8 @@ function _jacobian_wedge_charpolys(coeffs::AbstractVector, q; ring = nothing)
     max_d_i = maximum(binomial(d, i) for i = 0:d)
     p = _power_sums_from_L_polynomial(raw, d * max_d_i)
 
-    e_by_k = [_elementary_symmetric_from_power_sums([p[k*t] for t = 1:d], d) for k = 1:max_d_i]
+    e_by_k =
+        [_elementary_symmetric_from_power_sums([p[k*t] for t = 1:d], d) for k = 1:max_d_i]
 
     P = ring === nothing ? polynomial_ring(ZZ, "T")[1] : ring
     return [

@@ -43,7 +43,8 @@ end
     end
 
     @testset "twisted-input round trip (point counts)" begin
-        for (coeffs, q, g) in [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
+        for (coeffs, q, g) in
+            [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
             tw = DeRham.tate_twist(coeffs, q)
             normtw = DeRham.normalized_tate_twist(coeffs, q, g)
 
@@ -62,7 +63,8 @@ end
 
     @testset "deg P_i == binomial(2g, i), and P_0 = 1 - T" begin
         P, T = polynomial_ring(ZZ, "T")
-        for (coeffs, q, g) in [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
+        for (coeffs, q, g) in
+            [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
             P_list = DeRham._jacobian_wedge_charpolys(coeffs, q; ring = P)
             @test [degree(Pi) for Pi in P_list] == [binomial(2g, i) for i = 0:2g]
             @test P_list[1] == 1 - T
@@ -82,7 +84,8 @@ end
     end
 
     @testset "twisted-input round trip (zeta function)" begin
-        for (coeffs, q, g) in [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
+        for (coeffs, q, g) in
+            [(curve_coeffs, q_curve, 1), (coeffs_g2, q_g2, 2), (coeffs_g3, q_g3, 3)]
             tw = DeRham.tate_twist(coeffs, q)
             normtw = DeRham.normalized_tate_twist(coeffs, q, g)
 
