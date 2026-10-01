@@ -14,8 +14,7 @@
         @test DeRham.a_number(FM, h) == DeRham.a_number(f)
     end
 
-    @testset "pinned regression values" begin
-        # y^2 z - x^3 - x z^2 - z^3 over F_7 is ordinary: a_7 = 3 (coprime to 7).
+    @testset "pinned regression values (the curve is ordinary: a_7 = 3, coprime to 7)" begin
         @test DeRham.hasse_witt_matrix(f) == matrix(GF(7), [3;;])
         @test DeRham.a_number(f) == 0
     end

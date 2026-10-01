@@ -86,8 +86,10 @@ end
     @testset "point_counts(f, k) matches naive point counting" begin
         @test DeRham.point_counts(f_curve, 1) ==
               [DeRham.naivelypointcount(f_curve, q_curve)[2]]
-        @test DeRham.point_counts(f_curve, 2) ==
-              [naive_count_over_extension(f_curve, 1), naive_count_over_extension(f_curve, 2)]
+        @test DeRham.point_counts(f_curve, 2) == [
+            naive_count_over_extension(f_curve, 1),
+            naive_count_over_extension(f_curve, 2),
+        ]
     end
 
     @testset "zeta_function log-derivative identity matches point_counts" begin

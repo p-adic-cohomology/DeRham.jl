@@ -41,7 +41,8 @@ primitive-`H^2` L-polynomial (from `zeta_coefficients`, with the `+1` below
 accounting for the hyperplane class) has coefficients `coeffs` over `F_q`:
 `1` plus the degree of the cyclotomic part of `L(T/q)`. This is an upper
 bound for the Picard rank in general, with equality under the Tate
-conjecture. `coeffs` may be raw or boat-shape zeta coefficients.
+conjecture. `coeffs` may be raw, `tate_twist` or `normalized_tate_twist`
+zeta coefficients ([`_normalize_raw_coefficients`](@ref) decides).
 """
 function picard_rank_bound(coeffs::AbstractVector, q)
     orders = _cyclotomic_orders(coeffs, q)
@@ -55,8 +56,8 @@ Geometric Picard rank of a quartic K3 surface whose primitive-`H^2`
 L-polynomial (from `zeta_coefficients`, with the `+1` below accounting for
 the hyperplane class) has coefficients `coeffs` over `F_q`. Unlike
 [`picard_rank_bound`](@ref), this is exact because the Tate conjecture is
-known for K3 surfaces over finite fields. `coeffs` may be raw or boat-shape
-zeta coefficients and must have length 22.
+known for K3 surfaces over finite fields. `coeffs` may be raw, `tate_twist`
+or `normalized_tate_twist` zeta coefficients and must have length 22.
 """
 function k3_geometric_picard_rank(coeffs::AbstractVector, q)
     _check_k3_length(coeffs)
@@ -71,7 +72,8 @@ L-polynomial (from `zeta_coefficients`, with the `+1` below accounting for
 the hyperplane class) coefficients `coeffs` over `F_q`: `1` plus the degree
 of the cyclotomic factors of `L(T/q)` whose order divides `k`. Exact because
 the Tate conjecture is known for K3 surfaces over finite fields. `coeffs` may
-be raw or boat-shape zeta coefficients and must have length 22.
+be raw, `tate_twist` or `normalized_tate_twist` zeta coefficients and must
+have length 22.
 """
 function k3_picard_rank(coeffs::AbstractVector, q, k)
     _check_k3_length(coeffs)
@@ -85,8 +87,8 @@ end
 Least `k` such that the Picard rank of the quartic K3 surface over
 `F_{q^k}` (see [`k3_picard_rank`](@ref)) equals its geometric Picard rank
 (see [`k3_geometric_picard_rank`](@ref)): the lcm of the cyclotomic orders
-present in `L(T/q)`, or `1` if none are. `coeffs` may be raw or boat-shape
-zeta coefficients and must have length 22.
+present in `L(T/q)`, or `1` if none are. `coeffs` may be raw, `tate_twist`
+or `normalized_tate_twist` zeta coefficients and must have length 22.
 """
 function k3_picard_realization_degree(coeffs::AbstractVector, q)
     _check_k3_length(coeffs)

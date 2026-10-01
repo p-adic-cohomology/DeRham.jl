@@ -1,6 +1,11 @@
 """
-    artin_mazur_height
-    computes the Artin-Mazur height of a quartic K3 surface given the coefficients of its L-polynomial
+    artin_mazur_height(coeffs, q)
+
+Computes the Artin-Mazur height of a quartic K3 surface given the
+coefficients `coeffs` of its primitive-`H^2` L-polynomial over `F_q`.
+`coeffs` may be raw, `tate_twist` or `normalized_tate_twist` zeta
+coefficients ([`_normalize_raw_coefficients`](@ref) decides) and must have
+length 22.
 """
 function artin_mazur_height(coeffs, q)
     @assert length(coeffs) == 22
