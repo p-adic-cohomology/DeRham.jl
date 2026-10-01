@@ -1,14 +1,18 @@
 @testset "L_polynomial and Tate twists" begin
-    # The old (now-deleted) public L-polynomial constructor's formula,
-    # reimplemented here: T^(deg+1-i) * coeffs[i].
+    """
+    The old (now-deleted) public L-polynomial constructor's formula,
+    reimplemented here: T^(deg+1-i) * coeffs[i].
+    """
     function old_Lpolynomial_formula(coeffs)
         P, T = polynomial_ring(ZZ, "T")
         deg = length(coeffs) - 1
         return sum(T^(deg + 1 - i) * ZZ(coeffs[i]) for i = 1:(deg+1))
     end
 
-    # The old (now-deleted) "boat shape" L-polynomial formula, reimplemented
-    # here (superseded by normalized_tate_twist).
+    """
+    The old (now-deleted) "boat shape" L-polynomial formula, reimplemented
+    here (superseded by normalized_tate_twist).
+    """
     function old_boat_shape_formula(coeffs, deg, q)
         n = deg + 1
         coeffs_new = [ZZ(0) for i = 1:n]

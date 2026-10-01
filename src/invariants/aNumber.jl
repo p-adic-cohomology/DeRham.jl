@@ -35,7 +35,8 @@ function a_number(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     g = hodge_numbers[1]
 
-    FM = frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
+    FM =
+        frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
 
     a_number(FM, g)
 end
