@@ -38,11 +38,6 @@ jobs:
 
       - uses: julia-actions/cache@v2
 
-      - name: Clone GPUFiniteFieldMatrices
-        shell: bash
-        run: |
-          git clone --depth 1 --branch main https://github.com/UCSD-computational-number-theory/GPUFiniteFieldMatrices.jl.git ../GPUFiniteFieldMatrices.jl
-
       - name: Instantiate project
         shell: bash
         run: |

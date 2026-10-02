@@ -15,7 +15,7 @@ OhMyThreads = "67456a42-1dca-4109-a031-0a68de7e3ad5"
 Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 
 [sources]
-GPUFiniteFieldMatrices = {url = "https://github.com/UCSD-computational-number-theory/GPUFiniteFieldMatrices.jl.git"}
+GPUFiniteFieldMatrices = {url = "https://github.com/UCSD-computational-number-theory/GPUFiniteFieldMatrices.jl.git", rev = "v0.3.1"}
 
 [compat]
 BitIntegers = "0.3.7"
