@@ -134,6 +134,7 @@ include("./invariants/PointCounts.jl")
 include("./invariants/ZetaFunction.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
+include("./invariants/Jacobian.jl")
 
 
 # TODO: export Zeta Function functions

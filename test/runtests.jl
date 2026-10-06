@@ -33,6 +33,7 @@ include("NewtonPolygon.jl")
 include("HasseWitt.jl")
 include("PicardRank.jl")
 include("ArtinMazurHeight.jl")
+include("Jacobian.jl")
 
 # Declarative E2E catalogue (test/e2e/) — see test/e2e/README.md. Bare
 # Pkg.test() runs conventional tests above plus the ci E2E workflow;
