@@ -4,6 +4,7 @@ using Oscar:
     Oscar,
     GF,
     MPolyBuildCtx,
+    MPolyRingElem,
     PadicField,
     QQ,
     RingElem,
@@ -22,6 +23,7 @@ using Oscar:
     data,
     derivative,
     divexact,
+    euler_phi,
     evaluate,
     exponent_vector,
     factor,
@@ -31,8 +33,10 @@ using Oscar:
     hom,
     homogenizer,
     ideal,
+    is_cyclotomic_polynomial_with_data,
     is_prime,
     is_smooth,
+    leading_coefficient,
     lift,
     map_coefficients,
     map_entries,
@@ -125,6 +129,7 @@ include("./invariants/FrobeniusMatrix.jl")
 include("./invariants/CohomologyBasis.jl")
 include("./invariants/PointCounts.jl")
 include("./invariants/LPolynomial.jl")
+include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
 
 
