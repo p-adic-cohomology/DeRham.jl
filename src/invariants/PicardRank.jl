@@ -1,30 +1,19 @@
 """
-    _is_boat_shape(coeffs, q)
-
-Decides whether `coeffs` is already boat-shape L-polynomial data (`q*P(T/q)`,
-trailing coefficient `q`) rather than raw `zeta_coefficients` output (trailing
-coefficient `1`, since the raw L-polynomial is always monic-at-the-constant-term).
-"""
-function _is_boat_shape(coeffs, q)
-    return coeffs[end] == q
-end
-
-"""
     _cyclotomic_orders(coeffs, q)
 
 Factors the boat-shape L-polynomial `q*P(T/q)` over `QQ` and returns a
 `Dict{Int,Int}` mapping each cyclotomic order `m` found among its roots to the
 multiplicity of `Phi_m` in the factorization; non-cyclotomic irreducible
-factors are ignored. `coeffs` may be raw or boat-shape zeta coefficients
-(`_is_boat_shape` decides, normalizing raw input to boat shape first). Built
-on Oscar/Hecke's `is_cyclotomic_polynomial_with_data` applied to the monic
-form of each irreducible factor.
+factors are ignored. `coeffs` may be raw, `tate_twist` or
+`normalized_tate_twist` zeta coefficients ([`_normalize_raw_coefficients`](@ref)
+decides). Built on Oscar/Hecke's `is_cyclotomic_polynomial_with_data` applied
+to the monic form of each irreducible factor.
 """
 function _cyclotomic_orders(coeffs, q)
-    n = length(coeffs)
-    bshape = _is_boat_shape(coeffs, q) ? coeffs : boat_shape_Lpoly(coeffs, n - 1, q)
+    raw = _normalize_raw_coefficients(coeffs, q)
+    bshape = normalized_tate_twist(raw, q, 1)
     Qx, Tq = polynomial_ring(QQ, "T")
-    poly = sum(Tq^(n - i) * Qx(bshape[i]) for i = 1:n)
+    poly = L_polynomial(bshape; ring = Qx)
     orders = Dict{Int,Int}()
     for (fac, mult) in factor(poly)
         monic = fac * inv(leading_coefficient(fac))
@@ -52,7 +41,8 @@ primitive-`H^2` L-polynomial (from `zeta_coefficients`, with the `+1` below
 accounting for the hyperplane class) has coefficients `coeffs` over `F_q`:
 `1` plus the degree of the cyclotomic part of `L(T/q)`. This is an upper
 bound for the Picard rank in general, with equality under the Tate
-conjecture. `coeffs` may be raw or boat-shape zeta coefficients.
+conjecture. `coeffs` may be raw, `tate_twist` or `normalized_tate_twist`
+zeta coefficients ([`_normalize_raw_coefficients`](@ref) decides).
 """
 function picard_rank_bound(coeffs::AbstractVector, q)
     orders = _cyclotomic_orders(coeffs, q)
@@ -66,8 +56,8 @@ Geometric Picard rank of a quartic K3 surface whose primitive-`H^2`
 L-polynomial (from `zeta_coefficients`, with the `+1` below accounting for
 the hyperplane class) has coefficients `coeffs` over `F_q`. Unlike
 [`picard_rank_bound`](@ref), this is exact because the Tate conjecture is
-known for K3 surfaces over finite fields. `coeffs` may be raw or boat-shape
-zeta coefficients and must have length 22.
+known for K3 surfaces over finite fields. `coeffs` may be raw, `tate_twist`
+or `normalized_tate_twist` zeta coefficients and must have length 22.
 """
 function k3_geometric_picard_rank(coeffs::AbstractVector, q)
     _check_k3_length(coeffs)
@@ -82,7 +72,8 @@ L-polynomial (from `zeta_coefficients`, with the `+1` below accounting for
 the hyperplane class) coefficients `coeffs` over `F_q`: `1` plus the degree
 of the cyclotomic factors of `L(T/q)` whose order divides `k`. Exact because
 the Tate conjecture is known for K3 surfaces over finite fields. `coeffs` may
-be raw or boat-shape zeta coefficients and must have length 22.
+be raw, `tate_twist` or `normalized_tate_twist` zeta coefficients and must
+have length 22.
 """
 function k3_picard_rank(coeffs::AbstractVector, q, k)
     _check_k3_length(coeffs)
@@ -96,8 +87,8 @@ end
 Least `k` such that the Picard rank of the quartic K3 surface over
 `F_{q^k}` (see [`k3_picard_rank`](@ref)) equals its geometric Picard rank
 (see [`k3_geometric_picard_rank`](@ref)): the lcm of the cyclotomic orders
-present in `L(T/q)`, or `1` if none are. `coeffs` may be raw or boat-shape
-zeta coefficients and must have length 22.
+present in `L(T/q)`, or `1` if none are. `coeffs` may be raw, `tate_twist`
+or `normalized_tate_twist` zeta coefficients and must have length 22.
 """
 function k3_picard_realization_degree(coeffs::AbstractVector, q)
     _check_k3_length(coeffs)

@@ -1,11 +1,4 @@
 @testset "Picard rank" begin
-    @testset "_is_boat_shape" begin
-        @test DeRham._is_boat_shape([1, 2, 5], 5) == true
-        @test DeRham._is_boat_shape([1, 2, 7], 5) == false
-        @test DeRham._is_boat_shape([5, 2, 1], 5) == false
-        @test DeRham._is_boat_shape([-5, 2, 5], 5) == true
-    end
-
     @testset "_cyclotomic_orders" begin
         fermat_cubic_p11 = [-1771561, 0, 43923, 0, -363, 0, 1]
         @test DeRham._cyclotomic_orders(fermat_cubic_p11, 11) == Dict(1 => 3, 2 => 3)
@@ -36,7 +29,7 @@
         ]
         @test DeRham._cyclotomic_orders(p5_q4K3_dense_001, 5) == Dict(1 => 1)
 
-        boat_shape_p5_dense = DeRham.boat_shape_Lpoly(p5_q4K3_dense_001, 21, 5)
+        boat_shape_p5_dense = DeRham.normalized_tate_twist(p5_q4K3_dense_001, 5, 1)
         @test DeRham._cyclotomic_orders(boat_shape_p5_dense, 5) == Dict(1 => 1)
     end
 
@@ -162,7 +155,7 @@
             @test DeRham.k3_picard_rank(p5_q4K3_sparse_fk_001, q_sparse, k) == rk
         end
 
-        boat_sparse = DeRham.boat_shape_Lpoly(p5_q4K3_sparse_fk_001, 21, q_sparse)
+        boat_sparse = DeRham.normalized_tate_twist(p5_q4K3_sparse_fk_001, q_sparse, 1)
         @test boat_sparse[1] == -5
         @test DeRham.k3_geometric_picard_rank(boat_sparse, q_sparse) == 14
         @test DeRham.k3_picard_realization_degree(boat_sparse, q_sparse) == 24
@@ -312,5 +305,42 @@
         @test_throws ArgumentError DeRham.k3_geometric_picard_rank(
             y1^3 + y2^3 + y3^3 + y4^3,
         )
+    end
+
+    @testset "twisted-input round trip" begin
+        q, p5_q4K3_sparse_fk_001 = 5,
+        [
+            -476837158203125,
+            95367431640625,
+            15258789062500,
+            -6103515625000,
+            305175781250,
+            61035156250,
+            36621093750,
+            -7324218750,
+            -1220703125,
+            439453125,
+            0,
+            0,
+            -3515625,
+            390625,
+            93750,
+            -18750,
+            -1250,
+            -250,
+            200,
+            -20,
+            -5,
+            1,
+        ]
+        tw = DeRham.tate_twist(p5_q4K3_sparse_fk_001, q)
+        normtw = DeRham.normalized_tate_twist(p5_q4K3_sparse_fk_001, q, 1)
+
+        for coeffs in (p5_q4K3_sparse_fk_001, tw, normtw)
+            @test DeRham.picard_rank_bound(coeffs, q) == 14
+            @test DeRham.k3_geometric_picard_rank(coeffs, q) == 14
+            @test DeRham.k3_picard_realization_degree(coeffs, q) == 24
+            @test DeRham.k3_picard_rank(coeffs, q, 1) == 4
+        end
     end
 end
