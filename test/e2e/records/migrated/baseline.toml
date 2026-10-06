@@ -102,3 +102,10 @@ type = "zeta_coefficients"
 runtime = 150.0
 example = "vanishing_4"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "baseline__dim_1_deg_5_failing_r5"
+type = "zeta_coefficients"
+runtime = 0.5
+example = "dim_1_deg_5_failing_r5"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
