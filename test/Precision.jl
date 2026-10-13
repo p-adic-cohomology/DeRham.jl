@@ -23,5 +23,13 @@ function test_hodge_polygon_examples()
 
     f = x^4 + y^4 + z^4 + w^4
 
-    @test DeRham.hodgepolygon(f) == DeRham.SlopesPolygon([1, 19, 1])
+    @test DeRham.hodge_polygon(f) == DeRham.SlopesPolygon([1, 19, 1])
+end
+
+function test_hodge_polygon_data_form_matches_f_form()
+    p = 11
+    for (n, d) in [(2, 3), (3, 3), (2, 4), (3, 4)]
+        f = DeRham.fermat_hypersurface(n + 1, d, p)
+        @test DeRham.hodge_polygon(n, d) == DeRham.hodge_polygon(f)
+    end
 end

@@ -151,13 +151,6 @@ function SlopesPolygon(coefficients, valuation)
     SlopesPolygon(collect(0:n), reverse!(valuation.(coefficients)))
 end
 
-
-function newton_polygon(p, coeffs)
-    padic_val = x -> x == 0 ? typemax(Int64) : valuation(x, p) # TODO: make this correct
-
-    SlopesPolygon(coeffs, padic_val)
-end
-
 # MARK - creating polygons from other polygons
 
 tatetwist(sp::SlopesPolygon, n) = SlopesPolygon(sp.slopes .- n, sp.slopelengths, nothing)

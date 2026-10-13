@@ -3,11 +3,12 @@ module DeRham
 using Oscar:
     Oscar,
     GF,
+    MatElem,
     MPolyBuildCtx,
     MPolyRingElem,
     PadicField,
     QQ,
-    RingElem,
+    QQFieldElem,
     ZZ,
     ZZMatrix,
     ZZModMatrix,
@@ -28,6 +29,7 @@ using Oscar:
     exponent_vector,
     factor,
     finish,
+    fraction_field,
     gens,
     grade,
     hom,
@@ -48,7 +50,6 @@ using Oscar:
     number_of_rows,
     nvars,
     polynomial_ring,
-    power_series_ring,
     proj,
     push_term!,
     quo,
@@ -127,8 +128,10 @@ include("./invariants/HasseWittMatrix.jl")
 include("./invariants/aNumber.jl")
 include("./invariants/FrobeniusMatrix.jl")
 include("./invariants/CohomologyBasis.jl")
-include("./invariants/PointCounts.jl")
 include("./invariants/LPolynomial.jl")
+include("./invariants/TateTwist.jl")
+include("./invariants/PointCounts.jl")
+include("./invariants/ZetaFunction.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
 
