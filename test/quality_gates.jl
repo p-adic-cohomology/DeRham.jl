@@ -5,6 +5,50 @@ using Test
 using Aqua
 using ExplicitImports
 
+module DeRhamOscarExportCheck
+    using DeRham, Oscar
+end
+
+@testset "public API and Oscar exports" begin
+    expected_exports = Set([
+        :zeta_coefficients,
+        :zeta_coefficients_with_precision,
+        :frobenius_matrix_with_precision,
+        :zeta_function,
+        :L_polynomial,
+        :point_counts,
+        :newton_polygon,
+        :hodge_polygon,
+        :hasse_witt_matrix,
+        :a_number,
+        :picard_rank_bound,
+        :k3_geometric_picard_rank,
+        :k3_picard_rank,
+        :k3_picard_realization_degree,
+        :artin_mazur_height,
+        :jacobian_zeta_coefficients,
+        :jacobian_point_counts,
+        :jacobian_zeta_function,
+    ])
+    expected_public = Set([
+        :fermat_hypersurface,
+        :random_hypersurface,
+        :check_smoothness,
+        :SlopesPolygon,
+        :tate_twist,
+        :tate_untwist,
+        :normalized_tate_twist,
+    ])
+
+    @test Set(names(DeRham)) == union(expected_exports, Set([:DeRham]))
+    for name in expected_exports
+        @test isdefined(DeRhamOscarExportCheck, name) &&
+              parentmodule(getfield(DeRhamOscarExportCheck, name)) === DeRham
+    end
+    @test all(Base.ispublic(DeRham, name) for name in expected_public)
+    @test isempty(intersect(Set(names(DeRham)), expected_public))
+end
+
 @testset "quality gates — DeRham" begin
     M = DeRham
 

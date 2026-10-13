@@ -24,34 +24,29 @@ end
 
 
 """
-    zeta_coefficients(f; verbose=false, givefrobmat=false, algorithm=:costachunks, termorder=:invlex, vars_reversed=true)
+    zeta_coefficients(f; S=[-1], verbose=0, changef=true, givefrobmat=false,
+                      algorithm=:default, use_gpu=false, use_threads=false)
 
+Computes zeta coefficients for the projective hypersurface defined by the
+homogeneous Oscar polynomial `f`.
 
-Wrapper function that outputs the zeta function of
-the projective hypersurface defined by `f`.
+Keyword arguments:
+- `S=[-1]`: controls the S-smooth model used by the reduction; the default
+  sentinel expands to all indices `0:n`.
+- `verbose=0`: controls diagnostic output; zero prints nothing and larger
+  values print progressively more detail.
+- `changef=true`: whether to try a random change of variables when needed to
+  find an S-smooth model.
+- `givefrobmat=false`: if true, also returns the computed Frobenius matrix.
+- `algorithm=:default`: selects the controlled-reduction algorithm; `:default`
+  chooses automatically.
+- `use_gpu=false`: enables GPU execution for supported operations.
+- `use_threads=false`: enables threaded execution for supported operations.
 
-INPUTS:
-* "f" -- Oscar polynomial (should be homogeneous)
-
-KEYWORD ARGUMENTS:
-verbose -- prints various diagnostic statements based on the level
-    verbose levels are by convention a number between 0 and 10.
-    0: print nothing
-    1: print basic diagnostic info only
-    2-9: TBD (To be determined/documented)
-    2: more basic diagnostic info
-    3: print the output of controlled reduction
-    5: print out the u and v information in controlled reduction
-    6: print the value of g at each step of reduction
-    7: print out one of the R_uv matrices (you might need to modify the print statement to fit your example right now)
-    10: print anything that we might consider useful
-givefrobmat -- should the funciton also output the appoximated frobenius matrix
-algorithm -- the algorithm used for controlled reduction
-termorder -- the term ordering that should be used in vector representations
-fastevaluation -- should the algorithm use fast evaluation?
->>>if you don't know what this is, ignore it.
-vars_reversed -- reverses the order of basis vectors at various places
->>>if you don't know what this is, ignore it.
+The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
+`context`, and `precision_info` keywords are internal or experimental and
+may change. Their current defaults are `:invlex`, `false`, `true`, `false`,
+`nothing`, and `nothing`, respectively.
 
 """
 function zeta_coefficients(
