@@ -4,7 +4,7 @@
 """
 function artin_mazur_height(coeffs, q)
     @assert length(coeffs) == 22
-    if (coeffs[1] == q) && (coeffs[22] == q) # if the L-polynomial is in the boat shape format
+    if _is_boat_shape(coeffs, q)
         for i = 2:11
             if mod(coeffs[i], q) != 0
                 return i-1

@@ -26,6 +26,9 @@ include("Precision.jl")
 
 end
 
+include("PicardRank.jl")
+include("ArtinMazurHeight.jl")
+
 # Declarative E2E catalogue (test/e2e/) — see test/e2e/README.md. Bare
 # Pkg.test() runs conventional tests above plus the ci E2E workflow;
 # test_args (--workflow=/--name=/--tag=) select only within the E2E suite.
