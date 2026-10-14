@@ -6,7 +6,7 @@ using Aqua
 using ExplicitImports
 
 module DeRhamOscarExportCheck
-    using DeRham, Oscar
+using DeRham, Oscar
 end
 
 @testset "public API and Oscar exports" begin
@@ -40,13 +40,14 @@ end
         :normalized_tate_twist,
     ])
 
-    @test Set(names(DeRham)) == union(expected_exports, Set([:DeRham]))
+    exported = Set(filter(name -> Base.isexported(DeRham, name), names(DeRham)))
+    @test setdiff(exported, Set([:DeRham])) == expected_exports
     for name in expected_exports
         @test isdefined(DeRhamOscarExportCheck, name) &&
               parentmodule(getfield(DeRhamOscarExportCheck, name)) === DeRham
     end
     @test all(Base.ispublic(DeRham, name) for name in expected_public)
-    @test isempty(intersect(Set(names(DeRham)), expected_public))
+    @test !any(Base.isexported(DeRham, name) for name in expected_public)
 end
 
 @testset "quality gates — DeRham" begin
