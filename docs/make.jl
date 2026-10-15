@@ -12,7 +12,7 @@ function readme_examples()
     return strip(examples[1])
 end
 
-template = read(joinpath(@__DIR__, "src", "getting_started.template.md"), String)
+template = read(joinpath(@__DIR__, "templates", "getting_started.md"), String)
 generated = joinpath(@__DIR__, "src", "getting_started.md")
 write(generated, string(rstrip(template), "\n\n## Options\n\n", readme_examples(), "\n"))
 
