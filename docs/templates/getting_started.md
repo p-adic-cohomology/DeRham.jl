@@ -53,4 +53,23 @@ Please ensure that you're using the latest version of both Julia and Oscar. If t
 
 ## First computation
 
-TODO: T3a will add a doctested Fermat example after the exports land in T2.
+Build the Fermat cubic `x^3 + y^3 + z^3 = 0` over `GF(7)`, then compute its
+middle-cohomology L-polynomial coefficients and zeta function:
+
+```jldoctest
+julia> using DeRham, Oscar
+
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> coeffs = zeta_coefficients(f)
+3-element Vector{ZZRingElem}:
+ 7
+ 1
+ 1
+
+julia> L_polynomial(coeffs)
+7*T^2 + T + 1
+
+julia> zeta_function(coeffs, 7, 1)
+(7*T^2 + T + 1)//(7*T^2 - 8*T + 1)
+```

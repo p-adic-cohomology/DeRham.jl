@@ -1,7 +1,24 @@
 """
     a_number(FM, h)
 
-`a_number(FM, h) = h - rank(hasse_witt_matrix(FM, h))`.
+For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
+matrix: `h - rank(hasse_witt_matrix(FM, h))`.
+
+- `FM`: Frobenius matrix computed at relative precision 1.
+- `h`: genus of the curve.
+
+Returns the curve's a-number as an integer.
+
+If you already have a Frobenius matrix, pass it with the curve's genus:
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 5);
+
+julia> FM = DeRham.frobenius_matrix_with_precision(f, [1, 0]);
+
+julia> DeRham.a_number(FM, 1)
+1
+```
 """
 function a_number(FM::MatElem, h::Integer)
     return h - rank(hasse_witt_matrix(FM, h))
@@ -10,10 +27,25 @@ end
 """
     a_number(f; verbose = 0, kwargs...)
 
-[`a_number`](@ref) for the smooth curve defined by the homogeneous
-polynomial `f`, computed via `frobenius_matrix_with_precision(f, r_m;
-kwargs...)` (precision `r_m = [1, 0, ..., 0]`) and delegating to the matrix
-method. Only supported for curves.
+Computes the a-number of the smooth plane curve defined by the homogeneous
+polynomial `f`, via its Hasse-Witt matrix. This method is currently supported
+only for curves.
+
+- `f`: homogeneous polynomial in three variables defining the curve.
+- `verbose`: diagnostic verbosity forwarded to the Frobenius computation.
+- `kwargs...`: additional keywords forwarded to
+  [`frobenius_matrix_with_precision`](@ref) and its coefficient computation.
+
+Returns the curve's a-number as an integer.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 5);
+
+julia> DeRham.a_number(f)
+1
+```
 """
 function a_number(f::MPolyRingElem; verbose = 0, kwargs...)
     n = nvars(parent(f)) - 1
