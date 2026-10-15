@@ -1,14 +1,24 @@
 # DeRham.jl
 
-[![CI](https://github.com/p-adic-cohomology/DeRham.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/p-adic-cohomology/DeRham.jl/actions/workflows/CI.yml)
-[![Documentation (dev)](https://img.shields.io/badge/docs-dev-blue.svg)](https://p-adic-cohomology.github.io/DeRham.jl/dev/)
+[![CI](https://github.com/UCSD-computational-number-theory/DeRham.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/UCSD-computational-number-theory/DeRham.jl/actions/workflows/CI.yml)
 
-DeRham.jl is research software in development for computing point counts and
-cohomological invariants of algebraic varieties over finite fields. See the
-[development documentation](https://p-adic-cohomology.github.io/DeRham.jl/dev/)
-or [stable documentation](https://p-adic-cohomology.github.io/DeRham.jl/stable/)
-for an overview, and [Getting started](https://p-adic-cohomology.github.io/DeRham.jl/dev/getting_started/)
-for installation instructions. Contributions and feedback are welcome.
+This package aims to implement cutting-edge algorithms that calculate
+
+- point counts of equations mod $p$ (algebraic varieties over $\mathbb{F}_p$)
+- the cohomology of algebraic varieties
+- the extra structure on this cohomology
+
+Long term goals include having fast versions of all the various forms of Kedlaya's algorithm, Harvey's algorithm, Harvey's Trace Formula, Moonen's algorithm, etc.
+
+**This package is work-in-progress research software.** It may have rough edges. PRs and contributions are welcome.
+
+## Current functionality
+
+We currently implement a variant of Kedlaya's algorithm that computes the zeta functions (and consequently the newton polygons) of smooth projective hypersurfaces of degree $d$ over $\mathbb{F}_p$ (for $p\nmid d$) using a method known as controlled reduction, see Proposition 1.15 [here](https://edgarcosta.org/assets/articles/EdgarCosta-PhDthesis.pdf).
+
+## Getting Started
+
+See [Getting started](https://p-adic-cohomology.github.io/DeRham.jl/dev/getting_started/) in the documentation for installation instructions.
 
 ## Sample code
 
@@ -84,6 +94,6 @@ DeRham.zeta_coefficients(f, use_threads=true)
 Simultaneous use of `use_gpu=true` and `use_threads=true` is not currently supported.
 <!-- /examples -->
 
-## Citing
+## Citing Our Work
 
-If you use this package in published research, please cite [*Newton strata realization for hypersurfaces via explicit p-adic cohomology*](https://arxiv.org/abs/2602.24155) by Ryan Batubara, Jack J. Garzella, Yongyuan Huang, and Maximus Mellberg (arXiv:2602.24155, 2026).
+You are welcome to use the code in this repository for your own research, but we ask that you please cite our paper [Newton strata realization for hypersurfaces via explicit p-adic cohomology](https://arxiv.org/abs/2602.24155) (by Ryan Batubara, Jack J Garzella, Yongyuan Huang, and Maximus Mellberg, arxiv:2602.24155 (2026)) if and when you publish your results.
