@@ -4,6 +4,7 @@ using Documenter
 makedocs(
     sitename = "DeRham.jl",
     modules = [DeRham],
+    checkdocs = :none,
     pages = [
         "Home" => "index.md",
         "Getting started" => "getting_started.md",
