@@ -5,10 +5,7 @@ makedocs(
     sitename = "DeRham.jl",
     modules = [DeRham],
     checkdocs = :none,
-    pages = [
-        "Home" => "index.md",
-        "Getting started" => "getting_started.md",
-    ],
+    pages = ["Home" => "index.md", "Getting started" => "getting_started.md"],
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", "false") == "true",
         edit_link = "main",
