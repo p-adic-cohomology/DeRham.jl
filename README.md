@@ -1,6 +1,6 @@
 # DeRham.jl
 
-[![CI](https://github.com/UCSD-computational-number-theory/DeRham.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/UCSD-computational-number-theory/DeRham.jl/actions/workflows/CI.yml)
+[![CI](https://github.com/p-adic-cohomology/DeRham.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/p-adic-cohomology/DeRham.jl/actions/workflows/CI.yml)
 
 DeRham.jl is research software for computing point counts, cohomology, and
 additional structure on the cohomology of algebraic varieties over finite
@@ -18,7 +18,7 @@ smooth projective hypersurfaces of degree `d` over `𝔽ₚ` when `p` does not d
 
 ## Documentation
 
-See the [DeRham.jl documentation](https://ucsd-computational-number-theory.github.io/DeRham.jl/dev/)
+See the [DeRham.jl documentation](https://p-adic-cohomology.github.io/DeRham.jl/dev/)
 for installation instructions and examples.
 
 ## Citing

@@ -7,7 +7,7 @@ DeRham.jl is research software. Use Julia 1.10 or newer.
 Clone the repository and instantiate its project dependencies:
 
 ```sh
-git clone https://github.com/UCSD-computational-number-theory/DeRham.jl.git
+git clone https://github.com/p-adic-cohomology/DeRham.jl.git
 cd DeRham.jl
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 ```

@@ -15,7 +15,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/UCSD-computational-number-theory/DeRham.jl.git",
+    repo = "github.com/p-adic-cohomology/DeRham.jl.git",
     devbranch = "main",
     push_preview = true,
 )
