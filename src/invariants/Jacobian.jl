@@ -102,6 +102,21 @@ curve `C` defined by the homogeneous polynomial `f`, i.e.
 `zeta_coefficients(f; kwargs...)`, since `H^1(J) = H^1(C)`. There is no
 data form, since it would be the identity. Throws `ArgumentError` when `f`
 does not define a plane curve.
+
+- `f`: homogeneous polynomial in three variables defining the curve.
+- `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
+
+Returns the descending coefficient vector of the curve's `H^1` L-polynomial,
+or `false` when `f` is not smooth.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 4, 5);
+
+julia> length(DeRham.jacobian_zeta_coefficients(f))
+7
+```
 """
 function jacobian_zeta_coefficients(f::MPolyRingElem; kwargs...)
     _require_plane_curve(f, "jacobian_zeta_coefficients")
@@ -116,9 +131,27 @@ descending coefficients `coeffs` of the `H^1` L-polynomial of a smooth
 curve over `F_q` (`H^1(J) = H^1(C)` for its Jacobian `J`), returns
 `[#J(F_q), #J(F_{q^2}), ..., #J(F_{q^k})]` via `#J(F_{q^i}) = L_i(1) =
 prod_j (1 - alpha_j^i)`, with `L_i` built exactly from the `alpha_j^i`
-power sums via Newton's identities (see
-[`_elementary_symmetric_from_power_sums`](@ref)), in exact integer
-arithmetic.
+power sums via Newton's identities, in exact integer arithmetic.
+
+- `coeffs`: descending coefficients of the curve's `H^1` L-polynomial;
+  raw, Tate-twisted, and normalized Tate-twisted coefficients are accepted.
+- `q`: size of the base finite field.
+- `k`: number of extension fields to count.
+
+Returns a vector of exact integer point counts for the Jacobian, from `F_q`
+through `F_{q^k}`.
+
+If you already have `zeta_coefficients` output for a curve, pass it with the
+field size and number of extensions:
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 4, 5);
+
+julia> coeffs = DeRham.zeta_coefficients(f);
+
+julia> length(DeRham.jacobian_point_counts(coeffs, 5, 2))
+2
+```
 """
 function jacobian_point_counts(coeffs::AbstractVector, q, k::Integer)
     raw = _normalize_raw_coefficients(coeffs, q)
@@ -141,6 +174,22 @@ characteristic of `parent(f)`), computed by calling `zeta_coefficients(f;
 kwargs...)` and delegating to the coefficient method. Returns `false` when
 `f` is not smooth, matching `zeta_coefficients`. Throws `ArgumentError`
 when `f` does not define a plane curve.
+
+- `f`: homogeneous polynomial in three variables defining the curve.
+- `k`: number of extension fields to count.
+- `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
+
+Returns a vector of exact integer point counts for the Jacobian, or `false`
+when `f` is not smooth.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 4, 5);
+
+julia> length(DeRham.jacobian_point_counts(f, 2))
+2
+```
 """
 function jacobian_point_counts(f::MPolyRingElem, k::Integer; kwargs...)
     _require_plane_curve(f, "jacobian_point_counts")
@@ -157,10 +206,29 @@ Given the raw, [`tate_twist`](@ref) or [`normalized_tate_twist`](@ref)
 descending coefficients `coeffs` of the `H^1` L-polynomial of a smooth
 genus-`g` curve over `F_q` (`H^1(J) = H^1(C)` for its Jacobian `J`),
 returns `Z(J, T) = prod_{i=0}^{2g} P_i(T)^((-1)^(i+1))`, where `P_i` is the
-characteristic polynomial of Frobenius on `wedge^i H^1` (see
-[`_jacobian_wedge_charpolys`](@ref)), as an element of
+characteristic polynomial of Frobenius on `wedge^i H^1`, as an element of
 `fraction_field(ZZ[T])`. Warns when `g > 10`, since the cost grows like
 `binomial(2g, g)`.
+
+- `coeffs`: descending coefficients of the curve's `H^1` L-polynomial;
+  raw, Tate-twisted, and normalized Tate-twisted coefficients are accepted.
+- `q`: size of the base finite field.
+
+Returns the Jacobian's zeta function in `fraction_field(ZZ[T])`.
+
+If you already have `zeta_coefficients` output for a curve, pass it with the
+field size:
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 4, 5);
+
+julia> coeffs = DeRham.zeta_coefficients(f);
+
+julia> zeta = DeRham.jacobian_zeta_function(coeffs, 5);
+
+julia> (degree(numerator(zeta)), degree(denominator(zeta)))
+(32, 32)
+```
 """
 function jacobian_zeta_function(coeffs::AbstractVector, q)
     raw = _normalize_raw_coefficients(coeffs, q)
@@ -192,6 +260,23 @@ characteristic of `parent(f)`), computed by calling `zeta_coefficients(f;
 kwargs...)` and delegating to the coefficient method. Returns `false` when
 `f` is not smooth, matching `zeta_coefficients`. Throws `ArgumentError`
 when `f` does not define a plane curve.
+
+- `f`: homogeneous polynomial in three variables defining the curve.
+- `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
+
+Returns the Jacobian's zeta function in `fraction_field(ZZ[T])`, or `false`
+when `f` is not smooth.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 4, 5);
+
+julia> zeta = DeRham.jacobian_zeta_function(f);
+
+julia> (degree(numerator(zeta)), degree(denominator(zeta)))
+(32, 32)
+```
 """
 function jacobian_zeta_function(f::MPolyRingElem; kwargs...)
     _require_plane_curve(f, "jacobian_zeta_function")

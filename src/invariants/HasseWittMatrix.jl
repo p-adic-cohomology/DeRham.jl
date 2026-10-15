@@ -1,10 +1,27 @@
 """
     hasse_witt_matrix(FM, h)
 
-Given a Frobenius matrix `FM` (computed at precision 1, i.e. over a residue
-ring `Z/p^M Z`) and the curve's genus/Hodge number `h`, returns the
-Hasse-Witt matrix: the last `h x h` block of `FM`, reduced mod `p` (the
-unique prime factor of the modulus of `base_ring(FM)`).
+Given a Frobenius matrix `FM` computed at relative precision 1 and the curve's
+genus `h`, returns the Hasse-Witt matrix: the last `h x h` block of `FM`,
+reduced modulo `p`. Here `p` is the unique prime factor of the modulus of
+`base_ring(FM)`.
+
+- `FM`: Frobenius matrix over a ring with prime-power modulus, computed at
+  precision 1.
+- `h`: genus of the curve, which is the size of the Hasse-Witt matrix.
+
+Returns an `h x h` matrix over `GF(p)`.
+
+If you already have a Frobenius matrix, pass it with the curve's genus:
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> FM = DeRham.frobenius_matrix_with_precision(f, [1, 0]);
+
+julia> size(DeRham.hasse_witt_matrix(FM, 1))
+(1, 1)
+```
 """
 function hasse_witt_matrix(FM::MatElem, h::Integer)
     n = modulus(base_ring(FM))
@@ -20,10 +37,26 @@ end
 """
     hasse_witt_matrix(f; verbose = 0, kwargs...)
 
-[`hasse_witt_matrix`](@ref) for the smooth curve defined by the homogeneous
+Hasse-Witt matrix of the smooth plane curve defined by the homogeneous
 polynomial `f`, computed via `frobenius_matrix_with_precision(f, r_m;
-kwargs...)` (precision `r_m = [1, 0, ..., 0]`) and delegating to the matrix
-method.
+kwargs...)` with `r_m = [1, 0]`.
+
+- `f`: homogeneous polynomial in three variables defining the curve.
+- `verbose`: diagnostic verbosity forwarded to the Frobenius computation.
+- `kwargs...`: additional keywords forwarded to
+  [`frobenius_matrix_with_precision`](@ref) and its coefficient computation.
+
+Returns a matrix over `GF(p)`, where `p` is the characteristic of the field.
+For a curve of genus `g`, the matrix is `g x g`.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> rank(DeRham.hasse_witt_matrix(f))
+1
+```
 """
 function hasse_witt_matrix(f::MPolyRingElem; verbose = 0, kwargs...)
     n = nvars(parent(f)) - 1
