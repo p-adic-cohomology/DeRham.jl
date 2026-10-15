@@ -28,6 +28,13 @@ This isn't the most elegant, but it gets the job done.
 You can also try `include("runtests.jl")` while in the test folder,
 but this is not what the continuous integration will do.
 
+### Building the docs
+
+See [docs/README.md](docs/README.md) for setup details. From the repository
+root, build the documentation with `julia --project=docs docs/make.jl`. For a
+live preview, run `using LiveServer; servedocs()` in a Julia session using the
+docs environment (install LiveServer in that environment if needed).
+
 ### Adding a dependency
 
 This is a little bit convoluted, since we actually have to add each dependency
