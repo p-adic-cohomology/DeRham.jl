@@ -1,0 +1,8 @@
+[deps]
+DeRham = "0ea6bb9e-09b2-4dc0-b975-f97753fde228"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[compat]
+DeRham = "0.1"
+Documenter = "1"
+julia = "1.10"
