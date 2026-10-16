@@ -24,35 +24,51 @@ end
 
 
 """
-    zeta_coefficients(f; verbose=false, givefrobmat=false, algorithm=:costachunks, termorder=:invlex, vars_reversed=true)
+    zeta_coefficients(f; S=[-1], verbose=0, changef=true, givefrobmat=false,
+                      algorithm=:default, use_gpu=false, use_threads=false)
 
+Computes zeta coefficients for the projective hypersurface defined by the
+homogeneous Oscar polynomial `f` over a finite field of characteristic `p`.
+The returned vector contains the coefficients of the middle-cohomology
+L-polynomial in descending powers of `T`, as `ZZRingElem`s, with constant
+coefficient `1` last. If `f` is not smooth, the polynomial-based method
+returns `false`.
 
-Wrapper function that outputs the zeta function of
-the projective hypersurface defined by `f`.
+Keyword arguments:
+- `S=[-1]`: controls the S-smooth model used by the reduction; the default
+  sentinel expands to all indices `0:n`, where `n` is the dimension of the
+  ambient projective space.
+- `verbose=0`: controls diagnostic output; zero prints nothing and larger
+  values print progressively more detail.
+- `changef=true`: if the input is not an S-smooth model, allows the algorithm
+  to try a random change of variables to find one. With `false`, or if no
+  suitable model is found, the method returns `false`.
+- `givefrobmat=false`: if true, returns `(F, coeffs)`, the Frobenius matrix
+  and the coefficient vector, instead of just the coefficient vector.
+- `algorithm=:default`: selects the controlled-reduction algorithm; `:default`
+  chooses automatically.
+- `use_gpu=false`: enables GPU execution for supported operations.
+- `use_threads=false`: enables threaded execution for supported operations.
 
-INPUTS:
-* "f" -- Oscar polynomial (should be homogeneous)
+The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
+`context`, and `precision_info` keywords are internal or experimental and
+may change. Their current defaults are `:invlex`, `false`, `true`, `false`,
+`nothing`, and `nothing`, respectively.
 
-KEYWORD ARGUMENTS:
-verbose -- prints various diagnostic statements based on the level
-    verbose levels are by convention a number between 0 and 10.
-    0: print nothing
-    1: print basic diagnostic info only
-    2-9: TBD (To be determined/documented)
-    2: more basic diagnostic info
-    3: print the output of controlled reduction
-    5: print out the u and v information in controlled reduction
-    6: print the value of g at each step of reduction
-    7: print out one of the R_uv matrices (you might need to modify the print statement to fit your example right now)
-    10: print anything that we might consider useful
-givefrobmat -- should the funciton also output the appoximated frobenius matrix
-algorithm -- the algorithm used for controlled reduction
-termorder -- the term ordering that should be used in vector representations
-fastevaluation -- should the algorithm use fast evaluation?
->>>if you don't know what this is, ignore it.
-vars_reversed -- reverses the order of basis vectors at various places
->>>if you don't know what this is, ignore it.
+The returned coefficients can be passed to [`L_polynomial`](@ref),
+[`zeta_function`](@ref), and other coefficient-taking invariants.
 
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> DeRham.zeta_coefficients(f)
+3-element Vector{ZZRingElem}:
+ 7
+ 1
+ 1
+```
 """
 function zeta_coefficients(
     f;
@@ -343,6 +359,32 @@ function zeta_coefficients(
 end
 
 
+"""
+    zeta_coefficients_with_precision(f, r::Integer; basis=nothing, verbose=0, kwargs...)
+
+Compute the zeta coefficients for the hypersurface defined by `f`, using `r`
+as a requested relative `p`-adic precision for every Hodge component. This
+scalar overload applies the same request to all components. The algorithm
+combines the requested precision with its automatically computed minimum.
+
+- `f`: homogeneous polynomial over a finite field.
+- `r`: requested relative precision, repeated across the Hodge components.
+- `basis`: optional cohomology basis; the package computes one by default.
+- `verbose`: diagnostic verbosity.
+- `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
+
+Returns the descending `ZZRingElem` coefficient vector, or `false` when no
+smooth model is found.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> length(DeRham.zeta_coefficients_with_precision(f, 1))
+3
+```
+"""
 function zeta_coefficients_with_precision(
     f,
     r::Integer;
@@ -360,6 +402,25 @@ function zeta_coefficients_with_precision(
     )
 end
 
+"""
+    zeta_coefficients_with_precision(f, r_m::AbstractVector; basis=nothing, verbose=0, kwargs...)
+
+Vector-precision overload of [`zeta_coefficients_with_precision`](@ref).
+`r_m` gives one requested relative precision for each Hodge component and
+must have the length required by the basis. The algorithm takes the
+componentwise maximum of these requests and its automatically computed
+minimum. The return value and other keywords are the same as for the scalar
+overload.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> length(DeRham.zeta_coefficients_with_precision(f, [1, 1]))
+3
+```
+"""
 function zeta_coefficients_with_precision(
     f,
     r::AbstractVector;
@@ -377,6 +438,15 @@ function zeta_coefficients_with_precision(
     )
 end
 
+"""
+    zeta_coefficients_with_precision(f, hodge_numbers, r_m, N_m, M; basis=nothing, verbose=0, kwargs...)
+
+Advanced overload that supplies the Hodge numbers and the algorithm's
+precision data directly. These parameters are tied to the current algorithm
+and may change; prefer one of the `r` overloads unless you need to reproduce
+the current precision calculation. Returns the same value as
+[`zeta_coefficients`](@ref).
+"""
 function zeta_coefficients_with_precision(
     f,
     hodge_numbers::AbstractVector,

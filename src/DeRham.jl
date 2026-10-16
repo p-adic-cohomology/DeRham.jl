@@ -137,6 +137,31 @@ include("./invariants/ArtinMazurHeight.jl")
 include("./invariants/Jacobian.jl")
 
 
-# TODO: export Zeta Function functions
+export zeta_coefficients,
+    zeta_coefficients_with_precision,
+    frobenius_matrix_with_precision,
+    zeta_function,
+    L_polynomial,
+    point_counts,
+    newton_polygon,
+    hodge_polygon,
+    hasse_witt_matrix,
+    a_number,
+    picard_rank_bound,
+    k3_geometric_picard_rank,
+    k3_picard_rank,
+    k3_picard_realization_degree,
+    artin_mazur_height,
+    jacobian_zeta_coefficients,
+    jacobian_point_counts,
+    jacobian_zeta_function
+
+public fermat_hypersurface,
+    random_hypersurface,
+    check_smoothness,
+    SlopesPolygon,
+    tate_twist,
+    tate_untwist,
+    normalized_tate_twist
 
 end

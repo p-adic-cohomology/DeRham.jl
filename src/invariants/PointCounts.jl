@@ -84,6 +84,31 @@ smooth `m`-dimensional hypersurface over `F_q`, returns
 `#X(F_{q^i}) = sum_{t=0}^{m} q^{t i} + (-1)^m p_i`, where `p_i` is the
 `i`-th power sum of the middle-cohomology Frobenius eigenvalues (Newton
 identities on `coeffs`, in exact integer arithmetic).
+
+- `coeffs`: descending coefficients of the middle L-polynomial; raw, Tate
+  twisted, and normalized Tate-twisted coefficients are accepted.
+- `q`: size of the base finite field.
+- `m`: dimension of the hypersurface.
+- `k`: number of extension-field counts to return.
+
+Returns a vector of exact integer point counts, in order from `F_q` through
+`F_{q^k}`.
+
+### Examples
+
+If you already have the coefficients, pass them with the field size,
+dimension, and number of extension fields:
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> coeffs = DeRham.zeta_coefficients(f);
+
+julia> DeRham.point_counts(coeffs, 7, 1, 2)
+2-element Vector{ZZRingElem}:
+  9
+ 63
+```
 """
 function point_counts(coeffs::AbstractVector, q, m::Integer, k::Integer)
     raw = _normalize_raw_coefficients(coeffs, q)
@@ -99,7 +124,23 @@ end
 homogeneous polynomial `f` (with `q` the characteristic of `parent(f)` and
 `m = nvars(parent(f)) - 2` its dimension), computed by calling
 `zeta_coefficients(f; kwargs...)` and delegating to the coefficient method.
-Returns `false` when `f` is not smooth, matching `zeta_coefficients`.
+Returns a vector of exact integer counts, or `false` when `f` is not smooth,
+matching `zeta_coefficients`.
+
+- `f`: homogeneous polynomial defining the hypersurface.
+- `k`: number of extension-field counts to return.
+- `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> DeRham.point_counts(f, 2)
+2-element Vector{ZZRingElem}:
+  9
+ 63
+```
 """
 function point_counts(f::MPolyRingElem, k::Integer; kwargs...)
     q = Int64(characteristic(parent(f)))
