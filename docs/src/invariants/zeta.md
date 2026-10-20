@@ -7,7 +7,11 @@ zeta function records the point counts over finite extensions of `F_q`:
 Z(X,T) = \exp\left(\sum_{k\geq 1} \#X(\mathbb{F}_{q^k})\frac{T^k}{k}\right).
 ```
 
-The middle-cohomology L-polynomial `P_m(T)` is the factor computed by
+## Projective hypersurfaces
+
+
+For a projective hypersurface, 
+the middle-cohomology L-polynomial `P_m(T)` is the only interesting factor. This factor is computed by
 `zeta_coefficients`. With the convention used here,
 
 ```math
@@ -15,8 +19,12 @@ Z(X,T) = \frac{P_m(T)^{(-1)^{m+1}}}{\prod_{i=0}^{m}(1-q^iT)}.
 ```
 
 Coefficient vectors are written in descending powers of `T`; the last entry
-of the raw vector is the constant coefficient `1`. For the polynomial-based
-methods below, a nonsmooth hypersurface currently produces `false`.
+of the raw vector is the constant coefficient `1`. For example, the output 
+`[7, 1, 1]` corresponds to the polynomial 
+```math
+7t^2 + t + 1.
+```
+For the methods below which take as input a homogenous polynomial f, a nonsmooth hypersurface currently produces `false`.
 
 ## API
 
