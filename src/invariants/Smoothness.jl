@@ -1,10 +1,10 @@
 """
     check_smoothness(f)
 
-Check whether the homogeneous Oscar polynomial `f` defines a smooth
+Check whether the homogeneous Oscar polynomial ``f`` defines a smooth
 hypersurface over its coefficient field.
 
-`f` must already be homogeneous; Oscar may throw an error otherwise. The
+``f`` must already be homogeneous; Oscar may throw an error otherwise. The
 result is a `Bool`.
 
 This wrapper is named `check_smoothness` because Oscar already provides

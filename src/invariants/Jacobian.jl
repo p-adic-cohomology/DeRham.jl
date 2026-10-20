@@ -97,17 +97,17 @@ end
 """
     jacobian_zeta_coefficients(f; kwargs...)
 
-The `H^1` `zeta_coefficients` of the Jacobian `J` of the smooth plane
-curve `C` defined by the homogeneous polynomial `f`, i.e.
-`zeta_coefficients(f; kwargs...)`, since `H^1(J) = H^1(C)`. There is no
-data form, since it would be the identity. Throws `ArgumentError` when `f`
+The ``H^1`` `zeta_coefficients` of the Jacobian ``J`` of the smooth plane
+curve ``C`` defined by the homogeneous polynomial ``f``, i.e.
+`zeta_coefficients(f; kwargs...)`, since ``H^1(J) = H^1(C)``. There is no
+data form, since it would be the identity. Throws `ArgumentError` when ``f``
 does not define a plane curve.
 
 - `f`: homogeneous polynomial in three variables defining the curve.
 - `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
 
-Returns the descending coefficient vector of the curve's `H^1` L-polynomial,
-or `false` when `f` is not smooth.
+Returns the descending coefficient vector of the curve's ``H^1`` L-polynomial,
+or `false` when ``f`` is not smooth.
 
 ### Examples
 
@@ -127,19 +127,20 @@ end
     jacobian_point_counts(coeffs, q, k)
 
 Given the raw, [`tate_twist`](@ref) or [`normalized_tate_twist`](@ref)
-descending coefficients `coeffs` of the `H^1` L-polynomial of a smooth
-curve over `F_q` (`H^1(J) = H^1(C)` for its Jacobian `J`), returns
-`[#J(F_q), #J(F_{q^2}), ..., #J(F_{q^k})]` via `#J(F_{q^i}) = L_i(1) =
-prod_j (1 - alpha_j^i)`, with `L_i` built exactly from the `alpha_j^i`
+descending coefficients `coeffs` of the ``H^1`` L-polynomial of a smooth
+curve over ``\\mathbb{F}_q`` (``H^1(J) = H^1(C)`` for its Jacobian ``J``), returns
+``[\\#J(\\mathbb{F}_q), \\#J(\\mathbb{F}_{q^2}), \\ldots, \\#J(\\mathbb{F}_{q^k})]`` via
+``\\#J(\\mathbb{F}_{q^i}) = L_i(1) = \\prod_j (1 - \\alpha_j^i)``, with
+``L_i`` built exactly from the ``\\alpha_j^i``
 power sums via Newton's identities, in exact integer arithmetic.
 
-- `coeffs`: descending coefficients of the curve's `H^1` L-polynomial;
+- `coeffs`: descending coefficients of the curve's ``H^1`` L-polynomial;
   raw, Tate-twisted, and normalized Tate-twisted coefficients are accepted.
 - `q`: size of the base finite field.
 - `k`: number of extension fields to count.
 
-Returns a vector of exact integer point counts for the Jacobian, from `F_q`
-through `F_{q^k}`.
+Returns a vector of exact integer point counts for the Jacobian, from ``\\mathbb{F}_q``
+through ``\\mathbb{F}_{q^k}``.
 
 If you already have `zeta_coefficients` output for a curve, pass it with the
 field size and number of extensions:
@@ -168,19 +169,19 @@ end
 """
     jacobian_point_counts(f, k; kwargs...)
 
-[`jacobian_point_counts`](@ref) for the Jacobian `J` of the smooth plane
-curve defined by the homogeneous polynomial `f` (with `q` the
+[`jacobian_point_counts`](@ref) for the Jacobian ``J`` of the smooth plane
+curve defined by the homogeneous polynomial ``f`` (with ``q`` the
 characteristic of `parent(f)`), computed by calling `zeta_coefficients(f;
 kwargs...)` and delegating to the coefficient method. Returns `false` when
-`f` is not smooth, matching `zeta_coefficients`. Throws `ArgumentError`
-when `f` does not define a plane curve.
+``f`` is not smooth, matching `zeta_coefficients`. Throws `ArgumentError`
+when ``f`` does not define a plane curve.
 
 - `f`: homogeneous polynomial in three variables defining the curve.
 - `k`: number of extension fields to count.
 - `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
 
 Returns a vector of exact integer point counts for the Jacobian, or `false`
-when `f` is not smooth.
+when ``f`` is not smooth.
 
 ### Examples
 
@@ -203,14 +204,14 @@ end
     jacobian_zeta_function(coeffs, q)
 
 Given the raw, [`tate_twist`](@ref) or [`normalized_tate_twist`](@ref)
-descending coefficients `coeffs` of the `H^1` L-polynomial of a smooth
-genus-`g` curve over `F_q` (`H^1(J) = H^1(C)` for its Jacobian `J`),
-returns `Z(J, T) = prod_{i=0}^{2g} P_i(T)^((-1)^(i+1))`, where `P_i` is the
-characteristic polynomial of Frobenius on `wedge^i H^1`, as an element of
-`fraction_field(ZZ[T])`. Warns when `g > 10`, since the cost grows like
-`binomial(2g, g)`.
+descending coefficients `coeffs` of the ``H^1`` L-polynomial of a smooth
+genus-``g`` curve over ``\\mathbb{F}_q`` (``H^1(J) = H^1(C)`` for its Jacobian ``J``),
+returns ``Z(J, T) = \\prod_{i=0}^{2g} P_i(T)^{(-1)^{i+1}}``, where ``P_i`` is the
+characteristic polynomial of Frobenius on ``\\wedge^i H^1``, as an element of
+`fraction_field(ZZ[T])`. Warns when ``g > 10``, since the cost grows like
+``\\binom{2g}{g}``.
 
-- `coeffs`: descending coefficients of the curve's `H^1` L-polynomial;
+- `coeffs`: descending coefficients of the curve's ``H^1`` L-polynomial;
   raw, Tate-twisted, and normalized Tate-twisted coefficients are accepted.
 - `q`: size of the base finite field.
 
@@ -254,18 +255,18 @@ end
 """
     jacobian_zeta_function(f; kwargs...)
 
-[`jacobian_zeta_function`](@ref) for the Jacobian `J` of the smooth plane
-curve defined by the homogeneous polynomial `f` (with `q` the
+[`jacobian_zeta_function`](@ref) for the Jacobian ``J`` of the smooth plane
+curve defined by the homogeneous polynomial ``f`` (with ``q`` the
 characteristic of `parent(f)`), computed by calling `zeta_coefficients(f;
 kwargs...)` and delegating to the coefficient method. Returns `false` when
-`f` is not smooth, matching `zeta_coefficients`. Throws `ArgumentError`
-when `f` does not define a plane curve.
+``f`` is not smooth, matching `zeta_coefficients`. Throws `ArgumentError`
+when ``f`` does not define a plane curve.
 
 - `f`: homogeneous polynomial in three variables defining the curve.
 - `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
 
 Returns the Jacobian's zeta function in `fraction_field(ZZ[T])`, or `false`
-when `f` is not smooth.
+when ``f`` is not smooth.
 
 ### Examples
 

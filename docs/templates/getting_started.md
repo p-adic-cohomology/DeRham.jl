@@ -53,7 +53,7 @@ Please ensure that you're using the latest version of both Julia and Oscar. If t
 
 ## First computation
 
-Build the Fermat cubic `x^3 + y^3 + z^3 = 0` over `GF(7)`, then compute its
+Build the Fermat cubic $x^3 + y^3 + z^3 = 0$ over $\mathbb{F}_7$, then compute its
 middle-cohomology L-polynomial coefficients and zeta function:
 
 ```jldoctest

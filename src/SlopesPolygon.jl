@@ -14,19 +14,19 @@ abstract type AbstractPolygon end
     SlopesPolygon(xs, yvals)
     SlopesPolygon(vertices)
 
-Represent a piecewise-linear polygon starting at `(0, 0)`. The integer-vector
-constructor uses slopes `0, 1, 2, ...`; each entry of `slopelengths` is the
+Represent a piecewise-linear polygon starting at ``(0, 0)``. The integer-vector
+constructor uses slopes ``0, 1, 2, \\ldots``; each entry of `slopelengths` is the
 horizontal length for the corresponding slope. For example,
 `SlopesPolygon([1, 19, 1])` is the Hodge polygon of the primitive second
 cohomology of a K3 surface.
 
 The two-vector constructor takes points `(xs[i], yvals[i])` with `xs` sorted
 in ascending order and constructs their lower convex hull. The vertices
-constructor takes the polygon's vertices, including the initial `(0, 0)`.
+constructor takes the polygon's vertices, including the initial ``(0, 0)``.
 
 The object stores its slopes, their lengths, the values at integer
 coordinates, and the slope immediately before each coordinate. Indexing with
-`sp[x]` returns the polygon's value at the integer coordinate `x`.
+`sp[x]` returns the polygon's value at the integer coordinate ``x``.
 
 Returns a `SlopesPolygon` value. Its representation is computed eagerly.
 
@@ -83,7 +83,7 @@ end
 """
     SlopesPolygon(vertices::Vector{Tuple{Int64,Int64}})
 
-Construct a polygon from its vertices, beginning with `(0, 0)`. Each
+Construct a polygon from its vertices, beginning with ``(0, 0)``. Each
 successive pair determines a slope and horizontal length.
 
 - `vertices`: vertices in increasing `x`-coordinate order.
@@ -108,7 +108,7 @@ end
 """
     SlopesPolygon(slopelengths::Vector{<:Integer})
 
-Construct a polygon with slopes `0, 1, 2, ...`, where `slopelengths[i]` is
+Construct a polygon with slopes ``0, 1, 2, \\ldots``, where `slopelengths[i]` is
 the horizontal length of the `i`-th slope. For example,
 `SlopesPolygon([1, 19, 1])` is the Hodge polygon of the primitive second
 cohomology of a K3 surface.
@@ -127,7 +127,7 @@ end
     SlopesPolygon(xs::Vector{T}, yvals::Vector{T}) where {T<:Real}
 
 Construct the lower convex hull of the points `(xs[i], yvals[i])`. The input
-assumes the first point is `(0, 0)` and the x-coordinates are sorted.
+assumes the first point is ``(0, 0)`` and the x-coordinates are sorted.
 
 - `xs`: x-coordinates, sorted in ascending order.
 - `yvals`: corresponding y-coordinates.

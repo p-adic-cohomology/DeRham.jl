@@ -28,10 +28,10 @@ end
                       algorithm=:default, use_gpu=false, use_threads=false)
 
 Computes zeta coefficients for the projective hypersurface defined by the
-homogeneous Oscar polynomial `f` over a finite field of characteristic `p`.
+homogeneous Oscar polynomial ``f`` over a finite field of characteristic ``p``.
 The returned vector contains the coefficients of the middle-cohomology
-L-polynomial in descending powers of `T`, as `ZZRingElem`s, with constant
-coefficient `1` last. If `f` is not smooth, the polynomial-based method
+L-polynomial in descending powers of ``T``, as `ZZRingElem`s, with constant
+coefficient `1` last. If ``f`` is not smooth, the polynomial-based method
 returns `false`.
 
 Keyword arguments:
@@ -362,8 +362,8 @@ end
 """
     zeta_coefficients_with_precision(f, r::Integer; basis=nothing, verbose=0, kwargs...)
 
-Compute the zeta coefficients for the hypersurface defined by `f`, using `r`
-as a requested relative `p`-adic precision for every Hodge component. This
+Compute the zeta coefficients for the hypersurface defined by ``f``, using ``r``
+as a requested relative ``p``-adic precision for every Hodge component. This
 scalar overload applies the same request to all components. The algorithm
 combines the requested precision with its automatically computed minimum.
 
@@ -443,7 +443,7 @@ end
 
 Advanced overload that supplies the Hodge numbers and the algorithm's
 precision data directly. These parameters are tied to the current algorithm
-and may change; prefer one of the `r` overloads unless you need to reproduce
+and may change; prefer one of the ``r`` overloads unless you need to reproduce
 the current precision calculation. Returns the same value as
 [`zeta_coefficients`](@ref).
 """

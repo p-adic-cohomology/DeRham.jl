@@ -2,15 +2,15 @@
     hasse_witt_matrix(FM, h)
 
 Given a Frobenius matrix `FM` computed at relative precision 1 and the curve's
-genus `h`, returns the Hasse-Witt matrix: the last `h x h` block of `FM`,
-reduced modulo `p`. Here `p` is the unique prime factor of the modulus of
+genus ``h``, returns the Hasse-Witt matrix: the last ``h \\times h`` block of `FM`,
+reduced modulo ``p``. Here ``p`` is the unique prime factor of the modulus of
 `base_ring(FM)`.
 
 - `FM`: Frobenius matrix over a ring with prime-power modulus, computed at
   precision 1.
 - `h`: genus of the curve, which is the size of the Hasse-Witt matrix.
 
-Returns an `h x h` matrix over `GF(p)`.
+Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``.
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
@@ -38,7 +38,7 @@ end
     hasse_witt_matrix(f; verbose = 0, kwargs...)
 
 Hasse-Witt matrix of the smooth plane curve defined by the homogeneous
-polynomial `f`, computed via `frobenius_matrix_with_precision(f, r_m;
+polynomial ``f``, computed via `frobenius_matrix_with_precision(f, r_m;
 kwargs...)` with `r_m = [1, 0]`.
 
 - `f`: homogeneous polynomial in three variables defining the curve.
@@ -46,8 +46,8 @@ kwargs...)` with `r_m = [1, 0]`.
 - `kwargs...`: additional keywords forwarded to
   [`frobenius_matrix_with_precision`](@ref) and its coefficient computation.
 
-Returns a matrix over `GF(p)`, where `p` is the characteristic of the field.
-For a curve of genus `g`, the matrix is `g x g`.
+Returns a matrix over ``\\mathbb{F}_p``, where ``p`` is the characteristic of the field.
+For a curve of genus ``g``, the matrix is ``g \\times g``.
 
 ### Examples
 

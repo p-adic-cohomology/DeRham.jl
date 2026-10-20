@@ -4,11 +4,11 @@
 Given the raw, [`tate_twist`](@ref), or [`normalized_tate_twist`](@ref)
 descending coefficients `coeffs` of an L-polynomial, returns its Newton
 polygon. The coefficients are normalized to the raw convention before the
-lower convex hull of the points `(i, v_p(c_i))` is formed; the slopes are the
-`p`-adic valuations of the reciprocal roots.
+lower convex hull of the points ``(i, v_p(c_i))`` is formed; the slopes are the
+``p``-adic valuations of the reciprocal roots.
 
 - `coeffs`: descending L-polynomial coefficients.
-- `p`: prime characteristic used for the `p`-adic valuation.
+- `p`: prime characteristic used for the ``p``-adic valuation.
 
 Returns a [`SlopesPolygon`](@ref) whose slopes and horizontal lengths encode
 the Newton polygon.
@@ -35,14 +35,14 @@ end
     newton_polygon(f; kwargs...)
 
 [`newton_polygon`](@ref) for the smooth hypersurface defined by the
-homogeneous polynomial `f`. It obtains the characteristic `p` from
+homogeneous polynomial ``f``. It obtains the characteristic ``p`` from
 `parent(f)`, calls `zeta_coefficients(f; kwargs...)`, and delegates to the
 coefficient method.
 
 - `f`: homogeneous polynomial defining the hypersurface.
 - `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
 
-Returns a [`SlopesPolygon`](@ref), or `false` when `f` is not smooth, matching
+Returns a [`SlopesPolygon`](@ref), or `false` when ``f`` is not smooth, matching
 `zeta_coefficients`.
 
 ### Examples

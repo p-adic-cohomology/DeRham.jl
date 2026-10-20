@@ -2,9 +2,9 @@
     zeta_function(coeffs, q, m)
 
 Given the raw, [`tate_twist`](@ref) or [`normalized_tate_twist`](@ref)
-descending coefficients `coeffs` of the middle (`H^m`) L-polynomial `P(T)`
-of a smooth `m`-dimensional hypersurface `X` over `F_q`, returns the zeta
-function `Z(X, T) = P(T)^((-1)^(m+1)) / prod_{i=0}^{m} (1 - q^i T)` as an
+descending coefficients `coeffs` of the middle (``H^m``) L-polynomial ``P(T)``
+of a smooth ``m``-dimensional hypersurface ``X`` over ``\\mathbb{F}_q``, returns the zeta
+function ``Z(X, T) = P(T)^{(-1)^{m+1}} / \\prod_{i=0}^{m} (1 - q^i T)`` as an
 element of `fraction_field(ZZ[T])`.
 
 - `coeffs`: descending coefficients of the middle L-polynomial.
@@ -42,10 +42,10 @@ end
     zeta_function(f; kwargs...)
 
 [`zeta_function`](@ref) for the smooth hypersurface defined by the
-homogeneous polynomial `f` (with `q` the characteristic of `parent(f)` and
+homogeneous polynomial ``f`` (with ``q`` the characteristic of `parent(f)` and
 `m = nvars(parent(f)) - 2` its dimension), computed by calling
 `zeta_coefficients(f; kwargs...)` and delegating to the coefficient method.
-Returns `false` when `f` is not smooth, matching `zeta_coefficients`.
+Returns `false` when ``f`` is not smooth, matching `zeta_coefficients`.
 The result is an element of `fraction_field(ZZ[T])`.
 
 - `f`: homogeneous polynomial defining the hypersurface.

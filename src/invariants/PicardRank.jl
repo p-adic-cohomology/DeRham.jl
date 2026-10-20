@@ -37,18 +37,18 @@ end
     picard_rank_bound(coeffs::AbstractVector, q)
     picard_rank_bound(f::MPolyRingElem; kwargs...)
 
-Geometric upper bound on the Picard rank of a smooth surface in `P^3`.
-The data form takes coefficients of its primitive-`H^2` L-polynomial over
-`F_q` and returns `1` plus the degree of the cyclotomic part of `L(T/q)`;
+Geometric upper bound on the Picard rank of a smooth surface in ``\\mathbb{P}^3``.
+The data form takes coefficients of its primitive-``H^2`` L-polynomial over
+``\\mathbb{F}_q`` and returns ``1`` plus the degree of the cyclotomic part of ``L(T/q)``;
 the added `1` accounts for the hyperplane class. The polynomial form computes
 those coefficients with `zeta_coefficients`. This is an upper bound
 in general and need not be exact. The coefficients may be raw,
 `tate_twist` or `normalized_tate_twist` zeta coefficients.
 
 # Arguments
-- `coeffs::AbstractVector`: primitive-`H^2` L-polynomial coefficients.
+- `coeffs::AbstractVector`: primitive-``H^2`` L-polynomial coefficients.
 - `f::MPolyRingElem`: homogeneous polynomial defining a smooth surface in
-  `P^3`.
+  ``\\mathbb{P}^3``.
 - `q`: size of the finite base field for the data form.
 
 # Keywords
@@ -57,11 +57,11 @@ in general and need not be exact. The coefficients may be raw,
 
 # Returns
 An `Int` giving the geometric upper bound. The polynomial form returns
-`false::Bool` when `f` is not smooth, matching `zeta_coefficients`.
+`false::Bool` when ``f`` is not smooth, matching `zeta_coefficients`.
 
 # Examples
 
-The polynomial form calculates the bound for the Fermat quartic over `F_7`:
+The polynomial form calculates the bound for the Fermat quartic over ``\\mathbb{F}_7``:
 
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(4, 4, 7);
@@ -91,8 +91,8 @@ end
     k3_geometric_picard_rank(coeffs::AbstractVector, q)
     k3_geometric_picard_rank(f::MPolyRingElem; kwargs...)
 
-Geometric Picard rank of the quartic K3 surface in `P^3` defined by `f`, or
-given by its primitive-`H^2` L-polynomial coefficients over `F_q`. Unlike
+Geometric Picard rank of the quartic K3 surface in ``\\mathbb{P}^3`` defined by ``f``, or
+given by its primitive-``H^2`` L-polynomial coefficients over ``\\mathbb{F}_q``. Unlike
 [`picard_rank_bound`](@ref), this is exact because the Tate conjecture is
 known for K3 surfaces over finite fields. The result includes the
 hyperplane class. The data form requires 22 coefficients, which may be raw,
@@ -100,9 +100,9 @@ hyperplane class. The data form requires 22 coefficients, which may be raw,
 form computes the coefficients with `zeta_coefficients`.
 
 # Arguments
-- `coeffs::AbstractVector`: 22 primitive-`H^2` L-polynomial coefficients.
+- `coeffs::AbstractVector`: 22 primitive-``H^2`` L-polynomial coefficients.
 - `f::MPolyRingElem`: homogeneous quartic in four variables defining a K3
-  surface in `P^3`.
+  surface in ``\\mathbb{P}^3``.
 - `q`: size of the finite base field for the data form.
 
 # Keywords
@@ -111,7 +111,7 @@ form computes the coefficients with `zeta_coefficients`.
 
 # Returns
 An `Int` giving the exact geometric Picard rank. The polynomial form returns
-`false::Bool` when `f` is not smooth; it throws `ArgumentError` unless `f`
+`false::Bool` when ``f`` is not smooth; it throws `ArgumentError` unless ``f``
 is a quartic in four variables.
 
 # Examples
@@ -123,7 +123,7 @@ julia> DeRham.k3_geometric_picard_rank(f)
 22
 ```
 
-If you already have `zeta_coefficients` output, reuse it with `q = 7`:
+If you already have `zeta_coefficients` output, reuse it with ``q = 7``:
 
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(4, 4, 7);
@@ -143,18 +143,18 @@ end
     k3_picard_rank(coeffs::AbstractVector, q, k)
     k3_picard_rank(f::MPolyRingElem, k; kwargs...)
 
-Picard rank of the quartic K3 surface in `P^3` defined by `f`, or given by
-its primitive-`H^2` L-polynomial coefficients over `F_q`, after extension to
-`F_{q^k}`. The result is exact because the Tate conjecture is known for K3
+Picard rank of the quartic K3 surface in ``\\mathbb{P}^3`` defined by ``f``, or given by
+its primitive-``H^2`` L-polynomial coefficients over ``\\mathbb{F}_q``, after extension to
+``\\mathbb{F}_{q^k}``. The result is exact because the Tate conjecture is known for K3
 surfaces over finite fields and includes the hyperplane class. The data form
 requires 22 coefficients, which may be raw, `tate_twist` or
 `normalized_tate_twist` zeta coefficients. The polynomial form computes the
 coefficients with `zeta_coefficients`.
 
 # Arguments
-- `coeffs::AbstractVector`: 22 primitive-`H^2` L-polynomial coefficients.
+- `coeffs::AbstractVector`: 22 primitive-``H^2`` L-polynomial coefficients.
 - `f::MPolyRingElem`: homogeneous quartic in four variables defining a K3
-  surface in `P^3`.
+  surface in ``\\mathbb{P}^3``.
 - `q`: size of the finite base field for the data form.
 - `k`: positive extension degree.
 
@@ -163,13 +163,13 @@ coefficients with `zeta_coefficients`.
   form.
 
 # Returns
-An `Int` giving the Picard rank over `F_{q^k}`. The polynomial form returns
-`false::Bool` when `f` is not smooth; it throws `ArgumentError` unless `f`
+An `Int` giving the Picard rank over ``\\mathbb{F}_{q^k}``. The polynomial form returns
+`false::Bool` when ``f`` is not smooth; it throws `ArgumentError` unless ``f``
 is a quartic in four variables.
 
 # Examples
 
-The Fermat quartic over `F_7` reaches its geometric rank over `F_{7^2}`:
+The Fermat quartic over ``\\mathbb{F}_7`` reaches its geometric rank over ``\\mathbb{F}_{7^2}``:
 
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(4, 4, 7);
@@ -200,17 +200,17 @@ end
     k3_picard_realization_degree(coeffs::AbstractVector, q)
     k3_picard_realization_degree(f::MPolyRingElem; kwargs...)
 
-Least extension degree `k` for which the Picard rank of the quartic K3
-surface in `P^3` defined by `f` equals its geometric Picard rank, or the same
-degree computed from its primitive-`H^2` L-polynomial coefficients over
-`F_q`. The data form requires 22 coefficients, which may be raw,
+Least extension degree ``k`` for which the Picard rank of the quartic K3
+surface in ``\\mathbb{P}^3`` defined by ``f`` equals its geometric Picard rank, or the same
+degree computed from its primitive-``H^2`` L-polynomial coefficients over
+``\\mathbb{F}_q``. The data form requires 22 coefficients, which may be raw,
 `tate_twist` or `normalized_tate_twist` zeta coefficients. The polynomial
 form computes the coefficients with `zeta_coefficients`.
 
 # Arguments
-- `coeffs::AbstractVector`: 22 primitive-`H^2` L-polynomial coefficients.
+- `coeffs::AbstractVector`: 22 primitive-``H^2`` L-polynomial coefficients.
 - `f::MPolyRingElem`: homogeneous quartic in four variables defining a K3
-  surface in `P^3`.
+  surface in ``\\mathbb{P}^3``.
 - `q`: size of the finite base field for the data form.
 
 # Keywords
@@ -219,7 +219,7 @@ form computes the coefficients with `zeta_coefficients`.
 
 # Returns
 An `Int` giving the least extension degree. The polynomial form returns
-`false::Bool` when `f` is not smooth; it throws `ArgumentError` unless `f`
+`false::Bool` when ``f`` is not smooth; it throws `ArgumentError` unless ``f``
 is a quartic in four variables.
 
 # Examples
@@ -231,7 +231,7 @@ julia> DeRham.k3_picard_realization_degree(f)
 2
 ```
 
-If you already have `zeta_coefficients` output, reuse it with `q = 7`:
+If you already have `zeta_coefficients` output, reuse it with ``q = 7``:
 
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(4, 4, 7);
@@ -259,10 +259,10 @@ end
 """
     picard_rank_bound(f; kwargs...)
 
-[`picard_rank_bound`](@ref) for the smooth surface in `P^3` defined by the
-homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
-kwargs...)` (with `q` the characteristic of `parent(f)`) and delegating to
-the coefficient method. Returns `false` when `f` is not smooth, matching
+[`picard_rank_bound`](@ref) for the smooth surface in ``\\mathbb{P}^3`` defined by the
+homogeneous polynomial ``f``, computed by calling `zeta_coefficients(f;
+kwargs...)` (with ``q`` the characteristic of `parent(f)`) and delegating to
+the coefficient method. Returns `false` when ``f`` is not smooth, matching
 `zeta_coefficients`.
 """
 function picard_rank_bound(f::MPolyRingElem; kwargs...)
@@ -275,9 +275,9 @@ end
 """
     k3_geometric_picard_rank(f; kwargs...)
 
-[`k3_geometric_picard_rank`](@ref) for the quartic K3 surface in `P^3`
-defined by the homogeneous polynomial `f`, computed by calling
-`zeta_coefficients(f; kwargs...)` (with `q` the characteristic of
+[`k3_geometric_picard_rank`](@ref) for the quartic K3 surface in ``\\mathbb{P}^3``
+defined by the homogeneous polynomial ``f``, computed by calling
+`zeta_coefficients(f; kwargs...)` (with ``q`` the characteristic of
 `parent(f)`) and delegating to the coefficient method. Returns `false` when
 `f` is not smooth, matching `zeta_coefficients`.
 """
@@ -292,10 +292,10 @@ end
 """
     k3_picard_rank(f, k; kwargs...)
 
-[`k3_picard_rank`](@ref) for the quartic K3 surface in `P^3` defined by the
-homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
-kwargs...)` (with `q` the characteristic of `parent(f)`) and delegating to
-the coefficient method. Returns `false` when `f` is not smooth, matching
+[`k3_picard_rank`](@ref) for the quartic K3 surface in ``\\mathbb{P}^3`` defined by the
+homogeneous polynomial ``f``, computed by calling `zeta_coefficients(f;
+kwargs...)` (with ``q`` the characteristic of `parent(f)`) and delegating to
+the coefficient method. Returns `false` when ``f`` is not smooth, matching
 `zeta_coefficients`.
 """
 function k3_picard_rank(f::MPolyRingElem, k; kwargs...)
@@ -309,9 +309,9 @@ end
 """
     k3_picard_realization_degree(f; kwargs...)
 
-[`k3_picard_realization_degree`](@ref) for the quartic K3 surface in `P^3`
-defined by the homogeneous polynomial `f`, computed by calling
-`zeta_coefficients(f; kwargs...)` (with `q` the characteristic of
+[`k3_picard_realization_degree`](@ref) for the quartic K3 surface in ``\\mathbb{P}^3``
+defined by the homogeneous polynomial ``f``, computed by calling
+`zeta_coefficients(f; kwargs...)` (with ``q`` the characteristic of
 `parent(f)`) and delegating to the coefficient method. Returns `false` when
 `f` is not smooth, matching `zeta_coefficients`.
 """

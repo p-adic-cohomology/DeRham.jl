@@ -32,9 +32,9 @@ end
 """
     fermat_hypersurface(n, d, p)
 
-Construct the Fermat hypersurface polynomial `x₁^d + ⋯ + xₙ^d` over the
-finite field `GF(p)`. It has `n` variables and defines a hypersurface of
-dimension `n - 2` in projective space.
+Construct the Fermat hypersurface polynomial ``x_1^d + \\cdots + x_n^d`` over the
+finite field ``\\mathbb{F}_p``. It has ``n`` variables and defines a hypersurface of
+dimension ``n - 2`` in projective space.
 
 - `n`: number of variables.
 - `d`: degree.
@@ -90,9 +90,9 @@ end
 """
     random_hypersurface(n, d, p)
 
-Construct a homogeneous degree-`d` polynomial in `n` variables over `GF(p)`,
-with independent uniform random coefficients for its degree-`d` terms. It
-defines a hypersurface of dimension `n - 2` in projective space.
+Construct a homogeneous degree-``d`` polynomial in ``n`` variables over ``\\mathbb{F}_p``,
+with independent uniform random coefficients for its degree-``d`` terms. It
+defines a hypersurface of dimension ``n - 2`` in projective space.
 
 - `n`: number of variables.
 - `d`: degree of the terms.

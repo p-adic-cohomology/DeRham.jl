@@ -78,11 +78,11 @@ end
     point_counts(coeffs, q, m, k)
 
 Given the raw, [`tate_twist`](@ref) or [`normalized_tate_twist`](@ref)
-descending coefficients `coeffs` of the middle (`H^m`) L-polynomial of a
-smooth `m`-dimensional hypersurface over `F_q`, returns
-`[#X(F_q), #X(F_{q^2}), ..., #X(F_{q^k})]` via
-`#X(F_{q^i}) = sum_{t=0}^{m} q^{t i} + (-1)^m p_i`, where `p_i` is the
-`i`-th power sum of the middle-cohomology Frobenius eigenvalues (Newton
+descending coefficients `coeffs` of the middle (``H^m``) L-polynomial of a
+smooth ``m``-dimensional hypersurface over ``\\mathbb{F}_q``, returns
+``[\\#X(\\mathbb{F}_q), \\#X(\\mathbb{F}_{q^2}), \\ldots, \\#X(\\mathbb{F}_{q^k})]`` via
+``\\#X(\\mathbb{F}_{q^i}) = \\sum_{t=0}^{m} q^{t i} + (-1)^m p_i``, where ``p_i`` is the
+``i``-th power sum of the middle-cohomology Frobenius eigenvalues (Newton
 identities on `coeffs`, in exact integer arithmetic).
 
 - `coeffs`: descending coefficients of the middle L-polynomial; raw, Tate
@@ -91,8 +91,8 @@ identities on `coeffs`, in exact integer arithmetic).
 - `m`: dimension of the hypersurface.
 - `k`: number of extension-field counts to return.
 
-Returns a vector of exact integer point counts, in order from `F_q` through
-`F_{q^k}`.
+Returns a vector of exact integer point counts, in order from ``\\mathbb{F}_q`` through
+``\\mathbb{F}_{q^k}``.
 
 ### Examples
 
@@ -121,10 +121,10 @@ end
     point_counts(f, k; kwargs...)
 
 [`point_counts`](@ref) for the smooth hypersurface defined by the
-homogeneous polynomial `f` (with `q` the characteristic of `parent(f)` and
+homogeneous polynomial ``f`` (with ``q`` the characteristic of `parent(f)` and
 `m = nvars(parent(f)) - 2` its dimension), computed by calling
 `zeta_coefficients(f; kwargs...)` and delegating to the coefficient method.
-Returns a vector of exact integer counts, or `false` when `f` is not smooth,
+Returns a vector of exact integer counts, or `false` when ``f`` is not smooth,
 matching `zeta_coefficients`.
 
 - `f`: homogeneous polynomial defining the hypersurface.

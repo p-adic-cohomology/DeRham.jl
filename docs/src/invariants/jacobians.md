@@ -1,15 +1,15 @@
 # Jacobians
 
-Let `C` be a smooth plane curve over `F_q`, with genus `g`, and let
-`J = Jac(C)`. The Jacobian's first cohomology agrees with the curve's, so
-both have the same `H^1` L-polynomial
-`P_C(T) = \prod_{j=1}^{2g}(1 - \alpha_j T)`. This is the coefficient
+Let $C$ be a smooth plane curve over $\mathbb{F}_q$, with genus $g$, and let
+$J = \operatorname{Jac}(C)$. The Jacobian's first cohomology agrees with the curve's, so
+both have the same $H^1$ L-polynomial
+$P_C(T) = \prod_{j=1}^{2g}(1 - \alpha_j T)$. This is the coefficient
 vector returned by `jacobian_zeta_coefficients`.
 
 The Jacobian's higher cohomology is formed from exterior powers of
-`H^1(C)`. For each `i`, the Frobenius eigenvalues on
-`H^i(J) = \wedge^i H^1(C)` are products of `i` distinct
-`\alpha_j`, so the zeta function is
+$H^1(C)$. For each $i$, the Frobenius eigenvalues on
+$H^i(J) = \wedge^i H^1(C)$ are products of $i$ distinct
+$\alpha_j$, so the zeta function is
 
 ```math
 Z(J,T) = \prod_{i=0}^{2g} P_i(T)^{(-1)^{i+1}},
@@ -24,7 +24,7 @@ The point counts are obtained from the curve's Frobenius eigenvalues:
 \#J(\mathbb{F}_{q^k}) = \prod_{j=1}^{2g}(1 - \alpha_j^k).
 ```
 
-For example, a Fermat quartic in three variables over `GF(5)` defines a
+For example, a Fermat quartic in three variables over $\mathbb{F}_5$ defines a
 smooth genus-three curve:
 
 ```jldoctest

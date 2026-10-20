@@ -2,7 +2,7 @@
     a_number(FM, h)
 
 For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
-matrix: `h - rank(hasse_witt_matrix(FM, h))`.
+matrix ``H``: ``h - \\operatorname{rank}(H)``.
 
 - `FM`: Frobenius matrix computed at relative precision 1.
 - `h`: genus of the curve.
@@ -28,7 +28,7 @@ end
     a_number(f; verbose = 0, kwargs...)
 
 Computes the a-number of the smooth plane curve defined by the homogeneous
-polynomial `f`, via its Hasse-Witt matrix. This method is currently supported
+polynomial ``f``, via its Hasse-Witt matrix. This method is currently supported
 only for curves.
 
 - `f`: homogeneous polynomial in three variables defining the curve.

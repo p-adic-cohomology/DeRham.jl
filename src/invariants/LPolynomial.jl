@@ -3,7 +3,7 @@
 
 Builds the L-polynomial as an element of `ZZ[T]` from its descending
 `zeta_coefficients`-style coefficients `coeffs` (`coeffs[i]` is the
-coefficient of `T^(deg + 1 - i)`, where `deg = length(coeffs) - 1`; the
+coefficient of ``T^{\\deg + 1 - i}``, where ``\\deg`` is `length(coeffs) - 1`; the
 constant term `coeffs[end]` is `1` for raw input). Uses `ring` (an
 `MPolyRing`/`PolyRing` over `ZZ` or a compatible coefficient ring) if given,
 else constructs a fresh `polynomial_ring(ZZ, "T")`.
@@ -40,9 +40,9 @@ end
     L_polynomial(f; ring = nothing, kwargs...)
 
 [`L_polynomial`](@ref) for the smooth hypersurface defined by the
-homogeneous polynomial `f`, computed by calling `zeta_coefficients(f;
+homogeneous polynomial ``f``, computed by calling `zeta_coefficients(f;
 kwargs...)` and delegating to the coefficient method. Returns `false` when
-`f` is not smooth, matching `zeta_coefficients`. Otherwise, returns the
+``f`` is not smooth, matching `zeta_coefficients`. Otherwise, returns the
 middle L-polynomial in a polynomial ring over `ZZ` (or the supplied `ring`).
 
 - `f`: homogeneous polynomial defining the hypersurface.

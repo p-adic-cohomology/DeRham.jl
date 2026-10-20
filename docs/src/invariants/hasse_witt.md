@@ -1,19 +1,19 @@
 # Hasse–Witt matrix & a-number
 
-For a smooth plane curve `C` of genus `g` over `GF(p)`, the Hasse–Witt
-matrix represents Frobenius on `H^1(C, O_C)` in the basis used by the
-Frobenius computation. DeRham obtains it by reducing the final `g x g` block
-of a precision-1 Frobenius matrix modulo `p`. See the
+For a smooth plane curve $C$ of genus $g$ over $\mathbb{F}_p$, the Hasse–Witt
+matrix represents Frobenius on $H^1(C, \mathcal{O}_C)$ in the basis used by the
+Frobenius computation. DeRham obtains it by reducing the final $g \times g$ block
+of a precision-1 Frobenius matrix modulo $p$. See the
 [Frobenius matrix page](frobenius_matrix.md) for that matrix and its
 precision.
 
-The curve's a-number is `g - rank(H)`, where `H` is the Hasse–Witt matrix.
+The curve's a-number is $g - \operatorname{rank}(H)$, where $H$ is the Hasse–Witt matrix.
 For an elliptic curve, a full-rank matrix gives the ordinary case and a zero
 matrix gives the supersingular case.
 
-The Fermat cubic over `GF(7)` is ordinary because 7 is congruent to 1 modulo
-3. The Fermat cubic over `GF(5)` is supersingular because 5 is congruent to 2
-modulo 3:
+The Fermat cubic over $\mathbb{F}_7$ is ordinary because 7 is congruent to 1
+modulo 3. The Fermat cubic over $\mathbb{F}_5$ is supersingular because 5 is
+congruent to 2 modulo 3:
 
 ```jldoctest
 julia> using DeRham, Oscar

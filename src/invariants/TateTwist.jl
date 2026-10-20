@@ -27,10 +27,10 @@ end
     tate_twist(coeffs, q; j = 1)
 
 Given the descending `zeta_coefficients`-style coefficients `coeffs` of an
-L-polynomial `P(T)`, returns the coefficients (same orientation, as
-`QQFieldElem`, ending in `1`) of the Tate twist `P(T / q^j)`.
+L-polynomial ``P(T)``, returns the coefficients (same orientation, as
+`QQFieldElem`, ending in `1`) of the Tate twist ``P(T / q^j)``.
 
-- `coeffs`: coefficients of `P(T)` in descending powers.
+- `coeffs`: coefficients of ``P(T)`` in descending powers.
 - `q`: size of the base finite field.
 - `j`: twist exponent.
 
@@ -57,9 +57,9 @@ end
 """
     tate_untwist(coeffs, q; j = 1, s = 0)
 
-Inverts both a Tate twist and a normalization: divides `coeffs` by `q^s`,
-then returns the coefficients (as `ZZRingElem`) of `P(q^j T)`, where `P` is
-the L-polynomial with coefficients `coeffs / q^s`. Throws `ArgumentError` if
+Inverts both a Tate twist and a normalization: divides `coeffs` by ``q^s``,
+then returns the coefficients (as `ZZRingElem`) of ``P(q^j T)``, where ``P`` is
+the L-polynomial with coefficients ``coeffs / q^s``. Throws `ArgumentError` if
 the result is not integral.
 
 - `coeffs`: coefficients in descending powers.
@@ -96,14 +96,14 @@ end
     normalized_tate_twist(coeffs, q, s; j = 1)
 
 Given the descending `zeta_coefficients`-style coefficients `coeffs` of an
-L-polynomial `P(T)`, returns the coefficients (as `ZZRingElem`) of
-`q^s * P(T / q^j)`. Throws `ArgumentError` if that is not integral. With
-`s = 1, j = 1` this is the old "boat shape" L-polynomial. Note: a
-normalized twist with `s = 0` is indistinguishable from raw coefficients and
+L-polynomial ``P(T)``, returns the coefficients (as `ZZRingElem`) of
+``q^s P(T / q^j)``. Throws `ArgumentError` if that is not integral. With
+``s = 1, j = 1`` this is the old "boat shape" L-polynomial. Note: a
+normalized twist with ``s = 0`` is indistinguishable from raw coefficients and
 cannot be distinguished from raw coefficients by the coefficient-input
 detection used by the invariant functions.
 
-- `coeffs`: coefficients of `P(T)` in descending powers.
+- `coeffs`: coefficients of ``P(T)`` in descending powers.
 - `q`: size of the base finite field.
 - `s`: normalization exponent.
 - `j`: twist exponent.
