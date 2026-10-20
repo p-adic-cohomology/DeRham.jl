@@ -25,17 +25,17 @@ However, what we get is that our Frobenius matrix has the strong Mazur divisibil
 
 ```math
 \begin{pmatrix}
-\ast & \ast & \ast & p\ast & p\ast & p\ast \\
-\ast & \ast & \ast & p\ast & p\ast & p\ast \\
-\ast & \ast & \ast & p\ast & p\ast & p\ast \\
-\ast & \ast & \ast & p\ast & p\ast & p\ast \\
-\ast & \ast & \ast & p\ast & p\ast & p\ast \\
-\ast & \ast & \ast & p\ast & p\ast & p\ast
+p\ast & p\ast & p\ast & \ast & \ast & \ast \\
+p\ast & p\ast & p\ast & \ast & \ast & \ast \\
+p\ast & p\ast & p\ast & \ast & \ast & \ast \\
+p\ast & p\ast & p\ast & \ast & \ast & \ast \\
+p\ast & p\ast & p\ast & \ast & \ast & \ast \\
+p\ast & p\ast & p\ast & \ast & \ast & \ast
 \end{pmatrix}
 ```
 where each $\ast$ denotes an element of $\mathbb{Z}_p$.
 
-When we compute the Frobenius matrix, we always compute each vector with a precision relative to the p-adic valuations guaranteed to us by strong Mazur divisibility. Thus, if we choose relative precision $r = 2$ for our curve of genus 3, the first three vectors will be computed modulo $p^2$ and the second three will be computed modulo $p^3$. If what you cared about was the *absolute* precision (i.e. the whole matrix modulo $p^2$), you can reduce the answer modulo $p^2$.
+When we compute the Frobenius matrix, we always compute each vector with a precision relative to the p-adic valuations guaranteed to us by strong Mazur divisibility. Thus, if we choose relative precision $r = 2$ for our curve of genus 3, the first three vectors will be computed modulo $p^3$ and the second three will be computed modulo $p^2$. If what you cared about was the *absolute* precision (i.e. the whole matrix modulo $p^2$), you can reduce the answer modulo $p^2$.
 
 We also provide the option to choose a relative precision for each basis vector.
 
