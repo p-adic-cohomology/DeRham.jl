@@ -1,6 +1,6 @@
 # Getting started
 
-#### Installing for the first time
+## Installing for the first time
 
 First, install Julia 1.12 and Oscar. If you're new to Julia and Oscar, you can find a tutorial for non-experts [here](https://jjgarzella.github.io/blog/how-to-install-julia/). In short:
 
@@ -32,7 +32,7 @@ Then, press backspace to go back to a julia prompt and run
 using DeRham, Oscar
 ```
 
-#### Starting a new session after installation is complete
+## Starting a new session after installation is complete
 
 After starting a new Julia REPL, run
 
@@ -47,7 +47,7 @@ Then, press backspace to go back to a julia prompt and run
 using DeRham, Oscar
 ```
 
-#### Troubleshooting
+## Troubleshooting
 
 Please ensure that you're using the latest version of both Julia and Oscar. If the package manager gives you errors, try deleting Manifest.toml, upgrading Julia, updating the package registry, and updating Oscar.
 
