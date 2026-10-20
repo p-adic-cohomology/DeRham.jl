@@ -10,7 +10,7 @@ Z(X,T) = \exp\left(\sum_{k\geq 1} \#X(\mathbb{F}_{q^k})\frac{T^k}{k}\right).
 ## Projective hypersurfaces
 
 
-For a projective hypersurface, 
+For a projective hypersurface,
 the middle-cohomology L-polynomial `P_m(T)` is the only interesting factor. This factor is computed by
 `zeta_coefficients`. With the convention used here,
 
@@ -19,8 +19,8 @@ Z(X,T) = \frac{P_m(T)^{(-1)^{m+1}}}{\prod_{i=0}^{m}(1-q^iT)}.
 ```
 
 Coefficient vectors are written in descending powers of `T`; the last entry
-of the raw vector is the constant coefficient `1`. For example, the output 
-`[7, 1, 1]` corresponds to the polynomial 
+of the raw vector is the constant coefficient `1`. For example, the output
+`[7, 1, 1]` corresponds to the polynomial
 ```math
 7t^2 + t + 1.
 ```

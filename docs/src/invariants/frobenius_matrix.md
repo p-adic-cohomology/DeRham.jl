@@ -10,8 +10,8 @@ F --insert definition of crystalline cohomology here--
 
 Because this matrix lives over $\mathbb{Z}_p$, we can only compute an approximation modulo $p^N$ for some $N$.
 
-Our algorithm actually gives something much nicer; we give a basis for $H^2_crys$ which is ordered by the hodge filtration. Furthermore, 
-for a basis element $e_{i,m} \in Fil^m(H^2_crys)$, our we have the strong Mazur divisibility property: 
+Our algorithm actually gives something much nicer; we give a basis for $H^2_crys$ which is ordered by the hodge filtration. Furthermore,
+for a basis element $e_{i,m} \in Fil^m(H^2_crys)$, our we have the strong Mazur divisibility property:
 
 ```math
 F(e_{i,m}) \in p^{m} H^2_crys.
