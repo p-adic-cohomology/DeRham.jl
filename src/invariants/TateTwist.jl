@@ -27,8 +27,26 @@ end
     tate_twist(coeffs, q; j = 1)
 
 Given the descending `zeta_coefficients`-style coefficients `coeffs` of an
-L-polynomial `P(T)`, returns the coefficients (same orientation, as
-`QQFieldElem`, ending in `1`) of the Tate twist `P(T / q^j)`.
+L-polynomial ``P(T)``, returns the coefficients (same orientation, as
+`QQFieldElem`, ending in `1`) of the Tate twist ``P(T / q^j)``.
+
+- `coeffs`: coefficients of ``P(T)`` in descending powers.
+- `q`: size of the base finite field.
+- `j`: twist exponent.
+
+Returns an exact rational coefficient vector.
+
+### Examples
+
+```jldoctest
+julia> raw = [7, -2, 1];
+
+julia> DeRham.tate_twist(raw, 7)
+3-element Vector{QQFieldElem}:
+  1//7
+ -2//7
+  1
+```
 """
 function tate_twist(coeffs::AbstractVector, q; j::Integer = 1)
     n = length(coeffs)
@@ -39,10 +57,29 @@ end
 """
     tate_untwist(coeffs, q; j = 1, s = 0)
 
-Inverts both a Tate twist and a normalization: divides `coeffs` by `q^s`,
-then returns the coefficients (as `ZZRingElem`) of `P(q^j T)`, where `P` is
-the L-polynomial with coefficients `coeffs / q^s`. Throws `ArgumentError` if
+Inverts both a Tate twist and a normalization: divides `coeffs` by ``q^s``,
+then returns the coefficients (as `ZZRingElem`) of ``P(q^j T)``, where ``P`` is
+the L-polynomial with coefficients ``coeffs / q^s``. Throws `ArgumentError` if
 the result is not integral.
+
+- `coeffs`: coefficients in descending powers.
+- `q`: size of the base finite field.
+- `j`: twist exponent to undo.
+- `s`: normalization exponent to undo.
+
+Returns an exact integer coefficient vector.
+
+### Examples
+
+```jldoctest
+julia> raw = [7, -2, 1];
+
+julia> DeRham.tate_untwist(DeRham.tate_twist(raw, 7), 7)
+3-element Vector{ZZRingElem}:
+  7
+ -2
+  1
+```
 """
 function tate_untwist(coeffs::AbstractVector, q; j::Integer = 1, s::Integer = 0)
     n = length(coeffs)
@@ -59,11 +96,29 @@ end
     normalized_tate_twist(coeffs, q, s; j = 1)
 
 Given the descending `zeta_coefficients`-style coefficients `coeffs` of an
-L-polynomial `P(T)`, returns the coefficients (as `ZZRingElem`) of
-`q^s * P(T / q^j)`. Throws `ArgumentError` if that is not integral. With
-`s = 1, j = 1` this is the old "boat shape" L-polynomial. Note: a
-normalized twist with `s = 0` is indistinguishable from raw coefficients and
-is not supported by [`_normalize_raw_coefficients`](@ref)'s detection.
+L-polynomial ``P(T)``, returns the coefficients (as `ZZRingElem`) of
+``q^s P(T / q^j)``. Throws `ArgumentError` if that is not integral. With
+``s = 1, j = 1`` this is the old "boat shape" L-polynomial. Note: a
+normalized twist with ``s = 0`` is indistinguishable from raw coefficients and
+cannot be distinguished from raw coefficients by the coefficient-input
+detection used by the invariant functions.
+
+- `coeffs`: coefficients of ``P(T)`` in descending powers.
+- `q`: size of the base finite field.
+- `s`: normalization exponent.
+- `j`: twist exponent.
+
+Returns an exact integer coefficient vector.
+
+### Examples
+
+```jldoctest
+julia> DeRham.normalized_tate_twist([7, -2, 1], 7, 1)
+3-element Vector{ZZRingElem}:
+  1
+ -2
+  7
+```
 """
 function normalized_tate_twist(coeffs::AbstractVector, q, s::Integer; j::Integer = 1)
     n = length(coeffs)

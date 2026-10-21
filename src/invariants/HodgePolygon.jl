@@ -21,10 +21,23 @@ end
     hodge_polygon(n, d)
 
 Hodge polygon of the primitive middle cohomology of a smooth hypersurface
-of degree `d` in `P^n`: the `SlopesPolygon` of Hodge numbers
-`h^{n-1-p, p}`, given in closed form by the coefficient of
-`t^((p+1)d - n - 1)` in the Jacobian ring's Hilbert series
-`(1 + t + ... + t^(d-2))^(n+1)`, for `p = 0, ..., n - 1`.
+of degree ``d`` in ``\\mathbb{P}^n``: the `SlopesPolygon` of Hodge numbers
+``h^{n-1-p, p}``, given in closed form by the coefficient of
+``t^{(p+1)d - n - 1}`` in the Jacobian ring's Hilbert series
+``(1 + t + \\cdots + t^{d-2})^{n+1}``, for ``p = 0, \\ldots, n - 1``.
+
+- `n`: dimension of the ambient projective space.
+- `d`: degree of the hypersurface.
+
+Returns a [`SlopesPolygon`](@ref). The slope ``p`` has horizontal length
+``h^{n-1-p,p}``.
+
+For example, a smooth plane cubic has Hodge numbers ``(1, 1)``:
+
+```jldoctest
+julia> DeRham.hodge_polygon(2, 3).slopelengths == [1, 1]
+true
+```
 """
 function hodge_polygon(n::Integer, d::Integer)
     P, t = polynomial_ring(ZZ, "t")
@@ -37,9 +50,25 @@ end
 """
     hodge_polygon(f; basis=nothing, params=default_params())
 
-Calculates the hodge polygon of f
+Hodge polygon of the primitive middle cohomology of the smooth hypersurface
+defined by the homogeneous polynomial ``f``.
 
-f - the polynomial to get the hodge polygon of
+- `f`: homogeneous polynomial defining the hypersurface.
+- `basis`: optional precomputed cohomology basis. If omitted, a basis is
+  constructed from ``f``.
+- `params`: series-precision parameters used when constructing the basis;
+  ignored when `basis` is supplied.
+
+Returns a [`SlopesPolygon`](@ref), with one slope for each Hodge number.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> DeRham.hodge_polygon(f).slopelengths == [1, 1]
+true
+```
 """
 function hodge_polygon(f::MPolyRingElem; basis = nothing, params = default_params())
     n = nvars(parent(f)) - 1

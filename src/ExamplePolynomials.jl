@@ -30,8 +30,26 @@ function artin_shreier_witt_curve(p, num, denom)
 end
 
 """
-Gives the fermat hypersurface of degree d and dimension n-2
-in characterstic p.
+    fermat_hypersurface(n, d, p)
+
+Construct the Fermat hypersurface polynomial ``x_1^d + \\cdots + x_n^d`` over the
+finite field ``\\mathbb{F}_p``. It has ``n`` variables and defines a hypersurface of
+dimension ``n - 2`` in projective space.
+
+- `n`: number of variables.
+- `d`: degree.
+- `p`: prime characteristic of the coefficient field.
+
+Returns the homogeneous Oscar polynomial.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> total_degree(f)
+3
+```
 """
 function fermat_hypersurface(n, d, p)
     F = GF(p)
@@ -70,8 +88,27 @@ function full_hypersurface(n, d, p)
 end
 
 """
-Gives a hypersurface of degree d and dimension n-2
-which has uniform random coefficients in characteristic p
+    random_hypersurface(n, d, p)
+
+Construct a homogeneous degree-``d`` polynomial in ``n`` variables over ``\\mathbb{F}_p``,
+with independent uniform random coefficients for its degree-``d`` terms. It
+defines a hypersurface of dimension ``n - 2`` in projective space.
+
+- `n`: number of variables.
+- `d`: degree of the terms.
+- `p`: prime characteristic of the coefficient field.
+
+Returns the Oscar polynomial. The result is random and is not guaranteed to
+define a smooth hypersurface.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.random_hypersurface(3, 3, 7);
+
+julia> nvars(parent(f))
+3
+```
 """
 function random_hypersurface(n, d, p)
     F = GF(p)

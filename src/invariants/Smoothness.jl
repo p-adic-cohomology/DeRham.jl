@@ -1,13 +1,23 @@
 """
     check_smoothness(f)
 
-Using Oscar, check whether f defines a smooth hypersurface.
+Check whether the homogeneous Oscar polynomial ``f`` defines a smooth
+hypersurface over its coefficient field.
 
-f is assumed to be homogeneous already. Otherwise Oscar
-will throw an error.
+``f`` must already be homogeneous; Oscar may throw an error otherwise. The
+result is a `Bool`.
 
-note: the name issmooth / is_smooth is already taken by oscar,
-and really we're just wrapping that method.
+This wrapper is named `check_smoothness` because Oscar already provides
+`is_smooth`.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> DeRham.check_smoothness(f)
+true
+```
 """
 function check_smoothness(f)
     p = characteristic(parent(f))
