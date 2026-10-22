@@ -42,5 +42,15 @@
 
         pole_order_three_column = [lift(ZZ, results[1].numerator[r, 21]) for r in 1:21]
         @test any(mod(entry, p) != 0 for entry in pole_order_three_column)
+
+        A = 2
+        F = DeRham.frobenius_matrix_with_precision(f, [A - 2, A - 1, A])
+        Fref = DeRham.frobenius_matrix_with_precision(f, [A + 3, A + 3, A + 3])
+        @test size(F) == (21, 21)
+        @test size(Fref) == (21, 21)
+        @test all(
+            mod(lift(ZZ, F[r, c]) - lift(ZZ, Fref[r, c]), p^A) == 0
+            for r in 1:21, c in 1:21
+        )
     end
 end
