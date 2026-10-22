@@ -22,6 +22,8 @@
 
         R9, _ = residue_ring(ZZ, 3^2)
         @test_throws AssertionError DeRham.divided_frobenius(matrix(R9, [1;;]), 2)
+        @test_throws AssertionError DeRham.divided_frobenius(matrix(R27, [1;;]), 0)
+        @test_throws AssertionError DeRham.divided_frobenius(matrix(R27, [1 2 3; 4 5 6]), 1)
     end
 
     @testset "quartic method" begin
@@ -32,6 +34,7 @@
         _, (a, b, c, d) = polynomial_ring(GF(5), 4)
         f_nonsmooth = (a^2 + b^2)^2 + c^4 + d^4
         @test DeRham.divided_frobenius(f_nonsmooth, 1) === false
+        @test_throws AssertionError DeRham.divided_frobenius(f, 0)
 
         results = [DeRham.divided_frobenius(f, i) for i in 1:2]
         for (i, result) in enumerate(results)
