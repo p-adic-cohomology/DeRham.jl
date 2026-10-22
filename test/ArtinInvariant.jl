@@ -100,6 +100,9 @@ end
     F_bad = matrix(R9, [p 0; 0 p])
     @test_throws ErrorException DeRham.ogus_nygaard_filtration(F_bad, 1)
 
+    R4, _ = residue_ring(ZZ, 2^2)
+    @test_throws AssertionError DeRham.ogus_nygaard_filtration(matrix(R4, [1;;]), 1)
+
     _, (x, y, z, w) = polynomial_ring(GF(p), 4)
     f = x^4 + y^4 + z^4 + w^4
     fermat_result = DeRham.ogus_nygaard_filtration(f, 3)
@@ -127,4 +130,8 @@ end
             ) == 0 for row = 1:21, column = 1:21
         )
     end
+
+    _, (a, b, c, d) = polynomial_ring(GF(5), 4)
+    f_nonsmooth = (a^2 + b^2)^2 + c^4 + d^4
+    @test DeRham.ogus_nygaard_filtration(f_nonsmooth, 1) === false
 end

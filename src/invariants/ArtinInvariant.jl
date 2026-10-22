@@ -106,6 +106,7 @@ function ogus_nygaard_filtration(F::MatElem, n::Integer)
     factors = factor(ZZ(base_modulus))
     @assert length(factors) == 1
     p, _ = first(factors)
+    @assert p > 2
     @assert mod(base_modulus, p^n) == 0
 
     dimension = nrows(F)
