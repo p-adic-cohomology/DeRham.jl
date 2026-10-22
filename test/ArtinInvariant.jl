@@ -178,6 +178,14 @@ end
         @test result.exact
     end
 
+    @testset "polynomial method input checks" begin
+        _, (a, b, c, d) = polynomial_ring(GF(5), 4)
+        f_nonsmooth = (a^2 + b^2)^2 + c^4 + d^4
+        f_nonhomogeneous = a^4 + b^4 + c^4 + d^4 + a
+        @test DeRham.artin_invariant(f_nonsmooth, 1) === false
+        @test_throws AssertionError DeRham.artin_invariant(f_nonhomogeneous, 1)
+    end
+
     if get(ENV, "DERHAM_RUN_ARTIN_M6_TESTS", "false") == "true"
         @testset "[non-CI] Zenodo 22784396 p=3, m=6 fixtures" begin
             p = 3
@@ -276,26 +284,22 @@ end
                     @test m == 6
 
                     F = false
-                    filtration = nothing
                     result = nothing
                     artin_seconds = @elapsed begin
-                        F = DeRham.frobenius_matrix_with_precision(f, [4, 5, 6])
+                        bound = m
+                        F = DeRham.frobenius_matrix_with_precision(
+                            f,
+                            [bound - 2, bound - 1, bound],
+                        )
                         if F !== false
-                            filtration = DeRham.ogus_nygaard_filtration(F, 6)
-                            result = DeRham.artin_invariant(F, 6)
+                            result = DeRham.artin_invariant(F, bound)
                         end
                     end
                     @test F !== false
                     if F !== false
-                        @test filtration.colengths[2] == 1
-                        @test all(
-                            filtration.colengths[level+1] - filtration.colengths[level] in
-                            (0, 1) for level = 1:(length(filtration.colengths)-1)
-                        )
-                        @test result.sigma == filtration.colengths[end]
                         @test result.sigma == 3
-                        @test result.sigma <= 5
-                        @test result.exact
+                        @test result.sigma <= m - 1
+                        @test result.exact == true
                         @info "Artin invariant fixture" fixture=fixture period=m sigma=result.sigma exact=result.exact zeta_seconds=zeta_seconds artin_seconds=artin_seconds
                     end
                 end

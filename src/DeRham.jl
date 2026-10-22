@@ -38,6 +38,7 @@ using Oscar:
     ideal,
     identity_matrix,
     is_cyclotomic_polynomial_with_data,
+    is_homogeneous,
     is_prime,
     is_smooth,
     leading_coefficient,

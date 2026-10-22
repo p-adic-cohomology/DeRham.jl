@@ -214,8 +214,8 @@ non-smooth. Keyword arguments are forwarded to `frobenius_matrix_with_precision`
 and then to `zeta_coefficients`.
 
 The matrix method trusts the caller to provide ``F`` computed with that same
-relative precision. It requires a square matrix over ``\\mathbb{Z}/p^M`` with
-``p^B`` dividing the modulus, where ``B = bound``.
+relative precision. It requires an odd prime ``p`` and a square matrix over
+``\\mathbb{Z}/p^M`` with ``p^B`` dividing the modulus, where ``B = bound``.
 
 If all of ``NS(X)`` is defined over ``\\mathbb{F}_{p^m}``, then ``Φ = F/p``
 has period ``m`` and Ogus' theorem gives ``σ ≤ m - 1``. Thus `bound = m - 1`
@@ -248,6 +248,7 @@ function artin_invariant(f::MPolyRingElem, bound::Integer; kwargs...)
     bound = Int(bound)
     @assert bound >= 1
     @assert total_degree(f) == 4
+    @assert is_homogeneous(f)
     @assert nvars(parent(f)) == 4
 
     p = characteristic(parent(f))
