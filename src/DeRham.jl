@@ -36,6 +36,7 @@ using Oscar:
     homogenizer,
     ideal,
     is_cyclotomic_polynomial_with_data,
+    is_homogeneous,
     is_prime,
     is_smooth,
     leading_coefficient,
@@ -134,6 +135,7 @@ include("./invariants/PointCounts.jl")
 include("./invariants/ZetaFunction.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
+include("./invariants/ArtinInvariant.jl")
 include("./invariants/Jacobian.jl")
 
 
@@ -162,6 +164,7 @@ public fermat_hypersurface,
     SlopesPolygon,
     tate_twist,
     tate_untwist,
-    normalized_tate_twist
+    normalized_tate_twist,
+    artin_invariant
 
 end
