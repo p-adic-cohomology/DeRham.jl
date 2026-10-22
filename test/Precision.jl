@@ -33,3 +33,34 @@ function test_hodge_polygon_data_form_matches_f_form()
         @test DeRham.hodge_polygon(n, d) == DeRham.hodge_polygon(f)
     end
 end
+
+function test_user_relative_precision_bypasses_default_table()
+    p = 3
+    _, (x, y, z, w) = polynomial_ring(GF(p), 4)
+    f = x^4 + y^4 + z^4 + w^4
+    basis = DeRham.get_basis_of_cohomology(f)
+    r_m = [0, 20, 20]
+
+    calculated = DeRham.calculate_series_precision(p, 3, r_m)
+    expected_user = max.(calculated, 1)
+    default_table = DeRham.series_precision_default(p, 3, 4)
+
+    user_info = DeRham.precision_information_user_r_m(f, r_m; basis = basis)
+    @test calculated[1] == 0
+    @test user_info[3] == expected_user
+    @test user_info[3] != default_table
+
+    uniform_r = fill(20, 3)
+    uniform_info = DeRham.precision_information_user_r(f, 20; basis = basis)
+    expected_uniform = max.(DeRham.calculate_series_precision(p, 3, uniform_r), 1)
+    @test uniform_info[3] == expected_uniform
+
+    auto_info = DeRham.precision_information_auto(f; basis = basis)
+    @test auto_info[3] == default_table
+
+    legacy_auto_info = DeRham.precision_information(f, basis)
+    @test legacy_auto_info[3] == default_table
+
+    max_auto_info = DeRham.precision_information_max_auto_r_m(f, r_m; basis = basis)
+    @test max_auto_info[3] == default_table
+end

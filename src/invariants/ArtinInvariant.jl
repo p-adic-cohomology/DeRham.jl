@@ -4,7 +4,9 @@
 
 Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface from
 its Frobenius matrix modulo ``p²``. The computation uses linear algebra over
-``𝔽_p`` on primitive ``H²`` and returns a plain `Int`.
+``𝔽_p`` on primitive ``H²``. The matrix method returns a plain `Int`; the
+polynomial method returns a plain `Int` on success, or `false` if its Frobenius
+computation rejects the polynomial as non-smooth.
 
 Supersingularity is a precondition and is not checked. A non-supersingular
 input, such as an ordinary quartic, can produce an incorrect value or an
