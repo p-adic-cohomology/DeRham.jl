@@ -32,9 +32,11 @@ using Oscar:
     fraction_field,
     gens,
     grade,
+    hnf,
     hom,
     homogenizer,
     ideal,
+    identity_matrix,
     is_cyclotomic_polynomial_with_data,
     is_prime,
     is_smooth,
@@ -165,6 +167,7 @@ public fermat_hypersurface,
     tate_twist,
     tate_untwist,
     normalized_tate_twist,
-    divided_frobenius
+    divided_frobenius,
+    ogus_nygaard_filtration
 
 end

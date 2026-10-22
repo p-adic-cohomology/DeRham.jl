@@ -60,3 +60,56 @@
         )
     end
 end
+
+@testset "ogus_nygaard_filtration" begin
+    p = 3
+
+    R9, _ = residue_ring(ZZ, p^2)
+    F2 = matrix(R9, [0 0; 1 0])
+    result2 = DeRham.ogus_nygaard_filtration(F2, 2)
+    @test result2.colengths == [0, 1, 1]
+    @test result2.bases[end-1] == result2.bases[end]
+    @test_throws AssertionError DeRham.ogus_nygaard_filtration(F2, 3)
+
+    R27, _ = residue_ring(ZZ, p^3)
+    F3 = matrix(R27, [0 0 p^2; p 0 0; 0 1 0])
+    result3 = DeRham.ogus_nygaard_filtration(F3, 3)
+    @test result3.colengths == [0, 1, 2, 2]
+    @test result3.bases[end-1] == result3.bases[end]
+
+    R81, _ = residue_ring(ZZ, p^4)
+    F4 = matrix(R81, [0 p 0 p; p 0 0 0; 0 1 0 0; 0 0 p^2 0])
+    result4 = DeRham.ogus_nygaard_filtration(F4, 4)
+    @test result4.colengths == [0, 1, 2, 3, 3]
+    @test result4.bases[end-1] == result4.bases[end]
+
+    F_bad = matrix(R9, [p 0; 0 p])
+    @test_throws ErrorException DeRham.ogus_nygaard_filtration(F_bad, 1)
+
+    _, (x, y, z, w) = polynomial_ring(GF(p), 4)
+    f = x^4 + y^4 + z^4 + w^4
+    fermat_result = DeRham.ogus_nygaard_filtration(f, 3)
+    @test fermat_result.colengths[2] == 1
+    @test all(
+        fermat_result.colengths[level+1] - fermat_result.colengths[level] in (0, 1) for
+        level = 1:(length(fermat_result.colengths)-1)
+    )
+
+    high_precision_F = DeRham.frobenius_matrix_with_precision(f, [6, 6, 6])
+    @test all(mod(lift(ZZ, high_precision_F[row, 1]), p^2) == 0 for row = 1:21)
+    @test all(
+        mod(lift(ZZ, high_precision_F[row, column]), p) == 0 for row = 1:21, column = 2:20
+    )
+    @test any(mod(lift(ZZ, high_precision_F[row, 21]), p) != 0 for row = 1:21)
+
+    for (precision, relative_precision) in ((2, [0, 1, 2]), (3, [1, 2, 3]))
+        low_precision_F = DeRham.frobenius_matrix_with_precision(f, relative_precision)
+        @test all(
+            mod(
+                lift(ZZ, low_precision_F[row, column]) -
+                lift(ZZ, high_precision_F[row, column]),
+                p^precision,
+            ) == 0 for row = 1:21, column = 1:21
+        )
+    end
+end
