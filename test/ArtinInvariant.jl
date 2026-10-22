@@ -63,12 +63,24 @@ end
 
 @testset "ogus_nygaard_filtration" begin
     p = 3
+    check_congruences = function (F, result)
+        F_integer = map_entries(ZZ, lift.(F))
+        for (index, basis) in enumerate(result.bases)
+            level = index - 1
+            image = F_integer^level * basis
+            @test all(
+                iszero(mod(image[row, column], p^level)) for
+                row = 1:nrows(image), column = 1:ncols(image)
+            )
+        end
+    end
 
     R9, _ = residue_ring(ZZ, p^2)
     F2 = matrix(R9, [0 0; 1 0])
     result2 = DeRham.ogus_nygaard_filtration(F2, 2)
     @test result2.colengths == [0, 1, 1]
     @test result2.bases[end-1] == result2.bases[end]
+    check_congruences(F2, result2)
     @test_throws AssertionError DeRham.ogus_nygaard_filtration(F2, 3)
 
     R27, _ = residue_ring(ZZ, p^3)
@@ -76,12 +88,14 @@ end
     result3 = DeRham.ogus_nygaard_filtration(F3, 3)
     @test result3.colengths == [0, 1, 2, 2]
     @test result3.bases[end-1] == result3.bases[end]
+    check_congruences(F3, result3)
 
     R81, _ = residue_ring(ZZ, p^4)
     F4 = matrix(R81, [0 p 0 p; p 0 0 0; 0 1 0 0; 0 0 p^2 0])
     result4 = DeRham.ogus_nygaard_filtration(F4, 4)
     @test result4.colengths == [0, 1, 2, 3, 3]
     @test result4.bases[end-1] == result4.bases[end]
+    check_congruences(F4, result4)
 
     F_bad = matrix(R9, [p 0; 0 p])
     @test_throws ErrorException DeRham.ogus_nygaard_filtration(F_bad, 1)
@@ -96,6 +110,7 @@ end
     )
 
     high_precision_F = DeRham.frobenius_matrix_with_precision(f, [6, 6, 6])
+    check_congruences(high_precision_F, fermat_result)
     @test all(mod(lift(ZZ, high_precision_F[row, 1]), p^2) == 0 for row = 1:21)
     @test all(
         mod(lift(ZZ, high_precision_F[row, column]), p) == 0 for row = 1:21, column = 2:20
