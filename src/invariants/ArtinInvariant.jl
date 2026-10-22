@@ -19,6 +19,10 @@ The polynomial form accepts a quartic in four variables over a prime field
 ``[i-1, i, i+1]`` and delegates to the matrix form. It returns `false` if the
 quartic does not satisfy the Frobenius computation's smoothness condition.
 
+Both forms require a positive exponent and odd characteristic. The matrix form
+also requires a square matrix over ``\\mathbb{Z}/p^M`` with ``M \\ge i+1``,
+so the input contains enough precision for the numerator.
+
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(4, 4, 3);
 
@@ -44,10 +48,7 @@ function divided_frobenius(F::MatElem, i::Integer)
 
     R, _ = residue_ring(ZZ, target_modulus)
     reduced_F = map_entries(R, lift.(F))
-    numerator = reduced_F
-    for _ in 2:i
-        numerator = numerator * reduced_F
-    end
+    numerator = reduced_F^i
 
     return _DividedFrobenius(numerator, i, p)
 end

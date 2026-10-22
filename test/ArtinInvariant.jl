@@ -29,6 +29,10 @@
         _, (x, y, z, w) = polynomial_ring(GF(p), 4)
         f = x^4 + y^4 + z^4 + w^4
 
+        _, (a, b, c, d) = polynomial_ring(GF(5), 4)
+        f_nonsmooth = (a^2 + b^2)^2 + c^4 + d^4
+        @test DeRham.divided_frobenius(f_nonsmooth, 1) === false
+
         results = [DeRham.divided_frobenius(f, i) for i in 1:2]
         for (i, result) in enumerate(results)
             @test result.exponent == i
