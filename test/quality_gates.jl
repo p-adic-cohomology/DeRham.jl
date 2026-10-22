@@ -38,6 +38,7 @@ end
         :tate_twist,
         :tate_untwist,
         :normalized_tate_twist,
+        :divided_frobenius,
     ])
 
     exported = Set(filter(name -> Base.isexported(DeRham, name), names(DeRham)))

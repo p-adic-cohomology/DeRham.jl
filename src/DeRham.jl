@@ -49,6 +49,7 @@ using Oscar:
     nrows,
     number_of_rows,
     nvars,
+    order,
     polynomial_ring,
     proj,
     push_term!,
@@ -134,6 +135,7 @@ include("./invariants/PointCounts.jl")
 include("./invariants/ZetaFunction.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
+include("./invariants/ArtinInvariant.jl")
 include("./invariants/Jacobian.jl")
 
 
@@ -162,6 +164,7 @@ public fermat_hypersurface,
     SlopesPolygon,
     tate_twist,
     tate_untwist,
-    normalized_tate_twist
+    normalized_tate_twist,
+    divided_frobenius
 
 end

@@ -37,6 +37,7 @@ include("NewtonPolygon.jl")
 include("HasseWitt.jl")
 include("PicardRank.jl")
 include("ArtinMazurHeight.jl")
+include("ArtinInvariant.jl")
 include("Jacobian.jl")
 
 # Declarative E2E catalogue (test/e2e/) — see test/e2e/README.md. Bare
