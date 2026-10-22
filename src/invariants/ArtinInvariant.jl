@@ -178,6 +178,89 @@ function ogus_nygaard_filtration(f::MPolyRingElem, n::Integer; kwargs...)
     return ogus_nygaard_filtration(F, n)
 end
 
+struct ArtinInvariantResult
+    sigma::Int
+    exact::Bool
+end
+
+function Base.show(io::IO, result::ArtinInvariantResult)
+    if result.exact
+        print(io, "σ = ", result.sigma)
+    else
+        print(io, "σ ≥ ", result.sigma)
+    end
+end
+
+"""
+    artin_invariant(f, bound; kwargs...)
+    artin_invariant(F, bound)
+
+Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface via
+the Ogus–Nygaard filtration. Supersingularity is a precondition and is not
+checked; for a non-supersingular surface the result is meaningless and the
+computation may fail.
+
+The required positive integer `bound` sets the absolute precision ``p^B``.
+The result is an [`ArtinInvariantResult`](@ref) with `sigma` and `exact` fields.
+If the filtration stabilizes or its final colength is less than `bound`, then
+`exact` is true and `sigma` is the Artin invariant. Otherwise `sigma` is a
+lower bound and `exact` is false.
+
+The polynomial method accepts a smooth quartic in four variables over the
+prime field ``\\mathbb{F}_p`` for odd ``p``. It computes the Frobenius matrix
+with relative precision `[max(bound - 2, 0), max(bound - 1, 0), bound]` and
+returns `false` if the Frobenius computation rejects the quartic as
+non-smooth. Keyword arguments are forwarded to `frobenius_matrix_with_precision`
+and then to `zeta_coefficients`.
+
+The matrix method trusts the caller to provide ``F`` computed with that same
+relative precision. It requires a square matrix over ``\\mathbb{Z}/p^M`` with
+``p^B`` dividing the modulus, where ``B = bound``.
+
+If all of ``NS(X)`` is defined over ``\\mathbb{F}_{p^m}``, then ``Φ = F/p``
+has period ``m`` and Ogus' theorem gives ``σ ≤ m - 1``. Thus `bound = m - 1`
+combined with this upper bound determines ``σ``; use `bound = m` when the
+filtration itself must certify an exact result.
+
+The filtration theorem is from Ogus, “Supersingular K3 crystals” (1979).
+"""
+function artin_invariant(F::MatElem, bound::Integer)
+    bound = Int(bound)
+    @assert bound >= 1
+    @assert nrows(F) == ncols(F)
+    @assert nrows(F) > 0
+
+    base_modulus = modulus(base_ring(F))
+    factors = factor(ZZ(base_modulus))
+    @assert length(factors) == 1
+    p, _ = first(factors)
+    @assert p > 2
+    @assert mod(base_modulus, p^bound) == 0
+
+    filtration = ogus_nygaard_filtration(F, bound)
+    sigma = filtration.colengths[end]
+    stabilized =
+        length(filtration.bases) > 1 && filtration.bases[end] == filtration.bases[end-1]
+    return ArtinInvariantResult(sigma, stabilized || sigma < bound)
+end
+
+function artin_invariant(f::MPolyRingElem, bound::Integer; kwargs...)
+    bound = Int(bound)
+    @assert bound >= 1
+    @assert total_degree(f) == 4
+    @assert nvars(parent(f)) == 4
+
+    p = characteristic(parent(f))
+    @assert p > 2
+    @assert is_prime(p)
+    @assert order(coefficient_ring(parent(f))) == p
+
+    relative_precision = [max(bound - 2, 0), max(bound - 1, 0), bound]
+    F = frobenius_matrix_with_precision(f, relative_precision; kwargs...)
+    F === false && return false
+    return artin_invariant(F, bound)
+end
+
 function _column_lattice_hnf(generators::ZZMatrix)
     row_hnf = hnf(transpose(generators))
     nonzero_rows = filter(

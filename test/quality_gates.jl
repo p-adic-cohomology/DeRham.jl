@@ -40,6 +40,8 @@ end
         :normalized_tate_twist,
         :divided_frobenius,
         :ogus_nygaard_filtration,
+        :ArtinInvariantResult,
+        :artin_invariant,
     ])
 
     exported = Set(filter(name -> Base.isexported(DeRham, name), names(DeRham)))

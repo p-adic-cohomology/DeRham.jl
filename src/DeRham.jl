@@ -168,6 +168,8 @@ public fermat_hypersurface,
     tate_untwist,
     normalized_tate_twist,
     divided_frobenius,
-    ogus_nygaard_filtration
+    ogus_nygaard_filtration,
+    ArtinInvariantResult,
+    artin_invariant
 
 end

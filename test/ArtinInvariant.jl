@@ -135,3 +135,171 @@ end
     f_nonsmooth = (a^2 + b^2)^2 + c^4 + d^4
     @test DeRham.ogus_nygaard_filtration(f_nonsmooth, 1) === false
 end
+
+@testset "artin_invariant" begin
+    @testset "matrix method and result display" begin
+        p = 3
+        R9, _ = residue_ring(ZZ, p^2)
+        F_exact = matrix(R9, [0 0; 1 0])
+        exact_result = DeRham.artin_invariant(F_exact, 2)
+        @test exact_result isa DeRham.ArtinInvariantResult
+        @test exact_result.sigma == 1
+        @test exact_result.exact
+        @test sprint(show, exact_result) == "σ = 1"
+
+        R27, _ = residue_ring(ZZ, p^3)
+        F_lower_bound = matrix(R27, [0 0 p^2; p 0 0; 0 1 0])
+        lower_bound_result = DeRham.artin_invariant(F_lower_bound, 2)
+        @test lower_bound_result.sigma == 2
+        @test !lower_bound_result.exact
+        @test sprint(show, lower_bound_result) == "σ ≥ 2"
+
+        @test_throws AssertionError DeRham.artin_invariant(F_exact, 0)
+        @test_throws AssertionError DeRham.artin_invariant(F_exact, 3)
+        R4, _ = residue_ring(ZZ, 2^2)
+        @test_throws AssertionError DeRham.artin_invariant(matrix(R4, [1;;]), 1)
+    end
+
+    @testset "quartic method: Fermat over GF(3), m=2 existing zeta fixture" begin
+        p = 3
+        _, (x, y, z, w) = polynomial_ring(GF(p), 4)
+        f = x^4 + y^4 + z^4 + w^4
+        result = DeRham.artin_invariant(f, 2)
+        @test result.sigma == 1
+        @test result.exact
+    end
+
+    @testset "quartic method: 2*x1^4 + x2^4 + x3^4 + x4^4 over GF(3), m=2 existing zeta fixture" begin
+        p = 3
+        _, (x, y, z, w) = polynomial_ring(GF(p), 4)
+        f = 2 * x^4 + y^4 + z^4 + w^4
+        result = DeRham.artin_invariant(f, 2)
+        @test result.sigma == 1
+        @test result.exact
+    end
+
+    if get(ENV, "DERHAM_RUN_ARTIN_M6_TESTS", "false") == "true"
+        @testset "[non-CI] Zenodo 22784396 p=3, m=6 fixtures" begin
+            p = 3
+            _, (x1, x2, x3, x4) = polynomial_ring(GF(p), 4)
+            fixtures = [
+                (
+                    "p3-r3137",
+                    x1^3 * x2 +
+                    x1^3 * x3 +
+                    x1^3 * x4 +
+                    2 * x1^2 * x2^2 +
+                    x1^2 * x2 * x3 +
+                    x1^2 * x2 * x4 +
+                    2 * x1^2 * x3^2 +
+                    x1^2 * x3 * x4 +
+                    2 * x1^2 * x4^2 +
+                    x1 * x2^2 * x3 +
+                    x1 * x2^2 * x4 +
+                    x1 * x2 * x3^2 +
+                    x1 * x2 * x3 * x4 +
+                    2 * x1 * x3^2 * x4 +
+                    x1 * x3 * x4^2 +
+                    2 * x1 * x4^3 +
+                    2 * x2^4 +
+                    2 * x2^3 * x3 +
+                    x2^2 * x3 * x4 +
+                    x2^2 * x4^2 +
+                    x2 * x3^3 +
+                    x2 * x3^2 * x4 +
+                    2 * x2 * x3 * x4^2 +
+                    2 * x2 * x4^3 +
+                    x3^3 * x4 +
+                    2 * x3^2 * x4^2,
+                ),
+                (
+                    "p3-r3418",
+                    2 * x1^4 +
+                    2 * x1^3 * x2 +
+                    2 * x1^3 * x3 +
+                    x1^2 * x2^2 +
+                    2 * x1^2 * x2 * x3 +
+                    x1^2 * x3^2 +
+                    x1^2 * x4^2 +
+                    2 * x1 * x2^3 +
+                    2 * x1 * x2^2 * x3 +
+                    2 * x1 * x2^2 * x4 +
+                    2 * x1 * x2 * x3^2 +
+                    x1 * x2 * x3 * x4 +
+                    x1 * x2 * x4^2 +
+                    2 * x1 * x3^2 * x4 +
+                    2 * x1 * x3 * x4^2 +
+                    x2^4 +
+                    x2^3 * x3 +
+                    x2^2 * x3^2 +
+                    x2^2 * x3 * x4 +
+                    x2^2 * x4^2 +
+                    x2 * x3^3 +
+                    x2 * x3^2 * x4 +
+                    x2 * x3 * x4^2 +
+                    2 * x3^4 +
+                    2 * x3^3 * x4 +
+                    2 * x3^2 * x4^2 +
+                    2 * x3 * x4^3 +
+                    x4^4,
+                ),
+                (
+                    "p3-r3752",
+                    x1^4 +
+                    2 * x1^3 * x4 +
+                    2 * x1^2 * x2 * x3 +
+                    2 * x1^2 * x2 * x4 +
+                    2 * x1^2 * x3^2 +
+                    2 * x1 * x2^3 +
+                    2 * x1 * x2^2 * x4 +
+                    2 * x1 * x2 * x3^2 +
+                    x1 * x2 * x4^2 +
+                    x1 * x3^3 +
+                    x1 * x3^2 * x4 +
+                    x1 * x3 * x4^2 +
+                    2 * x2^4 +
+                    2 * x2^3 * x3 +
+                    x2^3 * x4 +
+                    x2 * x3^3 +
+                    x2 * x3 * x4^2 +
+                    x3^4 +
+                    x3^2 * x4^2 +
+                    x3 * x4^3 +
+                    2 * x4^4,
+                ),
+            ]
+
+            for (fixture, f) in fixtures
+                @testset "[non-CI] Zenodo 22784396 $fixture, DeRham 73e6e52, Julia 1.12" begin
+                    m = 0
+                    zeta_seconds = @elapsed m = DeRham.k3_picard_realization_degree(f)
+                    @test m == 6
+
+                    F = false
+                    filtration = nothing
+                    result = nothing
+                    artin_seconds = @elapsed begin
+                        F = DeRham.frobenius_matrix_with_precision(f, [4, 5, 6])
+                        if F !== false
+                            filtration = DeRham.ogus_nygaard_filtration(F, 6)
+                            result = DeRham.artin_invariant(F, 6)
+                        end
+                    end
+                    @test F !== false
+                    if F !== false
+                        @test filtration.colengths[2] == 1
+                        @test all(
+                            filtration.colengths[level+1] - filtration.colengths[level] in
+                            (0, 1) for level = 1:(length(filtration.colengths)-1)
+                        )
+                        @test result.sigma == filtration.colengths[end]
+                        @test result.sigma == 3
+                        @test result.sigma <= 5
+                        @test result.exact
+                        @info "Artin invariant fixture" fixture=fixture period=m sigma=result.sigma exact=result.exact zeta_seconds=zeta_seconds artin_seconds=artin_seconds
+                    end
+                end
+            end
+        end
+    end
+end
