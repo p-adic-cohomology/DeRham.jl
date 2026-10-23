@@ -19,6 +19,22 @@ computation rejects the polynomial as non-smooth.
 The matrix method requires a 21×21 Frobenius matrix over ``ℤ/p^M`` with odd
 prime ``p`` and ``p²`` dividing the modulus. Its first column must be divisible
 by ``p²`` in the chosen pole-order basis.
+
+The algorithm is from forthcoming work of Bhamidipati, Broe, Garzella, Nair,
+Pagano, and Zhang.
+
+# Examples
+
+A supersingular quartic over ``𝔽_3`` with Artin invariant 2:
+
+```jldoctest
+julia> R, (x, y, z, w) = polynomial_ring(GF(3), ["x", "y", "z", "w"]);
+
+julia> f = x^4 + y^3*z + y*z^3 + x*y^2*w + w^4;
+
+julia> DeRham.artin_invariant(f)
+2
+```
 """
 function artin_invariant(F::MatElem)
     @assert nrows(F) == 21 && ncols(F) == 21
