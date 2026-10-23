@@ -30,6 +30,14 @@
         @test size(F) == (21, 21)
         @test DeRham.artin_invariant(F) == 1
 
+        @test_throws AssertionError DeRham.artin_invariant(
+            matrix(base_ring(F), zeros(Int, 20, 21)),
+        )
+
+        F_bad_first_column = deepcopy(F)
+        F_bad_first_column[1, 1] = one(base_ring(F_bad_first_column))
+        @test_throws AssertionError DeRham.artin_invariant(F_bad_first_column)
+
         R3, _ = residue_ring(ZZ, p)
         @test_throws AssertionError DeRham.artin_invariant(matrix(R3, zeros(Int, 21, 21)))
     end
