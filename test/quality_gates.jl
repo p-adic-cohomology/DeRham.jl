@@ -26,6 +26,7 @@ end
         :k3_picard_rank,
         :k3_picard_realization_degree,
         :artin_mazur_height,
+        :artin_invariant,
         :jacobian_zeta_coefficients,
         :jacobian_point_counts,
         :jacobian_zeta_function,
@@ -38,7 +39,6 @@ end
         :tate_twist,
         :tate_untwist,
         :normalized_tate_twist,
-        :artin_invariant,
     ])
 
     exported = Set(filter(name -> Base.isexported(DeRham, name), names(DeRham)))

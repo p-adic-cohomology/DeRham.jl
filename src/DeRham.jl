@@ -154,6 +154,7 @@ export zeta_coefficients,
     k3_picard_rank,
     k3_picard_realization_degree,
     artin_mazur_height,
+    artin_invariant,
     jacobian_zeta_coefficients,
     jacobian_point_counts,
     jacobian_zeta_function
@@ -164,7 +165,6 @@ public fermat_hypersurface,
     SlopesPolygon,
     tate_twist,
     tate_untwist,
-    normalized_tate_twist,
-    artin_invariant
+    normalized_tate_twist
 
 end
