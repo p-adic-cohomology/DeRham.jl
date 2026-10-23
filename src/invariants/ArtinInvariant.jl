@@ -35,7 +35,7 @@ function artin_invariant(F::MatElem)
     R, _ = residue_ring(ZZ, precision_modulus)
     F_mod_p2 = map_entries(R, lift.(F))
     A = map_entries(ZZ, lift.(F_mod_p2))
-    @assert all(iszero(A[row, 1]) for row in 1:21)
+    @assert all(iszero(A[row, 1]) for row = 1:21)
 
     Fp = GF(Int(p))
     Abar = map_entries(Fp, A)
@@ -48,12 +48,12 @@ function artin_invariant(F::MatElem)
 
     K_integer = map_entries(ZZ, lift.(Ref(ZZ), K))
     B_integer = A * K_integer
-    @assert all(iszero(mod(B_integer[row, column], p)) for row in 1:21, column in 1:20)
+    @assert all(iszero(mod(B_integer[row, column], p)) for row = 1:21, column = 1:20)
     B = map_entries(Fp, divexact.(B_integer, p))
 
     previous_basis = K
     previous_colength = 1
-    for level in 2:22
+    for level = 2:22
         @assert rank(hcat(previous_basis, Abar)) == ncols(previous_basis)
 
         current_basis = _artin_invariant_preimage(K, B, previous_basis)
