@@ -25,6 +25,10 @@ include("Precision.jl")
         test_hodge_polygon_data_form_matches_f_form()
     end
 
+    @testset "Precision information" begin
+        test_user_relative_precision_bypasses_default_table()
+    end
+
 end
 
 include("TateTwist.jl")
@@ -33,6 +37,7 @@ include("NewtonPolygon.jl")
 include("HasseWitt.jl")
 include("PicardRank.jl")
 include("ArtinMazurHeight.jl")
+include("ArtinInvariant.jl")
 include("Jacobian.jl")
 
 # Declarative E2E catalogue (test/e2e/) — see test/e2e/README.md. Bare

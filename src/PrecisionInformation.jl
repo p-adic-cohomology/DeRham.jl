@@ -83,7 +83,7 @@ function precision_information_user_r_m(f, r_m; basis = nothing, verbose = 0)
         error("r_m must have length $(length(hodge_numbers)) for this basis.")
     end
 
-    N_m = series_precision(p, n, d, r_m_int)
+    N_m = series_precision(p, n, d, r_m_int; use_default_table = false)
     N_m[N_m .== 0] .= 1
     M = algorithm_precision(p, n, d, r_m_int, N_m)
 
