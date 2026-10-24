@@ -77,3 +77,20 @@ function test_user_relative_precision_bypasses_default_table()
     @test max_auto_info[3] == expected_max
     @test all(max_auto_info[3] .>= calculated_max)
 end
+
+function test_max_auto_precision_without_default_table()
+    p = 5
+    _, (x, y, z, w) = polynomial_ring(GF(p), 4)
+    f = x^3 + y^3 + z^3 + w^3
+    basis = DeRham.get_basis_of_cohomology(f)
+
+    @test DeRham.series_precision_default(p, 3, 3) === nothing
+
+    auto_info = DeRham.precision_information_auto(f; basis = basis)
+    user_r = zeros(Int, length(auto_info[2]))
+    max_auto_info = DeRham.precision_information_max_auto_r_m(f, user_r; basis = basis)
+    expected = max.(DeRham.calculate_series_precision(p, 3, auto_info[2]), 1)
+
+    @test max_auto_info[2] == auto_info[2]
+    @test max_auto_info[3] == expected
+end

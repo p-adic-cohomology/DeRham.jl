@@ -27,6 +27,7 @@ include("Precision.jl")
 
     @testset "Precision information" begin
         test_user_relative_precision_bypasses_default_table()
+        test_max_auto_precision_without_default_table()
     end
 
 end
