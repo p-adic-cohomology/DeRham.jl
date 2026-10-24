@@ -1,0 +1,7 @@
+[launch]
+julia_bin = "/Users/Shared/Developer/ai/city/math-city/commands/kaimon-sysimage-julia"
+julia_version = "1.13.2"
+
+[city_sysimage]
+julia_bin = "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/bin/julia"
+mode = "auto"

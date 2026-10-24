@@ -1,0 +1,23 @@
+[DeRham]
+path = "/Users/Shared/Developer/ai/city/math-city/.gc/mathcat-repros/dr-eevm-9/DeRham/src/DeRham.jl"
+version = "0.1.1"
+
+[Oscar]
+path = "/Users/jj-agents/.julia/packages/Oscar/clzsb/src/Oscar.jl"
+version = "1.8.2"
+
+[CUDA]
+path = "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-sysimages/mc-xf9j5/cuda-provenance-e8be927/depot/packages/CUDA/nGLFm/src/CUDA.jl"
+version = "5.11.3"
+
+[GPUFiniteFieldMatrices]
+path = "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-sysimages/mc-xf9j5/workloads/GPUFiniteFieldMatrices.jl/src/GPUFiniteFieldMatrices.jl"
+version = "0.3.0"
+
+[AbstractAlgebra]
+path = "/Users/jj-agents/.julia/packages/AbstractAlgebra/DJTlD/src/AbstractAlgebra.jl"
+version = "0.50.4"
+
+[Nemo]
+path = "/Users/jj-agents/.julia/packages/Nemo/XTmgX/src/Nemo.jl"
+version = "0.56.2"

@@ -1,0 +1,21 @@
+--- original/Project.toml
++++ prepared/Project.toml
+@@ -14,9 +14,6 @@
+ OhMyThreads = "67456a42-1dca-4109-a031-0a68de7e3ad5"
+ Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+ 
+-[sources]
+-GPUFiniteFieldMatrices = {url = "https://github.com/UCSD-computational-number-theory/GPUFiniteFieldMatrices.jl.git", rev = "v0.3.1"}
+-
+ [compat]
+ BitIntegers = "0.3.7"
+ CUDA = "5.7.3"
+@@ -29,3 +26,8 @@
+ OhMyThreads = "0.8.3"
+ Oscar = "1.8.0"
+ julia = "1.11"
++
++
++
++[sources.GPUFiniteFieldMatrices]
++path = "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-sysimages/mc-xf9j5/workloads/GPUFiniteFieldMatrices.jl"

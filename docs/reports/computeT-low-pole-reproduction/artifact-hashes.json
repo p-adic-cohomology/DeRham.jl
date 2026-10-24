@@ -1,0 +1,14 @@
+{
+  "FinalReduction-pinned.jl": "8d5fede2632345c443e402e73e68226b3b95579668889113312cb8869d66afa7",
+  "audit_evidence.py": "44a55296e36e7b395718e67e592de8e7c9c163983a9a8cf24ad5f448d97fd4fe",
+  "environment-Manifest-v1.13.toml": "2408740ae17cfb30b396e61fb4a2288b13d68275b22c99ec781194cca984e4a7",
+  "environment-Project.diff": "6745539e36c6813cf0c15c0bf4e45659dc48920eb4ac5fa0eea5a674f03a0661",
+  "environment-Project.toml": "bd642caaff476d7388c80dff56e151201f6d53586b212568a46ceba63bdb428e",
+  "kaimon.toml": "7d54c43f61ea35336311faf06461fca9388f21a3dc2a2dff9f04c9d5c02928ea",
+  "loaded-packages.toml": "413ec2fa4fd13ba3dbf544224ec0732a564ec6fc289f20aed47428faba1323ef",
+  "native-results.json": "35f86aadb96e959ef5c950388ddf62a2a2c1f034c8eaa110472eb290c679aa4a",
+  "native-results.toml": "a052ffabbc23ab0d2921b4932ee390cae79a9967c423dd430706f06f7767dd99",
+  "provenance.json": "36b4566e081fe269f755f7ecfe511add1dd54070a949f51ed4e6b69757b46485",
+  "repair-obligation.md": "911d35d3309202828e684e9e3445bff0dcd9597cd044e506cefe7098a83055b2",
+  "reproduce_computeT.jl": "0032fdf6ec159cbf2a78ac418cb74a07c2074264e03132abef2b7f44cc497deb"
+}

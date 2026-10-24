@@ -1,0 +1,3712 @@
+{
+  "exponent_vectors": [
+    [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      2,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      3,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      4,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      2,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      3,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      3,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      3,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      4,
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      2,
+      1,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      2,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      3,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      1,
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      1,
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      2,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      2,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      1,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      1,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      2,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      4,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      2,
+      1,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      2,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      3,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      2,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      2,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      2,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      2,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      3,
+      0,
+      1,
+      0
+    ],
+    [
+      2,
+      0,
+      0,
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      2,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      2,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      2,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      3,
+      1,
+      0
+    ],
+    [
+      2,
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      1,
+      0,
+      1,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      2,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      2,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      4,
+      0
+    ],
+    [
+      3,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      2,
+      1,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      2,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      3,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      2,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      2,
+      1,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      2,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      2,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      3,
+      0,
+      0,
+      1
+    ],
+    [
+      2,
+      0,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      2,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      2,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      0,
+      2,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      2,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      3,
+      0,
+      1
+    ],
+    [
+      2,
+      0,
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      2,
+      1
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      2,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      2,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      2,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      3,
+      1
+    ],
+    [
+      2,
+      0,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      1,
+      0,
+      1,
+      0,
+      0,
+      2
+    ],
+    [
+      0,
+      1,
+      1,
+      0,
+      0,
+      2
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      0,
+      2
+    ],
+    [
+      1,
+      0,
+      0,
+      1,
+      0,
+      2
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+    ],
+    [
+      0,
+      0,
+      1,
+      1,
+      0,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      2
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      1,
+      2
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      1,
+      2
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      1,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      1,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      2,
+      2
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      3
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      3
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      0,
+      3
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      3
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      1,
+      3
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      4
+    ]
+  ],
+  "word_size": 64,
+  "basis_pole3": [
+    "1"
+  ],
+  "computeT_method_file": "/Users/Shared/Developer/ai/city/math-city/.gc/mathcat-repros/dr-eevm-9/DeRham/src/FinalReduction.jl",
+  "project_sha256": "bd642caaff476d7388c80dff56e151201f6d53586b212568a46ceba63bdb428e",
+  "manifest_sha256": "2408740ae17cfb30b396e61fb4a2288b13d68275b22c99ec781194cca984e4a7",
+  "termorder": "invlex",
+  "VERSION": "1.13.2",
+  "computeT_method_line": 14,
+  "image_id": "be6cc6b35c11eef2b1077e5e0b0d3874f540d2a6872f2253f7ed2eb329487640",
+  "oscar_path": "/Users/jj-agents/.julia/packages/Oscar/clzsb/src/Oscar.jl",
+  "n": 5,
+  "p": 3,
+  "project": "/Users/Shared/Developer/ai/city/math-city/.gc/mathcat-repros/dr-eevm-9/DeRham/Project.toml",
+  "F": "x0^2 + x1^2 + x2^2 + x3^2 + x4^2 + x5^2",
+  "basis_lengths": [
+    0,
+    0,
+    1,
+    0,
+    0
+  ],
+  "d": 2,
+  "g": "x0^2*x1^2",
+  "assignment": "dr-eevm.9",
+  "derham_path": "/Users/Shared/Developer/ai/city/math-city/.gc/mathcat-repros/dr-eevm-9/DeRham/src/DeRham.jl",
+  "image": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-sysimages/mc-xf9j5/union-artifacts/be6cc6b35c11eef2b1077e5e0b0d3874f540d2a6872f2253f7ed2eb329487640/image.dylib",
+  "exact_g_coordinate": "1//48",
+  "pid": 9830,
+  "source_sha256": "8d5fede2632345c443e402e73e68226b3b95579668889113312cb8869d66afa7",
+  "exact_Tg": "1//2",
+  "probes": [
+    {
+      "g_column_one_based": 3,
+      "mismatching_columns": 21,
+      "expected_g": "5",
+      "observed_equals_one_quarter": true,
+      "expected_row": [
+        "6",
+        "0",
+        "5",
+        "0",
+        "6",
+        "0",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "5",
+        "0",
+        "0",
+        "6",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "5",
+        "0",
+        "0",
+        "5",
+        "0",
+        "0",
+        "0",
+        "6",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "5",
+        "0",
+        "0",
+        "5",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "0",
+        "0",
+        "0",
+        "6",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "5",
+        "0",
+        "0",
+        "5",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "0",
+        "0",
+        "0",
+        "5",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "6"
+      ],
+      "modulus": "9",
+      "observed_g": "7",
+      "shape": [
+        1,
+        126
+      ],
+      "all_columns_equal_half_expected": true,
+      "expected_equals_one_half": true,
+      "all_columns_factor_two_recovers_expected": true,
+      "actual_row": [
+        "3",
+        "0",
+        "7",
+        "0",
+        "3",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "3",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "3",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "0",
+        "3",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "3"
+      ],
+      "M": 2
+    },
+    {
+      "g_column_one_based": 3,
+      "mismatching_columns": 21,
+      "expected_g": "14",
+      "observed_equals_one_quarter": true,
+      "expected_row": [
+        "15",
+        "0",
+        "14",
+        "0",
+        "15",
+        "0",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "14",
+        "0",
+        "0",
+        "15",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "14",
+        "0",
+        "0",
+        "14",
+        "0",
+        "0",
+        "0",
+        "15",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "14",
+        "0",
+        "0",
+        "14",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "0",
+        "0",
+        "0",
+        "15",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "14",
+        "0",
+        "0",
+        "14",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "0",
+        "0",
+        "0",
+        "14",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "15"
+      ],
+      "modulus": "27",
+      "observed_g": "7",
+      "shape": [
+        1,
+        126
+      ],
+      "all_columns_equal_half_expected": true,
+      "expected_equals_one_half": true,
+      "all_columns_factor_two_recovers_expected": true,
+      "actual_row": [
+        "21",
+        "0",
+        "7",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "7",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "21"
+      ],
+      "M": 3
+    },
+    {
+      "g_column_one_based": 3,
+      "mismatching_columns": 21,
+      "expected_g": "41",
+      "observed_equals_one_quarter": true,
+      "expected_row": [
+        "42",
+        "0",
+        "41",
+        "0",
+        "42",
+        "0",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "41",
+        "0",
+        "0",
+        "42",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "41",
+        "0",
+        "0",
+        "41",
+        "0",
+        "0",
+        "0",
+        "42",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "41",
+        "0",
+        "0",
+        "41",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "0",
+        "0",
+        "0",
+        "42",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "41",
+        "0",
+        "0",
+        "41",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "0",
+        "0",
+        "0",
+        "41",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "42"
+      ],
+      "modulus": "81",
+      "observed_g": "61",
+      "shape": [
+        1,
+        126
+      ],
+      "all_columns_equal_half_expected": true,
+      "expected_equals_one_half": true,
+      "all_columns_factor_two_recovers_expected": true,
+      "actual_row": [
+        "21",
+        "0",
+        "61",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "61",
+        "0",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "61",
+        "0",
+        "0",
+        "61",
+        "0",
+        "0",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "61",
+        "0",
+        "0",
+        "61",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "0",
+        "0",
+        "0",
+        "21",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "61",
+        "0",
+        "0",
+        "61",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "0",
+        "0",
+        "0",
+        "61",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "21"
+      ],
+      "M": 4
+    }
+  ],
+  "dependency_info": [
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/ASL_jll/HkA3G",
+      "version": "0.1.5+0",
+      "name": "ASL_jll",
+      "tree_hash": "21a22cd1a6d45034933824665cfb874ec425a14b",
+      "is_tracking_path": false,
+      "uuid": "ae81ac8f-d209-56e5-92de-9978fef736f9"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/AbstractAlgebra/DJTlD",
+      "version": "0.50.4",
+      "name": "AbstractAlgebra",
+      "tree_hash": "0aa1b711b49aa207ac3d8fa6f2a78225e3130c0e",
+      "is_tracking_path": false,
+      "uuid": "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/AbstractFFTs/4iQz5",
+      "version": "1.5.0",
+      "name": "AbstractFFTs",
+      "tree_hash": "d92ad398961a3ed262d8bf04a1a2b8340f915fef",
+      "is_tracking_path": false,
+      "uuid": "621f4979-c628-5d54-868e-fcf4e3e8185c"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Accessors/e7kZq",
+      "version": "0.1.45",
+      "name": "Accessors",
+      "tree_hash": "7063ad1083578215c7c4bf410368150abe8d5524",
+      "is_tracking_path": false,
+      "uuid": "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Adapt/hnGPi",
+      "version": "4.7.4",
+      "name": "Adapt",
+      "tree_hash": "dee8388a9bec89c8713ad176f96960ae2f98598a",
+      "is_tracking_path": false,
+      "uuid": "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/AlgebraicSolving/43zWG",
+      "version": "0.10.6",
+      "name": "AlgebraicSolving",
+      "tree_hash": "1380d6c367ca2abb3417cb245a5716e8194ee301",
+      "is_tracking_path": false,
+      "uuid": "66b61cbe-0446-4d5d-9090-1ff510639f9d"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/ArgTools",
+      "version": "1.1.2",
+      "name": "ArgTools",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Artifacts",
+      "version": "1.11.0",
+      "name": "Artifacts",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Atomix/K5rAV",
+      "version": "1.2.1",
+      "name": "Atomix",
+      "tree_hash": "1bbcf97714051f302b3beafab65bcdeb6044c4df",
+      "is_tracking_path": false,
+      "uuid": "a9b6321e-bd34-4604-b9c9-b65b8de01458"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/BFloat16s/4kk9y",
+      "version": "0.6.3",
+      "name": "BFloat16s",
+      "tree_hash": "a708326ef8415d0d66c3b2719da68f3f23234f8f",
+      "is_tracking_path": false,
+      "uuid": "ab4f0b2a-ad5b-11e8-123f-65d77653426b"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/BangBang/ZEWNl",
+      "version": "0.4.9",
+      "name": "BangBang",
+      "tree_hash": "cceb62468025be98d42a5dc581b163c20896b040",
+      "is_tracking_path": false,
+      "uuid": "198e06fe-97b7-11e9-32a5-e1d131e6ad66"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Base64",
+      "version": "1.11.0",
+      "name": "Base64",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/BenchmarkTools/ZtsPk",
+      "version": "1.8.0",
+      "name": "BenchmarkTools",
+      "tree_hash": "9670d3febc2b6da60a0ae57846ba74670290653f",
+      "is_tracking_path": false,
+      "uuid": "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/BinaryWrappers/YKAZO",
+      "version": "0.2.0",
+      "name": "BinaryWrappers",
+      "tree_hash": "2c8fdd2d2604128a7123e7c8fa5cf07b4d8e414b",
+      "is_tracking_path": false,
+      "uuid": "f01c122e-0ea1-4f85-ad8f-907073ad7a9f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/BitIntegers/xoLLM",
+      "version": "0.3.7",
+      "name": "BitIntegers",
+      "tree_hash": "091d591a060e43df1dd35faab3ca284925c48e46",
+      "is_tracking_path": false,
+      "uuid": "c3b6d118-76ef-56ca-8cc7-ebb389d030a1"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Bzip2_jll/eIOLw",
+      "version": "1.0.9+0",
+      "name": "Bzip2_jll",
+      "tree_hash": "1b96ea4a01afe0ea4090c5c8039690672dd13f2e",
+      "is_tracking_path": false,
+      "uuid": "6e34b625-4abd-537c-b88f-471c36dfa7a0"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CEnum/B6ahP",
+      "version": "0.5.0",
+      "name": "CEnum",
+      "tree_hash": "389ad5c84de1ae7cf0e28e381131c98ea87d54fc",
+      "is_tracking_path": false,
+      "uuid": "fa961155-64e5-5f13-b03f-caf6b980ea82"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CSV/T1GBD",
+      "version": "0.10.17",
+      "name": "CSV",
+      "tree_hash": "abed1e735dd4152f48c90cf0767e1790e25f332f",
+      "is_tracking_path": false,
+      "uuid": "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CUDA/nGLFm",
+      "version": "5.11.3",
+      "name": "CUDA",
+      "tree_hash": "ea57a047d5decf052949ffc063da95c0bd7ab905",
+      "is_tracking_path": false,
+      "uuid": "052768ef-5323-5732-b1bb-66c8b64840ba"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CUDA_Compiler_jll/llq1P",
+      "version": "0.4.4+1",
+      "name": "CUDA_Compiler_jll",
+      "tree_hash": "c32d22f2f563ce192c88a44b09c2b569f1e7a980",
+      "is_tracking_path": false,
+      "uuid": "d1e2174e-dfdc-576e-b43e-73b79eb1aca8"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CUDA_Driver_jll/NQ7aY",
+      "version": "13.3.5+0",
+      "name": "CUDA_Driver_jll",
+      "tree_hash": "e1545697ad04e71fc9d2d95b8f5f54c1244fb607",
+      "is_tracking_path": false,
+      "uuid": "4ee394cb-3365-5eb0-8335-949819d2adfc"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CUDA_Runtime_Discovery/JvRBm",
+      "version": "2.1.1",
+      "name": "CUDA_Runtime_Discovery",
+      "tree_hash": "159b1c1f03e6355bb9c6d8954e5f51019788dd26",
+      "is_tracking_path": false,
+      "uuid": "1af6417a-86b4-443c-805f-a4643ffb695f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CUDA_Runtime_jll/6DIWA",
+      "version": "0.21.0+1",
+      "name": "CUDA_Runtime_jll",
+      "tree_hash": "c0314d9fb0ebd00e404feba4c3fbc04c9975abc1",
+      "is_tracking_path": false,
+      "uuid": "76a88914-d11a-5bdc-97e0-2f5a05c973a2"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/ChunkSplitters/5ciiA",
+      "version": "3.2.0",
+      "name": "ChunkSplitters",
+      "tree_hash": "1c52c8e2673edc030191177ff1aee42d25149acb",
+      "is_tracking_path": false,
+      "uuid": "ae650224-84b6-46f8-82ea-d812ca08434e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CodecZlib/BjTS1",
+      "version": "0.7.9",
+      "name": "CodecZlib",
+      "tree_hash": "970758a3d591a2a5c2a907c53f2e2f8c1b1d3537",
+      "is_tracking_path": false,
+      "uuid": "944b1d66-785c-5afd-91f1-9de20f533193"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Combinatorics/Qubsi",
+      "version": "1.1.0",
+      "name": "Combinatorics",
+      "tree_hash": "c761b00e7755700f9cdf5b02039939d1359330e1",
+      "is_tracking_path": false,
+      "uuid": "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Compat/FiBO2",
+      "version": "4.18.1",
+      "name": "Compat",
+      "tree_hash": "9d8a54ce4b17aa5bdce0ea5c34bc5e7c340d16ad",
+      "is_tracking_path": false,
+      "uuid": "34da2185-b29b-5c13-b0c7-acf172513d20"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/CompilerSupportLibraries_jll",
+      "version": "1.5.5+2",
+      "name": "CompilerSupportLibraries_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "e66e0078-7015-5450-92f7-15fbd957f2ae"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CompositionsBase/IN0VV",
+      "version": "0.1.2",
+      "name": "CompositionsBase",
+      "tree_hash": "802bb88cd69dfd1509f6670416bd4434015693ad",
+      "is_tracking_path": false,
+      "uuid": "a33af91c-f02d-484b-be07-31d278c5ca2b"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/ConstructionBase/3a7dg",
+      "version": "1.6.0",
+      "name": "ConstructionBase",
+      "tree_hash": "b4b092499347b18a015186eae3042f72267106cb",
+      "is_tracking_path": false,
+      "uuid": "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Crayons/mwQuU",
+      "version": "4.2.0",
+      "name": "Crayons",
+      "tree_hash": "54b76cbb40d9a0f5368c880725b2f141da77c94f",
+      "is_tracking_path": false,
+      "uuid": "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/CxxWrap/0hc89",
+      "version": "0.17.5",
+      "name": "CxxWrap",
+      "tree_hash": "f7a997d3959648a818c45dda059a45844300b94d",
+      "is_tracking_path": false,
+      "uuid": "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DataAPI/atdEM",
+      "version": "1.16.0",
+      "name": "DataAPI",
+      "tree_hash": "abe83f3a2f1b857aac70ef8b269080af17764bbe",
+      "is_tracking_path": false,
+      "uuid": "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DataStructures/IrAJn",
+      "version": "0.18.22",
+      "name": "DataStructures",
+      "tree_hash": "4e1fe97fdaed23e9dc21d4d664bea76b65fc50a0",
+      "is_tracking_path": false,
+      "uuid": "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DataValueInterfaces/0j6Kp",
+      "version": "1.0.0",
+      "name": "DataValueInterfaces",
+      "tree_hash": "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6",
+      "is_tracking_path": false,
+      "uuid": "e2d170a0-9d28-54be-80f0-106bbe20a464"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Dates",
+      "version": "1.11.0",
+      "name": "Dates",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "ade2ca70-3891-5945-98fb-dc099432e06a"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DecFP/1rlvE",
+      "version": "1.4.2",
+      "name": "DecFP",
+      "tree_hash": "3b98337b5b709548754973b9d79f4d5f2038c7cf",
+      "is_tracking_path": false,
+      "uuid": "55939f99-70c6-5e9b-8bb0-5071ed7d61fd"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DecFP_jll/IObEZ",
+      "version": "2.0.400+0",
+      "name": "DecFP_jll",
+      "tree_hash": "74f3b68c552c8efc70bac316a3ab4057a1a5288a",
+      "is_tracking_path": false,
+      "uuid": "47200ebd-12ce-5be5-abb7-8e082af23329"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DelimitedFiles/aGcsu",
+      "version": "1.9.1",
+      "name": "DelimitedFiles",
+      "tree_hash": "9e2f36d3c96a820c678f2f1f1782582fcf685bae",
+      "is_tracking_path": false,
+      "uuid": "8bb1440f-4735-579b-a4ab-409b98df4dab"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Distributed",
+      "version": "1.11.0",
+      "name": "Distributed",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "8ba89e20-285c-5b6f-9357-94700520ee1b"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/DocStringExtensions/azBTp",
+      "version": "0.10.2",
+      "name": "DocStringExtensions",
+      "tree_hash": "38ef52f18cbdfa783ec6c25acc23fb1e8525ec16",
+      "is_tracking_path": false,
+      "uuid": "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Downloads",
+      "version": "1.7.0",
+      "name": "Downloads",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/ExprTools/9lavJ",
+      "version": "0.1.11",
+      "name": "ExprTools",
+      "tree_hash": "d2e49e7efd29719d6f28b891b0e0e159daa9d2b4",
+      "is_tracking_path": false,
+      "uuid": "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/FLINT_jll/BE8UX",
+      "version": "301.600.0+0",
+      "name": "FLINT_jll",
+      "tree_hash": "2e37c236c0c3e714b540ecc6220e547464845349",
+      "is_tracking_path": false,
+      "uuid": "e134572f-a0d5-539d-bddf-3cad8db41a82"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/FilePathsBase/NV2We",
+      "version": "0.9.24",
+      "name": "FilePathsBase",
+      "tree_hash": "3bab2c5aa25e7840a4b065805c0cdfc01f3068d2",
+      "is_tracking_path": false,
+      "uuid": "48062228-2e41-5def-b9a4-89aafe57970f"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/FileWatching",
+      "version": "1.11.0",
+      "name": "FileWatching",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Future",
+      "version": "1.11.0",
+      "name": "Future",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "9fa8497b-333b-5362-9e8d-4d0656e87820"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP/8Ig8l",
+      "version": "0.17.9",
+      "name": "GAP",
+      "tree_hash": "5489691132f3deeff87d43421d368b22a1eaaff7",
+      "is_tracking_path": false,
+      "uuid": "c863536a-3901-11e9-33e7-d5cd0df7b904"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_jll/z4iTe",
+      "version": "400.1600.105+0",
+      "name": "GAP_jll",
+      "tree_hash": "a11fda5215f58b2022ea4407246f9848ebe7b291",
+      "is_tracking_path": false,
+      "uuid": "5cd7a574-2c56-5be2-91dc-c8bc375b9ddf"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_lib_jll/0TKji",
+      "version": "400.1600.100+0",
+      "name": "GAP_lib_jll",
+      "tree_hash": "8e0c2c8285f3e83b96dbd96fa57e75c5f886408b",
+      "is_tracking_path": false,
+      "uuid": "de1ad85e-c930-5cd4-919d-ccd3fcafd1a3"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_ace_jll/qWX7l",
+      "version": "501.70000.0+0",
+      "name": "GAP_pkg_ace_jll",
+      "tree_hash": "cdc100d9acdcb88cc645a5e6402ad3de447a0373",
+      "is_tracking_path": false,
+      "uuid": "6e11effc-327b-571d-98e3-e12b1d1e7421"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_anupq_jll/RfaWH",
+      "version": "301.30300.0+0",
+      "name": "GAP_pkg_anupq_jll",
+      "tree_hash": "5ecd89652e4921b77a1dba488cc141d39d4b8e8b",
+      "is_tracking_path": false,
+      "uuid": "995f5adf-d221-5ddc-a873-ce518b8081c9"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_browse_jll/VcagV",
+      "version": "101.82300.1+0",
+      "name": "GAP_pkg_browse_jll",
+      "tree_hash": "c15366a9f8e58e4213723c1e3104d739349bbe62",
+      "is_tracking_path": false,
+      "uuid": "6e540885-1cbc-538c-85e7-b800ca60d645"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_caratinterface_jll/HTA4v",
+      "version": "201.31100.0+0",
+      "name": "GAP_pkg_caratinterface_jll",
+      "tree_hash": "471da7ad2691e353ed21b2531d4e22b495232763",
+      "is_tracking_path": false,
+      "uuid": "b60ae38f-62e8-5a18-8dcb-33083e9f01ee"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_cddinterface_jll/et9bd",
+      "version": "202600.30200.1+0",
+      "name": "GAP_pkg_cddinterface_jll",
+      "tree_hash": "602ad8a94ef441576a693f37519d7ed71a3e399f",
+      "is_tracking_path": false,
+      "uuid": "edf6cd94-1a94-567d-837e-37d1f3b87eed"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_cohomolo_jll/6JlQy",
+      "version": "101.70000.0+0",
+      "name": "GAP_pkg_cohomolo_jll",
+      "tree_hash": "5a7836eb44333db793411b7cd014dc526d495fe0",
+      "is_tracking_path": false,
+      "uuid": "386407dc-74c0-5367-b2ac-4ae54610b78b"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_crypting_jll/ROE7F",
+      "version": "1.100700.0+0",
+      "name": "GAP_pkg_crypting_jll",
+      "tree_hash": "bf995a77c6fe5bd4594a010573f30ca50b8799f9",
+      "is_tracking_path": false,
+      "uuid": "3b5f52f3-99b5-593a-81cd-d6cf4b425c55"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_curlinterface_jll/SipDG",
+      "version": "201.40400.0+0",
+      "name": "GAP_pkg_curlinterface_jll",
+      "tree_hash": "08ec74e42f527de854f5bdf9b36e103fe448bbf1",
+      "is_tracking_path": false,
+      "uuid": "deeb07ae-e8f4-5d6c-9f2a-02b0e630ae3b"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_cvec_jll/2O6zX",
+      "version": "201.80500.1+0",
+      "name": "GAP_pkg_cvec_jll",
+      "tree_hash": "e9db9c2e7f1f25b20c25804a1c4129e0ee60a5a2",
+      "is_tracking_path": false,
+      "uuid": "03de9d45-54dd-5e36-9810-6ca1d577e6b3"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_datastructures_jll/rYV8L",
+      "version": "1.40300.0+0",
+      "name": "GAP_pkg_datastructures_jll",
+      "tree_hash": "bfde11829bfe554d9ec944badb08468cb7f79fc4",
+      "is_tracking_path": false,
+      "uuid": "66bcec33-4fa3-551a-b2da-ca256b6829d9"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_deepthought_jll/xr50f",
+      "version": "101.1000.0+0",
+      "name": "GAP_pkg_deepthought_jll",
+      "tree_hash": "01feb93e6616bd6da3a9516d13038d98787ec203",
+      "is_tracking_path": false,
+      "uuid": "27af9300-c9da-50fb-ba64-a6b0776a3078"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_digraphs_jll/VgNpT",
+      "version": "101.150000.0+0",
+      "name": "GAP_pkg_digraphs_jll",
+      "tree_hash": "1f063f65f70197603caae0d8b71cf33b0e0613c2",
+      "is_tracking_path": false,
+      "uuid": "ce5c30f6-a98c-53bc-b643-089f5717f8db"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_edim_jll/tMFNi",
+      "version": "101.30800.2+0",
+      "name": "GAP_pkg_edim_jll",
+      "tree_hash": "31a8c1b80a8b611cb7a59d0251d9c11885615d1b",
+      "is_tracking_path": false,
+      "uuid": "aa0ab9cb-918b-5ca1-812e-3cecb1c413b6"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_ferret_jll/MuLi9",
+      "version": "101.1600.1+0",
+      "name": "GAP_pkg_ferret_jll",
+      "tree_hash": "f77bea84579ad30e7bcc89243a464384db5ac5c0",
+      "is_tracking_path": false,
+      "uuid": "d6652ff9-bdf9-5f19-9e6f-c10727807222"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_float_jll/QDD6K",
+      "version": "101.1000.1+0",
+      "name": "GAP_pkg_float_jll",
+      "tree_hash": "0e3c92d490134ff526e20ffe25f69a22f3c7285b",
+      "is_tracking_path": false,
+      "uuid": "b73cfdca-4c14-50a3-9408-5dcda5b8fad2"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_fplsa_jll/YdhhX",
+      "version": "101.20800.0+0",
+      "name": "GAP_pkg_fplsa_jll",
+      "tree_hash": "7907c1b4b4746457f9214466bb1d6f8f428c7b8e",
+      "is_tracking_path": false,
+      "uuid": "f51f7fb6-0f19-5db2-8aaf-495cce673bcb"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_gauss_jll/B78v0",
+      "version": "202600.70100.0+0",
+      "name": "GAP_pkg_gauss_jll",
+      "tree_hash": "0398c48e534b0d7dbedaf262b79919587338f133",
+      "is_tracking_path": false,
+      "uuid": "296a3c51-2614-5f89-afa9-2c5cd84b74d9"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_guava_jll/Ll6rX",
+      "version": "301.210000.0+0",
+      "name": "GAP_pkg_guava_jll",
+      "tree_hash": "33ca26e2430aa166a946bf8ac7e42b11a1e00788",
+      "is_tracking_path": false,
+      "uuid": "70456840-cd51-5d76-a902-d128bd76a730"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_io_jll/Kkonv",
+      "version": "401.100000.0+0",
+      "name": "GAP_pkg_io_jll",
+      "tree_hash": "f18ca0cd633442a484788938a358ac406aa504dc",
+      "is_tracking_path": false,
+      "uuid": "19a9678b-966c-568e-9f2e-41ceac70c829"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_json_jll/YE3Jh",
+      "version": "201.40000.1+0",
+      "name": "GAP_pkg_json_jll",
+      "tree_hash": "cb2431fe3feb940643c1ff46895f459e99957427",
+      "is_tracking_path": false,
+      "uuid": "b348cf08-4407-5d37-b307-1564396f8b07"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_juliainterface_jll/fhslh",
+      "version": "0.170400.3+0",
+      "name": "GAP_pkg_juliainterface_jll",
+      "tree_hash": "277c4199f173dfea77e1e158dfbb00adbe1686a4",
+      "is_tracking_path": false,
+      "uuid": "ba154793-3a7d-51ee-8800-e295b0cf7374"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_kbmag_jll/RhDeL",
+      "version": "101.60000.0+0",
+      "name": "GAP_pkg_kbmag_jll",
+      "tree_hash": "1ab876d3f82fd0bc16814e4f150de42ceeadf1f1",
+      "is_tracking_path": false,
+      "uuid": "74c39be2-f71b-5dd1-bffc-f479ee282a63"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_normalizinterface_jll/6OoOv",
+      "version": "101.50100.1+0",
+      "name": "GAP_pkg_normalizinterface_jll",
+      "tree_hash": "d9563b5c3473c1cebbc28c82b927564360776578",
+      "is_tracking_path": false,
+      "uuid": "74f4ad05-5f81-5a78-8197-4e83b84c9c17"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_nq_jll/jtcUS",
+      "version": "201.51100.0+0",
+      "name": "GAP_pkg_nq_jll",
+      "tree_hash": "85a7f2f82cde66b39d9f2dadc887e05c32ed3d33",
+      "is_tracking_path": false,
+      "uuid": "00bf61e5-c0f9-5a3f-ba8b-68a621695b53"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_orb_jll/fUCBB",
+      "version": "501.10000.1+0",
+      "name": "GAP_pkg_orb_jll",
+      "tree_hash": "681d5fc9d8428e8cd0e4d72ee96f1862d31565dc",
+      "is_tracking_path": false,
+      "uuid": "b689cd95-dcfd-544e-a174-ce2fd787c795"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_profiling_jll/NXfCp",
+      "version": "201.60300.0+0",
+      "name": "GAP_pkg_profiling_jll",
+      "tree_hash": "db8030b9082dcb8629c457d82a9b0cd7189ba074",
+      "is_tracking_path": false,
+      "uuid": "d3697a66-ac8c-5833-932f-cdd896efbdde"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_semigroups_jll/tiVd9",
+      "version": "501.60300.1+0",
+      "name": "GAP_pkg_semigroups_jll",
+      "tree_hash": "1cfe2598887aed2bc6a84795290651b9eba16b78",
+      "is_tracking_path": false,
+      "uuid": "6263fdc2-b0d3-58ac-9933-e1550bf6ed81"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_simpcomp_jll/Xr1jX",
+      "version": "201.11500.0+0",
+      "name": "GAP_pkg_simpcomp_jll",
+      "tree_hash": "64f6e5b8d8a75ee49a67079aaf580f232bf2bb76",
+      "is_tracking_path": false,
+      "uuid": "1c659ad8-f6e2-554d-814b-22ddd907b91c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GAP_pkg_zeromqinterface_jll/ocXPp",
+      "version": "1.180000.1+0",
+      "name": "GAP_pkg_zeromqinterface_jll",
+      "tree_hash": "1e6a716503bebd5124dca6e83c10c225489deee8",
+      "is_tracking_path": false,
+      "uuid": "abf7faeb-cafb-5034-8851-d0d251ebcfa3"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/GLPK_jll/OX7kf",
+      "version": "5.0.2+0",
+      "name": "GLPK_jll",
+      "tree_hash": "18671d6720e293344ff4581e2ebc4194fe2263dc",
+      "is_tracking_path": false,
+      "uuid": "e8aa6df9-e6ca-548a-97ff-1f85fc5b8b98"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/GMP_jll",
+      "version": "6.3.0+2",
+      "name": "GMP_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "781609d7-10c4-51f6-84f2-b8444358ff6d"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GPUArrays/mdIMW",
+      "version": "11.5.16",
+      "name": "GPUArrays",
+      "tree_hash": "574e443e2545f8622b716676c9358ca8a7ea57b4",
+      "is_tracking_path": false,
+      "uuid": "0c68f7d7-f131-5f86-a1c3-88cf8149b2d7"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/GPUArraysCore/rW0dQ",
+      "version": "0.2.1",
+      "name": "GPUArraysCore",
+      "tree_hash": "0b2b3e8b8fb7c1f5ddbf498be2eb2b3b37c9c0ed",
+      "is_tracking_path": false,
+      "uuid": "46192b85-c4d5-4398-a991-12ede77f4527"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/GPUCompiler/Avrep",
+      "version": "1.17.1",
+      "name": "GPUCompiler",
+      "tree_hash": "b863a2e71f89328e2af69069490aec2448106e59",
+      "is_tracking_path": false,
+      "uuid": "61eb1bfa-7361-4325-ad38-22787b887f55"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-sysimages/mc-xf9j5/workloads/GPUFiniteFieldMatrices.jl",
+      "version": "0.3.0",
+      "name": "GPUFiniteFieldMatrices",
+      "tree_hash": "nothing",
+      "is_tracking_path": true,
+      "uuid": "465031f1-b347-4f72-85f6-baf667cdf853"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/GPUToolbox/x8hVh",
+      "version": "1.1.1",
+      "name": "GPUToolbox",
+      "tree_hash": "a589b6c1a0eff953571f5d8b0474f5020831114d",
+      "is_tracking_path": false,
+      "uuid": "096a3bc2-3ced-46d0-87f4-dd12716f4bfc"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/HashArrayMappedTries/CozZ8",
+      "version": "0.2.0",
+      "name": "HashArrayMappedTries",
+      "tree_hash": "2eaa69a7cab70a52b9687c8bf950a5a93ec895ae",
+      "is_tracking_path": false,
+      "uuid": "076d061b-32b6-4027-95e0-9a2c6f6d7e74"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/Hecke/sbdcK",
+      "version": "0.39.22",
+      "name": "Hecke",
+      "tree_hash": "a4125e60fe7b767df65740d5af1dee9a769ea27b",
+      "is_tracking_path": false,
+      "uuid": "3e1990a7-5d81-5526-99ce-9ba3ff248f21"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Hwloc_jll/25V2i",
+      "version": "2.15.0+0",
+      "name": "Hwloc_jll",
+      "tree_hash": "cbbd99d516990d05c02aa132aa077b2bf50ae323",
+      "is_tracking_path": false,
+      "uuid": "e33a78d0-f292-5ffc-b300-72abe9b543c8"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/InitialValues/OWP8V",
+      "version": "0.3.1",
+      "name": "InitialValues",
+      "tree_hash": "4da0f88e9a39111c2fa3add390ab15f3a44f3ca3",
+      "is_tracking_path": false,
+      "uuid": "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/InlineStrings/3hOt5",
+      "version": "1.4.6",
+      "name": "InlineStrings",
+      "tree_hash": "06b65886c7577a3784d616e29f1302c2e36e389d",
+      "is_tracking_path": false,
+      "uuid": "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/InteractiveUtils",
+      "version": "1.11.0",
+      "name": "InteractiveUtils",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/InverseFunctions/RGR1r",
+      "version": "0.1.18",
+      "name": "InverseFunctions",
+      "tree_hash": "5cc6ad3e2bfc75a11eed92632ee341d37f4a4536",
+      "is_tracking_path": false,
+      "uuid": "3587e190-3f89-42d0-90ee-14403ec27112"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Ipopt_jll/YV0eS",
+      "version": "300.1400.2000+1",
+      "name": "Ipopt_jll",
+      "tree_hash": "0e144b24f0cfa8c5bfefcfdbdaae76132597394b",
+      "is_tracking_path": false,
+      "uuid": "9cc047cb-c261-5740-88fc-0cf96f7bdcc7"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/IrrationalConstants/sUNmT",
+      "version": "0.2.7",
+      "name": "IrrationalConstants",
+      "tree_hash": "d22e8bdb3f03c300a103ff23c0dd5a654c6701de",
+      "is_tracking_path": false,
+      "uuid": "92d709cd-6900-40b7-9082-c6be49f344b6"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/IterTools/cLYFo",
+      "version": "1.10.0",
+      "name": "IterTools",
+      "tree_hash": "42d5f897009e7ff2cf88db414a389e5ed1bdd023",
+      "is_tracking_path": false,
+      "uuid": "c8e1da08-722c-5040-9ed9-7db0dc04731e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/IteratorInterfaceExtensions/NZdaj",
+      "version": "1.0.0",
+      "name": "IteratorInterfaceExtensions",
+      "tree_hash": "a3f24677c21f5bbe9d2a714f95dcd58337fb2856",
+      "is_tracking_path": false,
+      "uuid": "82899510-4779-5014-852e-03e436cf321d"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/JLLWrappers/Kp7TC",
+      "version": "1.8.0",
+      "name": "JLLWrappers",
+      "tree_hash": "7204148362dafe5fe6a273f855b8ccbe4df8173e",
+      "is_tracking_path": false,
+      "uuid": "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/JSON/0t0KX",
+      "version": "1.12.2",
+      "name": "JSON",
+      "tree_hash": "ef46833ad806dc03d95dbe86db3d113965c461cd",
+      "is_tracking_path": false,
+      "uuid": "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/JSON3/rT1w2",
+      "version": "1.14.3",
+      "name": "JSON3",
+      "tree_hash": "411eccfe8aba0814ffa0fdf4860913ed09c34975",
+      "is_tracking_path": false,
+      "uuid": "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/JuliaNVTXCallbacks_jll/AIP88",
+      "version": "0.2.1+0",
+      "name": "JuliaNVTXCallbacks_jll",
+      "tree_hash": "af433a10f3942e882d3c671aacb203e006a5808f",
+      "is_tracking_path": false,
+      "uuid": "9c1d0b0a-7046-5b2e-a33f-ea22f176ac7e"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/JuliaSyntaxHighlighting",
+      "version": "1.12.0",
+      "name": "JuliaSyntaxHighlighting",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "ac6e5ff7-fb65-4e79-a425-ec3bc9c03011"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/KernelAbstractions/xC48W",
+      "version": "0.9.45",
+      "name": "KernelAbstractions",
+      "tree_hash": "e51d16f9dcff134c4ecf79e7cfa764c59d2d648e",
+      "is_tracking_path": false,
+      "uuid": "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LFUDACache/rpAjN",
+      "version": "0.1.1",
+      "name": "LFUDACache",
+      "tree_hash": "86432dfb77e64fee262724cddb6fc36603ce5e16",
+      "is_tracking_path": false,
+      "uuid": "4ae1174a-2808-43b3-975e-65e36c59b120"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/LLVM/JGisQ",
+      "version": "9.13.2",
+      "name": "LLVM",
+      "tree_hash": "3bcfa5cd59aecfc0680d8b5b8ea38237b009f112",
+      "is_tracking_path": false,
+      "uuid": "929cbde3-209d-540e-8aea-75f648917ca0"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LLVMExtra_jll/qljSX",
+      "version": "0.0.47+0",
+      "name": "LLVMExtra_jll",
+      "tree_hash": "d77aea19c9a71059a021acd99b0a4343e9661d94",
+      "is_tracking_path": false,
+      "uuid": "dad2f222-ce93-54a1-a47d-0025e8a3acab"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LLVMLoopInfo/PhL9I",
+      "version": "1.0.0",
+      "name": "LLVMLoopInfo",
+      "tree_hash": "2e5c102cfc41f48ae4740c7eca7743cc7e7b75ea",
+      "is_tracking_path": false,
+      "uuid": "8b046642-f1f6-4319-8d3c-209ddc03c586"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LLVMOpenMP_jll/bgCml",
+      "version": "23.1.1+0",
+      "name": "LLVMOpenMP_jll",
+      "tree_hash": "e5b100780d4d30d63b4618d7930d48af409c1772",
+      "is_tracking_path": false,
+      "uuid": "1d63c593-3942-5779-bab2-d838dc0a180e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LRUCache/ZH7qB",
+      "version": "1.6.2",
+      "name": "LRUCache",
+      "tree_hash": "5519b95a490ff5fe629c4a7aa3b3dfc9160498b3",
+      "is_tracking_path": false,
+      "uuid": "8ac3fa9e-de4c-5943-b1dc-09c6b5f20637"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LaTeXStrings/xwv3L",
+      "version": "1.4.1",
+      "name": "LaTeXStrings",
+      "tree_hash": "f88f3ccef05a6a72a0cf0ed417c8fd68530f4ab2",
+      "is_tracking_path": false,
+      "uuid": "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LazyArtifacts",
+      "version": "1.11.0",
+      "name": "LazyArtifacts",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "4af54fe1-eca0-43a8-85a7-787d91b784e3"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LibCURL",
+      "version": "1.0.0",
+      "name": "LibCURL",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LibCURL_jll",
+      "version": "8.22.0+0",
+      "name": "LibCURL_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LibGit2",
+      "version": "1.11.0",
+      "name": "LibGit2",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "76f85450-5226-5b5a-8eaa-529ad045b433"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LibGit2_jll",
+      "version": "1.9.7+0",
+      "name": "LibGit2_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "e37daf67-58a4-590a-8e99-b0245dd2ffc5"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LibSSH2_jll",
+      "version": "1.11.104+0",
+      "name": "LibSSH2_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "29816b5a-b9ab-546f-933c-edad1886dfa8"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/LibTracyClient_jll/rf8WR",
+      "version": "0.13.1+0",
+      "name": "LibTracyClient_jll",
+      "tree_hash": "d4e20500d210247322901841d4eafc7a0c52642d",
+      "is_tracking_path": false,
+      "uuid": "ad6e5548-8b26-5c9f-8ef3-ef0ad883f3a5"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Libdl",
+      "version": "1.11.0",
+      "name": "Libdl",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Libiconv_jll/sE4g7",
+      "version": "1.18.0+0",
+      "name": "Libiconv_jll",
+      "tree_hash": "be484f5c92fad0bd8acfef35fe017900b0b73809",
+      "is_tracking_path": false,
+      "uuid": "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/LinearAlgebra",
+      "version": "1.13.0",
+      "name": "LinearAlgebra",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/LogExpFunctions/LUFl0",
+      "version": "1.0.3",
+      "name": "LogExpFunctions",
+      "tree_hash": "28d620bcdb37a3fb02de9f521928ee453690f414",
+      "is_tracking_path": false,
+      "uuid": "2ab3a3ac-af41-5b50-aa03-7779005ae688"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Logging",
+      "version": "1.11.0",
+      "name": "Logging",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "56ddb016-857b-54e1-b83d-db4d58db5568"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/METIS_jll/HBwKI",
+      "version": "5.1.4+0",
+      "name": "METIS_jll",
+      "tree_hash": "5ecd92439c60a50c49bd6e96192e9d486b24b050",
+      "is_tracking_path": false,
+      "uuid": "d00139f3-1899-568f-a2f0-47f597d42d70"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/MPC_jll/uo5Ra",
+      "version": "1.4.1+0",
+      "name": "MPC_jll",
+      "tree_hash": "a936e1419925204ed278668008a07ea8bc5d78a2",
+      "is_tracking_path": false,
+      "uuid": "2ce0c516-f11f-5db3-98ad-e0e1048fbd70"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/MPFI_jll/WVlCN",
+      "version": "1.5.7+0",
+      "name": "MPFI_jll",
+      "tree_hash": "fce36704cba22c3258efcdf5d388652de72afb38",
+      "is_tracking_path": false,
+      "uuid": "e8b5fb6c-218f-5c08-bc3d-6b0e551bbffd"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/MPFR_jll",
+      "version": "4.2.2+0",
+      "name": "MPFR_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "3a97d323-0669-5f0c-9066-3539efd106a3"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/MUMPS_seq_jll/8TSrC",
+      "version": "500.900.100+0",
+      "name": "MUMPS_seq_jll",
+      "tree_hash": "fc1daa0ab5a0d7a0a34d5168a711cbf02b2cb0cc",
+      "is_tracking_path": false,
+      "uuid": "d7ed1dd3-d0ae-5e8e-bfb4-87a502085b8d"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/MacroTools/Ar0jT",
+      "version": "0.5.16",
+      "name": "MacroTools",
+      "tree_hash": "1e0228a030642014fe5cfe68c2c0a818f9e3f522",
+      "is_tracking_path": false,
+      "uuid": "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Markdown",
+      "version": "1.11.0",
+      "name": "Markdown",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "d6f4376e-aef5-505a-96c1-9c027394607a"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Memoize/12ANR",
+      "version": "0.4.4",
+      "name": "Memoize",
+      "tree_hash": "2b1dfcba103de714d31c033b5dacc2e4a12c7caa",
+      "is_tracking_path": false,
+      "uuid": "c03570c3-d221-55d1-a50c-7939bbd78826"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Mmap",
+      "version": "1.11.0",
+      "name": "Mmap",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "a63ad114-7e13-5084-954f-fe012c677804"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/MongoC_jll/7pgWo",
+      "version": "1.28.1+0",
+      "name": "MongoC_jll",
+      "tree_hash": "0ab1e13479581def03ea0b19733b8b830177889a",
+      "is_tracking_path": false,
+      "uuid": "90100e71-7732-535a-9be7-2e9affd1cfc1"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Mongoc/cJYqL",
+      "version": "0.10.1",
+      "name": "Mongoc",
+      "tree_hash": "93e759c2ba138c1fbdd9836a49d9492cef559611",
+      "is_tracking_path": false,
+      "uuid": "4fe8b98c-fc19-5c23-8ec2-168ff83495f2"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/MozillaCACerts_jll",
+      "version": "2026.8.13",
+      "name": "MozillaCACerts_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "14a3606d-f60d-562e-9121-12d972cd8159"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/NVTX/IqPon",
+      "version": "1.0.3",
+      "name": "NVTX",
+      "tree_hash": "a9083c3e469e63cca454d1fc3b19472d9d92c14a",
+      "is_tracking_path": false,
+      "uuid": "5da4648a-3479-48b8-97b9-01cb529c0a1f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/NVTX_jll/POwsF",
+      "version": "3.2.2+0",
+      "name": "NVTX_jll",
+      "tree_hash": "af2232f69447494514c25742ba1503ec7e9877fe",
+      "is_tracking_path": false,
+      "uuid": "e98f9f5b-d649-5603-91fd-7774390e6439"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Ncurses_jll/CjYuN",
+      "version": "6.6.0+2",
+      "name": "Ncurses_jll",
+      "tree_hash": "095850bc2a585bb20cad8d8f6f9f643d11b49a3d",
+      "is_tracking_path": false,
+      "uuid": "68e3532b-a499-55ff-9963-d1c0c0748b3a"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/Nemo/XTmgX",
+      "version": "0.56.2",
+      "name": "Nemo",
+      "tree_hash": "9a1c91731d5127666be24468faf6da924fe71c3d",
+      "is_tracking_path": false,
+      "uuid": "2edaba10-b0f1-5616-af89-8c11ac63239a"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/NetworkOptions",
+      "version": "1.3.0",
+      "name": "NetworkOptions",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/Ninja_jll/kRLew",
+      "version": "1.13.2+0",
+      "name": "Ninja_jll",
+      "tree_hash": "ab6faa2dafdf113d668e4af8aec99f0e7a99e8b5",
+      "is_tracking_path": false,
+      "uuid": "76642167-d241-5cee-8c94-7a494e8cb7b7"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/OhMyThreads/xjkdc",
+      "version": "0.8.8",
+      "name": "OhMyThreads",
+      "tree_hash": "7be087d99735a1a3fbcd9429569d013ece49b983",
+      "is_tracking_path": false,
+      "uuid": "67456a42-1dca-4109-a031-0a68de7e3ad5"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/OpenBLAS32_jll/BP214",
+      "version": "0.3.34+0",
+      "name": "OpenBLAS32_jll",
+      "tree_hash": "30870d0f2dc0b2dba76b10df1c58c7f018413e56",
+      "is_tracking_path": false,
+      "uuid": "656ef2d0-ae68-5445-9ca0-591084a874a2"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/OpenBLAS_jll",
+      "version": "0.3.30+0",
+      "name": "OpenBLAS_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "4536629a-c528-5b80-bd46-f80d51c5b363"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/OpenLibm_jll",
+      "version": "0.8.7+0",
+      "name": "OpenLibm_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "05823500-19ac-5b8b-9628-191a04bc5112"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/OpenSSL_jll",
+      "version": "3.5.8+0",
+      "name": "OpenSSL_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "458c3c95-2e84-50aa-8efc-19380b2a3a95"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/OpenSpecFun_jll/4QIOW",
+      "version": "0.5.6+0",
+      "name": "OpenSpecFun_jll",
+      "tree_hash": "1346c9208249809840c91b26703912dff463d335",
+      "is_tracking_path": false,
+      "uuid": "efe28fd5-8261-553b-a9e1-b2916fc3738e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/OrderedCollections/MglBA",
+      "version": "1.8.2",
+      "name": "OrderedCollections",
+      "tree_hash": "94ba93778373a53bfd5a0caaf7d809c445292ff4",
+      "is_tracking_path": false,
+      "uuid": "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/Oscar/clzsb",
+      "version": "1.8.2",
+      "name": "Oscar",
+      "tree_hash": "96a8d3a5398d9a318dd605b84fdb804924c26ee3",
+      "is_tracking_path": false,
+      "uuid": "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/PCRE2_jll",
+      "version": "10.46.0+0",
+      "name": "PCRE2_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/PPL_jll/kEX8a",
+      "version": "1.2.1+0",
+      "name": "PPL_jll",
+      "tree_hash": "dc69ba2b374b5bd6e876fa3a8441563c0eeafb9e",
+      "is_tracking_path": false,
+      "uuid": "80dd9cbb-8b87-5171-a280-372cc418f402"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Parsers/xi9N1",
+      "version": "2.8.8",
+      "name": "Parsers",
+      "tree_hash": "ba0dc8a8a67cacac4842631f960c046e4e563675",
+      "is_tracking_path": false,
+      "uuid": "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Perl_jll/umhXU",
+      "version": "5.34.1+0",
+      "name": "Perl_jll",
+      "tree_hash": "7ab65a258bcf6da373cab49af462aead452d3960",
+      "is_tracking_path": false,
+      "uuid": "83958c19-0796-5285-893e-a1267f8ec499"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Pkg",
+      "version": "1.13.0",
+      "name": "Pkg",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Polymake/DmHZA",
+      "version": "0.13.14",
+      "name": "Polymake",
+      "tree_hash": "50bb3bf4a83f8773100fe6ae3f0111ceb05d6eb9",
+      "is_tracking_path": false,
+      "uuid": "d720cf60-89b5-51f5-aff5-213f193123e7"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/PooledArrays/Vy2X0",
+      "version": "1.4.3",
+      "name": "PooledArrays",
+      "tree_hash": "36d8b4b899628fb92c2749eb488d884a926614d3",
+      "is_tracking_path": false,
+      "uuid": "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/PrecompileTools/QUxvR",
+      "version": "1.3.4",
+      "name": "PrecompileTools",
+      "tree_hash": "edbeefc7a4889f528644251bdb5fc9ab5348bc2c",
+      "is_tracking_path": false,
+      "uuid": "aea7be01-6a6a-4083-8856-8a6e6704d82a"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Preferences/DwMOj",
+      "version": "1.6.0",
+      "name": "Preferences",
+      "tree_hash": "5005266de4bfe50e53ff44a5cb5c540b6e47a254",
+      "is_tracking_path": false,
+      "uuid": "21216c6a-2e73-6563-6e65-726566657250"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/PrettyTables/4jZ8K",
+      "version": "3.5.0",
+      "name": "PrettyTables",
+      "tree_hash": "99fd8f32ab6728ff205cddd24e2d9ea6cbb498d3",
+      "is_tracking_path": false,
+      "uuid": "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Printf",
+      "version": "1.11.0",
+      "name": "Printf",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "de0858da-6303-5e67-8744-51eddeeeb8d7"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Profile",
+      "version": "1.11.0",
+      "name": "Profile",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/ProgressMeter/OPrdc",
+      "version": "1.13.0",
+      "name": "ProgressMeter",
+      "tree_hash": "ce5ba3edfdeba107a721748d53b5f5887f415853",
+      "is_tracking_path": false,
+      "uuid": "92933f4c-e287-5a05-a399-4b506db050ca"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/REPL",
+      "version": "1.11.0",
+      "name": "REPL",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Random",
+      "version": "1.11.0",
+      "name": "Random",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Random123/QDdNH",
+      "version": "1.7.1",
+      "name": "Random123",
+      "tree_hash": "dbe5fd0b334694e905cb9fda73cd8554333c46e2",
+      "is_tracking_path": false,
+      "uuid": "74087812-796a-5b5d-8853-05524746bad3"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/RandomExtensions/4ml47",
+      "version": "0.4.4",
+      "name": "RandomExtensions",
+      "tree_hash": "b8a399e95663485820000f26b6a43c794e166a49",
+      "is_tracking_path": false,
+      "uuid": "fb686558-2515-59ef-acaa-46db3789a887"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/RandomNumbers/EmdvO",
+      "version": "1.6.0",
+      "name": "RandomNumbers",
+      "tree_hash": "c6ec94d2aaba1ab2ff983052cf6a606ca5985902",
+      "is_tracking_path": false,
+      "uuid": "e6cf234a-135c-5ec9-84dd-332b85af5143"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Readline_jll/BqZ7F",
+      "version": "8.3.3+0",
+      "name": "Readline_jll",
+      "tree_hash": "5d26d91800500cd67d4743cdbb59749e46ed726b",
+      "is_tracking_path": false,
+      "uuid": "05236dd9-4125-5232-aa7c-9ec0c9b2c25a"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Reexport/OxbHO",
+      "version": "1.2.2",
+      "name": "Reexport",
+      "tree_hash": "45e428421666073eab6f2da5c9d310d99bb12f9b",
+      "is_tracking_path": false,
+      "uuid": "189a3867-3050-52da-a836-e630ba90ab69"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Requires/1eCOK",
+      "version": "1.3.1",
+      "name": "Requires",
+      "tree_hash": "62389eeff14780bfe55195b7204c0d8738436d64",
+      "is_tracking_path": false,
+      "uuid": "ae029012-a4dd-5104-9daa-d747884805df"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/SCIP_jll/0j8dU",
+      "version": "900.200.400+0",
+      "name": "SCIP_jll",
+      "tree_hash": "658d911948de4ff88fe2b61823bdd1e1add98a7d",
+      "is_tracking_path": false,
+      "uuid": "e5ac4fe4-a920-5659-9bf8-f9f73e9e79ce"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/SHA",
+      "version": "1.0.0",
+      "name": "SHA",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "ea8e919c-243c-51af-8825-aaa63cd721ce"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/SPRAL_jll/2bs1h",
+      "version": "2025.9.18+1",
+      "name": "SPRAL_jll",
+      "tree_hash": "b78d602475715c9c6ea21c9650fa5dba58e9945b",
+      "is_tracking_path": false,
+      "uuid": "319450e9-13b8-58e8-aa9f-8fd1420848ab"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/ScopedValues/sILa0",
+      "version": "1.6.2",
+      "name": "ScopedValues",
+      "tree_hash": "67a144433c4ce877ee6d1ada69a124d6b1ecf7be",
+      "is_tracking_path": false,
+      "uuid": "7e506255-f358-4e82-b7e4-beb19740aa63"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Scratch/tDtSY",
+      "version": "1.3.0",
+      "name": "Scratch",
+      "tree_hash": "9b81b8393e50b7d4e6d0a9f14e192294d3b7c109",
+      "is_tracking_path": false,
+      "uuid": "6c6a2e73-6563-6170-7368-637461726353"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/SentinelArrays/YQPM3",
+      "version": "1.4.10",
+      "name": "SentinelArrays",
+      "tree_hash": "084c47c7c5ce5cfecefa0a98dff69eb3646b5a80",
+      "is_tracking_path": false,
+      "uuid": "91c51154-3ec4-41a3-a24f-3f23e20d615c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Serialization",
+      "version": "1.11.0",
+      "name": "Serialization",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/Singular/RPtoW",
+      "version": "0.28.19",
+      "name": "Singular",
+      "tree_hash": "430fe4001664ddc61d05f20b06632c7b23262515",
+      "is_tracking_path": false,
+      "uuid": "bcd08a7b-43d2-5ff7-b6d4-c458787f915c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/Singular_jll/DSxXG",
+      "version": "404.101.510+0",
+      "name": "Singular_jll",
+      "tree_hash": "13f5cf2260f78518ef3eeae269b2f118cf204cc8",
+      "is_tracking_path": false,
+      "uuid": "43d676ae-4934-50ba-8046-7a96366d613b"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Sockets",
+      "version": "1.11.0",
+      "name": "Sockets",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "6462fe0b-24de-5631-8697-dd941f90decc"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/SparseArrays",
+      "version": "1.13.0",
+      "name": "SparseArrays",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/SpecialFunctions/Exz6e",
+      "version": "2.9.1",
+      "name": "SpecialFunctions",
+      "tree_hash": "88ef0d98204515bc53dd4aaea5f7788882d1b66c",
+      "is_tracking_path": false,
+      "uuid": "276daf66-3868-5448-9aa4-cd146d93841b"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/StableTasks/YtV0L",
+      "version": "0.1.7",
+      "name": "StableTasks",
+      "tree_hash": "c4f6610f85cb965bee5bfafa64cbeeda55a4e0b2",
+      "is_tracking_path": false,
+      "uuid": "91464d47-22a1-43fe-8b7f-2d57ee82463f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/StaticArrays/SXG7G",
+      "version": "1.9.24",
+      "name": "StaticArrays",
+      "tree_hash": "8a8a52f887f38d44014e24ee46b8a7311c625f6d",
+      "is_tracking_path": false,
+      "uuid": "90137ffa-7385-5640-81b9-e52037218182"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/StaticArraysCore/MoJEf",
+      "version": "1.4.4",
+      "name": "StaticArraysCore",
+      "tree_hash": "6ab403037779dae8c514bad259f32a447262455a",
+      "is_tracking_path": false,
+      "uuid": "1e83bf80-4336-4d27-bf5d-d5a4f845583c"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Statistics/2IU8F",
+      "version": "1.11.5",
+      "name": "Statistics",
+      "tree_hash": "e2b53ce13a53367e96601081e33d34746b571bad",
+      "is_tracking_path": false,
+      "uuid": "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/StringManipulation/gTvxv",
+      "version": "0.6.1",
+      "name": "StringManipulation",
+      "tree_hash": "9e3a02d73a8f0a9be04e677dbef758aab40f8bea",
+      "is_tracking_path": false,
+      "uuid": "892a3eda-7b42-436c-8928-eab12a02cf0e"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/StructTypes/vub9S",
+      "version": "1.11.1",
+      "name": "StructTypes",
+      "tree_hash": "fd6a55e88450cb4256e49103a5a243f065c7b781",
+      "is_tracking_path": false,
+      "uuid": "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/StructUtils/WQguX",
+      "version": "2.11.1",
+      "name": "StructUtils",
+      "tree_hash": "044ed182312a8ad0f28437f048f3e1eae9093a80",
+      "is_tracking_path": false,
+      "uuid": "ec057cc2-7a8d-4b58-b3b3-92acb9f63b42"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/StyledStrings",
+      "version": "1.11.0",
+      "name": "StyledStrings",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "f489334b-da3d-4c2e-b8f0-e476e12c162b"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/SuiteSparse_jll",
+      "version": "7.10.1+0",
+      "name": "SuiteSparse_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "bea87d4a-7f5b-5778-9afe-8cc45184846c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/TOML",
+      "version": "1.0.3",
+      "name": "TOML",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/TOPCOM_jll/Hg9pw",
+      "version": "0.17.8+0",
+      "name": "TOPCOM_jll",
+      "tree_hash": "adbe178144e762ae7057fcb8e26564de7ee2e36c",
+      "is_tracking_path": false,
+      "uuid": "36f60fef-b880-50dc-9289-4aaecee93cc3"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/TableTraits/o8VMV",
+      "version": "1.0.1",
+      "name": "TableTraits",
+      "tree_hash": "c06b2f539df1c6efa794486abfb6ed2022561a39",
+      "is_tracking_path": false,
+      "uuid": "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Tables/qGyu7",
+      "version": "1.14.0",
+      "name": "Tables",
+      "tree_hash": "a94d9bdda1b7bed0046cea645639ab3f62196fac",
+      "is_tracking_path": false,
+      "uuid": "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Tar",
+      "version": "1.10.0",
+      "name": "Tar",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/TaskLocalValues/KoeHh",
+      "version": "0.1.3",
+      "name": "TaskLocalValues",
+      "tree_hash": "67e469338d9ce74fc578f7db1736a74d93a49eb8",
+      "is_tracking_path": false,
+      "uuid": "ed4db957-447d-4319-bfb6-7fa9ae7ecf34"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Tracy/tYwAE",
+      "version": "0.1.6",
+      "name": "Tracy",
+      "tree_hash": "73e3ff50fd3990874c59fef0f35d10644a1487bc",
+      "is_tracking_path": false,
+      "uuid": "e689c965-62c8-4b79-b2c5-8359227902fd"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/TranscodingStreams/O3BYF",
+      "version": "0.11.3",
+      "name": "TranscodingStreams",
+      "tree_hash": "0c45878dcfdcfa8480052b6ab162cdd138781742",
+      "is_tracking_path": false,
+      "uuid": "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/UUIDs",
+      "version": "1.11.0",
+      "name": "UUIDs",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Unicode",
+      "version": "1.11.0",
+      "name": "Unicode",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Unroll/xbJWn",
+      "version": "0.1.0",
+      "name": "Unroll",
+      "tree_hash": "ffb72124bbdab5f11b66e56b119224c151b3b3eb",
+      "is_tracking_path": false,
+      "uuid": "36e64239-2ab9-4580-84fb-56737a503d36"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/UnsafeAtomics/8b4lc",
+      "version": "0.3.2",
+      "name": "UnsafeAtomics",
+      "tree_hash": "21b39bfb1fab6156b61fbcba4c86c57b6216d2c3",
+      "is_tracking_path": false,
+      "uuid": "013be700-e6cd-48c3-b4a1-df204f14c38f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/WeakRefStrings/sBlHB",
+      "version": "1.4.3",
+      "name": "WeakRefStrings",
+      "tree_hash": "0716e01c3b40413de5dedbc9c5c69f27cddfddfc",
+      "is_tracking_path": false,
+      "uuid": "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/WorkerUtilities/ey0fP",
+      "version": "1.6.1",
+      "name": "WorkerUtilities",
+      "tree_hash": "cd1659ba0d57b71a464a29e64dbc67cfe83d54e7",
+      "is_tracking_path": false,
+      "uuid": "76eceee3-57b5-4d4a-8e66-0e911cebbf60"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/XML2_jll/zMtNP",
+      "version": "2.15.4+0",
+      "name": "XML2_jll",
+      "tree_hash": "b826aedca5fce2e3c91904e338c279e5c1a2da74",
+      "is_tracking_path": false,
+      "uuid": "02c8fc9c-b97f-50b9-bbe4-9be30ff0a78a"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/Xorg_libpciaccess_jll/6MCDN",
+      "version": "0.19.0+0",
+      "name": "Xorg_libpciaccess_jll",
+      "tree_hash": "58972370b81423fc546c56a60ed1a009450177c3",
+      "is_tracking_path": false,
+      "uuid": "a65dc6b1-eb27-53a1-bb3e-dea574b5389e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/ZeroMQ_jll/Ep03R",
+      "version": "4.3.6+0",
+      "name": "ZeroMQ_jll",
+      "tree_hash": "766d90db2817565b667c1cc9cc420d668f2e8dba",
+      "is_tracking_path": false,
+      "uuid": "8f1865be-045e-5c20-9c9f-bfbfb0764568"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Zlib_jll",
+      "version": "1.3.2+0",
+      "name": "Zlib_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "83775a58-1f1d-513f-b197-d71354ab007a"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/Zstd_jll",
+      "version": "1.5.7+1",
+      "name": "Zstd_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "3161d3a3-bdf6-5164-811a-617609db77b4"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/bliss_jll/fkOx8",
+      "version": "0.77.0+1",
+      "name": "bliss_jll",
+      "tree_hash": "f8b75e896a326a162a4f6e998990521d8302c810",
+      "is_tracking_path": false,
+      "uuid": "508c9074-7a14-5c94-9582-3d4bc1871065"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/boost_jll/rcp8A",
+      "version": "1.87.0+0",
+      "name": "boost_jll",
+      "tree_hash": "25fb6ecbb784a45f8ea74584fa631a9e85393dd0",
+      "is_tracking_path": false,
+      "uuid": "28df3c45-c428-5900-9ff8-a3135698ca75"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/cddlib_jll/4C3t6",
+      "version": "0.94.15+0",
+      "name": "cddlib_jll",
+      "tree_hash": "932ceeea3797cd95a1b2e0f978aa33a355f04cbf",
+      "is_tracking_path": false,
+      "uuid": "f07e07eb-5685-515a-97c8-3014f6152feb"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/cohomCalg_jll/D0wxY",
+      "version": "0.32.0+0",
+      "name": "cohomCalg_jll",
+      "tree_hash": "999c34925053825bfa29f54b3c00b80668b681ec",
+      "is_tracking_path": false,
+      "uuid": "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/demumble_jll/YCqKx",
+      "version": "1.3.0+0",
+      "name": "demumble_jll",
+      "tree_hash": "6498e3581023f8e530f34760d18f75a69e3a4ea8",
+      "is_tracking_path": false,
+      "uuid": "1e29f10c-031c-5a83-9565-69cddfc27673"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/f4ncgb_jll/8jpY5",
+      "version": "100.0.101+0",
+      "name": "f4ncgb_jll",
+      "tree_hash": "3ab6a9b21c5b2f5e71d84776f8be661fc04be132",
+      "is_tracking_path": false,
+      "uuid": "160f184c-7e1a-5d95-af1f-70d62a450302"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/lib4ti2_jll/XPl7K",
+      "version": "1.6.10+0",
+      "name": "lib4ti2_jll",
+      "tree_hash": "79116185def638e73ea3d88ca6c10e210a1dc183",
+      "is_tracking_path": false,
+      "uuid": "1493ae25-0f90-5c0e-a06c-8c5077d6d66f"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/libblastrampoline_jll",
+      "version": "5.15.0+0",
+      "name": "libblastrampoline_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "8e850b90-86db-534c-a0d3-1478176c7d93"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/libcxxwrap_julia_jll/oCwx0",
+      "version": "0.14.12+0",
+      "name": "libcxxwrap_julia_jll",
+      "tree_hash": "2eecfd1759a176424159c1993b66f012a230319f",
+      "is_tracking_path": false,
+      "uuid": "3eaa8342-bff7-56a5-9981-c04077f7cee7"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/libpolymake_julia_jll/nC9JR",
+      "version": "0.14.11+0",
+      "name": "libpolymake_julia_jll",
+      "tree_hash": "584d27982260bacb032997ff5c25d712183653f9",
+      "is_tracking_path": false,
+      "uuid": "4d8266f6-2b3b-57e3-ad7a-d431eaaac945"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/libsemigroups_jll/5DVQE",
+      "version": "3.5.5+1",
+      "name": "libsemigroups_jll",
+      "tree_hash": "c9e2708168bd028a3b9b58e6dcb656368d85d39c",
+      "is_tracking_path": false,
+      "uuid": "99c76e05-e2a6-5e47-b69a-d74ec2f0d12c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/libsingular_julia_jll/uoGex",
+      "version": "0.47.18+0",
+      "name": "libsingular_julia_jll",
+      "tree_hash": "8d69b825ec76f44bc023121e8cab8449da7b2644",
+      "is_tracking_path": false,
+      "uuid": "ae4fbd8f-ecdb-54f8-bbce-35570499b30e"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/libsodium_jll/5xFVC",
+      "version": "1.0.21+0",
+      "name": "libsodium_jll",
+      "tree_hash": "011b0a7331b41c25524b64dc42afc9683ee89026",
+      "is_tracking_path": false,
+      "uuid": "a9144af2-ca23-56d9-984f-0d03f7b5ccf8"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/lrslib_jll/pqAza",
+      "version": "0.3.3+0",
+      "name": "lrslib_jll",
+      "tree_hash": "9169c4d5823195a7a2173fc6b479468478857438",
+      "is_tracking_path": false,
+      "uuid": "3873f7d0-7b7c-52c3-bdf4-8ab39b8f337a"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/msolve_jll/6EzRU",
+      "version": "0.900.504+0",
+      "name": "msolve_jll",
+      "tree_hash": "21da134fda6d66544e52a958087c1ebccb1f395e",
+      "is_tracking_path": false,
+      "uuid": "6d01cc9a-e8f6-580e-8c54-544227e08205"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/nauty_jll/jdzVU",
+      "version": "2.8.10+1",
+      "name": "nauty_jll",
+      "tree_hash": "c31f5c1b1d8ce050690a70b78ddb6e56bd0f6eda",
+      "is_tracking_path": false,
+      "uuid": "55c6dc9b-343a-50ca-8ff2-b71adb3733d5"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/nghttp2_jll",
+      "version": "1.70.0+0",
+      "name": "nghttp2_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "8e850ede-7688-5339-a07c-302acd2aaf8d"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/normaliz_jll/6hv8S",
+      "version": "300.1100.101+0",
+      "name": "normaliz_jll",
+      "tree_hash": "7f9ec6491dda35840a044b6b0cb9d4ed4c56f484",
+      "is_tracking_path": false,
+      "uuid": "6690c6e9-4e12-53b8-b8fd-4bffaef8839f"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/share/julia/stdlib/v1.13/p7zip_jll",
+      "version": "17.8.3+0",
+      "name": "p7zip_jll",
+      "tree_hash": "nothing",
+      "is_tracking_path": false,
+      "uuid": "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/polymake_jll/kuVJV",
+      "version": "400.1500.5+0",
+      "name": "polymake_jll",
+      "tree_hash": "71b9d96e42e169e1c3d3541bcdc299694b231d52",
+      "is_tracking_path": false,
+      "uuid": "7c209550-9012-526c-9264-55ba7a78ba2c"
+    },
+    {
+      "source": "/Users/jj-agents/.julia/packages/polymake_oscarnumber_jll/JIxDr",
+      "version": "0.3.21+0",
+      "name": "polymake_oscarnumber_jll",
+      "tree_hash": "ea97f3c1cb82505414152ed47bd06206dd07c027",
+      "is_tracking_path": false,
+      "uuid": "10f31823-b687-53e6-9f29-edb9d4da9f9f"
+    },
+    {
+      "source": "/Users/Shared/Developer/ai/city/math-city/.gc/kaimon-canary/julia_depot/packages/snappy_jll/GeeRK",
+      "version": "1.2.3+0",
+      "name": "snappy_jll",
+      "tree_hash": "ca88363dd41d2547f52118287dd34dbbc14f3eb7",
+      "is_tracking_path": false,
+      "uuid": "fe1e1685-f7be-5f59-ac9f-4ca204017dfd"
+    }
+  ]
+}
