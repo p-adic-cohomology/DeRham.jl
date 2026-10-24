@@ -363,12 +363,14 @@ end
     zeta_coefficients_with_precision(f, r::Integer; basis=nothing, verbose=0, kwargs...)
 
 Compute the zeta coefficients for the hypersurface defined by ``f``, using ``r``
-as a requested relative ``p``-adic precision for every Hodge component. This
-scalar overload applies the same request to all components. The algorithm
-combines the requested precision with its automatically computed minimum.
+as a requested relative ``p``-adic precision for the Frobenius matrix. This
+scalar overload applies the same request to every Hodge-filtered piece. The
+intermediate Frobenius matrix, or the returned matrix when `givefrobmat=true`,
+is computed to at least that relative precision and may use greater precision
+when needed for the zeta coefficients to be correct.
 
 - `f`: homogeneous polynomial over a finite field.
-- `r`: requested relative precision, repeated across the Hodge components.
+- `r`: requested relative precision, repeated across the Hodge-filtered pieces.
 - `basis`: optional cohomology basis; the package computes one by default.
 - `verbose`: diagnostic verbosity.
 - `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
@@ -406,11 +408,12 @@ end
     zeta_coefficients_with_precision(f, r_m::AbstractVector; basis=nothing, verbose=0, kwargs...)
 
 Vector-precision overload of [`zeta_coefficients_with_precision`](@ref).
-`r_m` gives one requested relative precision for each Hodge component and
-must have the length required by the basis. The algorithm takes the
-componentwise maximum of these requests and its automatically computed
-minimum. The return value and other keywords are the same as for the scalar
-overload.
+`r_m` gives one requested relative precision for the Frobenius matrix on each
+Hodge-filtered piece and must have the length required by the basis. The
+intermediate Frobenius matrix, or the returned matrix when `givefrobmat=true`,
+is computed to at least each requested relative precision and may use greater
+precision when needed for the zeta coefficients to be correct. The return value
+and other keywords are the same as for the scalar overload.
 
 ### Examples
 

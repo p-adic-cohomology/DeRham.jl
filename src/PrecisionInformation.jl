@@ -53,11 +53,6 @@ function precision_information_auto(f, field; basis = nothing, verbose = 0)
     return precision_information_auto(f; basis = basis, verbose = verbose)
 end
 
-function zeta_function_auto(f; basis = nothing, verbose = 0, kwargs...)
-    precision_info = precision_information_auto(f; basis = basis, verbose = verbose)
-    return zeta_function(f; precision_info = precision_info, verbose = verbose, kwargs...)
-end
-
 function precision_information_user_r(f, r; basis = nothing, verbose = 0)
     n = nvars(parent(f)) - 1
     r_m = fill(Int(r), n)
@@ -106,7 +101,9 @@ function precision_information_max_auto_r_m(f, r_m; basis = nothing, verbose = 0
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     r_m_max = max.(r_m_auto, r_m_user)
-    N_m = series_precision(p, n, d, r_m_max)
+    N_m_calculated = calculate_series_precision(p, n, r_m_max)
+    N_m_table = series_precision_default(p, n, d)
+    N_m = N_m_table === nothing ? N_m_calculated : max.(N_m_table, N_m_calculated)
     N_m[N_m .== 0] .= 1
     M = algorithm_precision(p, n, d, r_m_max, N_m)
 
