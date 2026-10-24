@@ -1,4 +1,120 @@
 
+function _reference_ibm_floor_log(p, a)
+    value = BigInt(a)
+    base = BigInt(p)
+    exponent = 0
+    while value >= base
+        value = div(value, base)
+        exponent += 1
+    end
+    exponent
+end
+
+function _reference_ibm_f0(p, m, n)
+    sum(_reference_ibm_floor_log(p, max(big(1), BigInt(m) - i)) for i in 1:n)
+end
+
+function _reference_vp(value, p)
+    remaining = BigInt(value)
+    prime = BigInt(p)
+    exponent = 0
+    while rem(remaining, prime) == 0
+        remaining = div(remaining, prime)
+        exponent += 1
+    end
+    exponent
+end
+
+function _reference_ibm_nn(p, m, n, bounds, K, l)
+    index = (BigInt(m) + l) * p
+    A = index <= K ? bounds[Int(index)] : _reference_ibm_f0(p, index, n)
+    g = _reference_vp(binomial(BigInt(m) + l - 1, l), p)
+    A - l - g
+end
+
+function _reference_ibm_constant(p, m, n, bounds, K)
+    best = _reference_ibm_nn(p, m, n, bounds, K, big(1))
+    L = big(2)
+    while true
+        exponent = L + best
+        if BigInt(m) + L >= 2n + 1 &&
+           exponent >= 0 &&
+           (BigInt(p) * (BigInt(m) + L) - 1)^n <= BigInt(p)^exponent
+            return best
+        end
+        best = max(best, _reference_ibm_nn(p, m, n, bounds, K, L))
+        L += 1
+    end
+end
+
+function _reference_ibm_crank_bound_h(p, n, K)
+    bounds = BigInt[_reference_ibm_f0(p, k, n) for k in 1:K]
+    for m in 1:div(K, p)
+        pm = p * m
+        N = _reference_ibm_constant(p, m, n, bounds, K)
+        updated = min(bounds[pm], max(n - 1 + bounds[m], N))
+        bounds[pm] = updated
+        for k in (pm - p + 1):pm
+            bounds[k] = min(bounds[k], updated)
+        end
+    end
+    bounds
+end
+
+function test_akr_lattice_bound()
+    for (p, k) in ((3, 5), (3, 10), (11, 7))
+        power = big(p)^k
+        @test DeRham._ibm_floor_log(p, power) == k
+        @test DeRham._ibm_floor_log(p, power - 1) == k - 1
+    end
+
+    @test DeRham.ibm_derham_bound(3, 244, 2) == 9
+    @test DeRham.ibm_lattice_correction(2, 3) == 1
+    @test DeRham.ibm_lattice_correction(2, 5) == 3
+    @test DeRham.ibm_lattice_correction(5, 3) == 0
+
+    tail_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k in 1:120]
+    tail_bounds[116] = 2
+    tail_bounds[118] = 3
+    tail_bounds[120] = 3
+    tail_values = [
+        (2 * (57 + l) <= 120 ? tail_bounds[2 * (57 + l)] :
+         DeRham.ibm_derham_bound(2, 2 * (57 + l), 1)) - l -
+        _reference_vp(binomial(big(57 + l - 1), big(l)), 2) for l in 1:6
+    ]
+    @test tail_values == BigInt[1, 1, 0, 2, 1, 0]
+    @test DeRham.ibm_constant(2, 57, tail_bounds, 1) == 2
+
+    regression_cases = [
+        (2, 3, 6),
+        (2, 10, 1000),
+        (3, 2, 732),
+        (3, 2, 12),
+        (2, 1, 120),
+        (5, 2, 11),
+        (101, 3, 303),
+    ]
+    for (p, n, K) in regression_cases
+        H = DeRham._ibm_crank_bound_h(p, n, K)
+        f0 = [DeRham.ibm_derham_bound(p, k, n) for k in 1:K]
+        reference = _reference_ibm_crank_bound_h(p, n, K)
+        c = DeRham.ibm_lattice_correction(p, n)
+
+        @test length(H) == K
+        @test all(H .<= f0)
+        @test BigInt.(H) == reference
+        @test BigInt.(DeRham.ibm_crank_bound(p, n, K)) == reference .+ c
+    end
+
+    for p in (2, 3, 5, 101), n in (2, 3), multiplier in (1, 2, 3)
+        K = p * n * multiplier
+        H = DeRham._ibm_crank_bound_h(p, n, K)
+        f0 = [DeRham.ibm_derham_bound(p, k, n) for k in 1:K]
+        @test all(H .<= f0)
+        @test BigInt.(H) == _reference_ibm_crank_bound_h(p, n, K)
+    end
+end
+
 function test_hodge_polygon_values()
     k3 = DeRham.SlopesPolygon([1, 20, 1])
 
