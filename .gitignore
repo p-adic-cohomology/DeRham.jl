@@ -37,3 +37,11 @@ alloc-profile.pb.gz
 
 # Files generated from experiments
 .json
+
+# Gas City (agent MCP configs written by `gc internal project-mcp`)
+.mcp.json
+.gemini/settings.json
+.codex/config.toml
+.cursor/mcp.json
+opencode.json
+mimocode.json
