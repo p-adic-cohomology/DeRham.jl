@@ -186,13 +186,14 @@ function calculate_series_precision(p, n, r_m)
     N
 end
 
-function series_precision(p, n, d, r_m)
-    N = series_precision_default(p, n, d)
-
-    if N === nothing
-        N = calculate_series_precision(p, n, r_m)
+function series_precision(p, n, d, r_m; use_default_table = true)
+    if use_default_table
+        N = series_precision_default(p, n, d)
+        if N !== nothing
+            return N
+        end
     end
-    N
+    calculate_series_precision(p, n, r_m)
 end
 
 """
