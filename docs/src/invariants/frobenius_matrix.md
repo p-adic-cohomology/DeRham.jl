@@ -38,6 +38,9 @@ where each $\ast$ denotes an element of $\mathbb{Z}_p$.
 When we compute the Frobenius matrix, we always compute each vector with a precision relative to the p-adic valuations guaranteed to us by strong Mazur divisibility. Thus, if we choose relative precision $r = 2$ for our curve of genus 3, the first three vectors will be computed modulo $p^3$ and the second three will be computed modulo $p^2$. If what you cared about was the *absolute* precision (i.e. the whole matrix modulo $p^2$), you can reduce the answer modulo $p^2$.
 
 We also provide the option to choose a relative precision for each basis vector.
+`DeRham.frobenius_matrix_with_precision` computes the returned matrix with
+exactly the requested relative precision for each Hodge-filtered piece. It does
+not automatically increase the requested precision.
 
 ```@docs
 DeRham.frobenius_matrix_with_precision

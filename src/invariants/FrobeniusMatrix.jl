@@ -3,13 +3,15 @@
 
 Compute the Frobenius matrix for the smooth hypersurface defined by ``f`` to
 the requested relative ``p``-adic precision ``r``. The scalar request is applied
-to every Hodge component. Unless `basis` is supplied, the matrix is expressed
+to every Hodge-filtered piece. The returned matrix is computed with exactly
+this relative precision for each piece; this function does not increase the
+requested precision automatically. Unless `basis` is supplied, the matrix is expressed
 in the internal cohomology basis computed by `get_basis_of_cohomology(f)`;
 that helper and its basis ordering are not public API. Additional keywords
 are forwarded to [`zeta_coefficients`](@ref).
 
 - `f`: homogeneous polynomial defining the hypersurface.
-- `r`: requested relative ``p``-adic precision for each Hodge component.
+- `r`: requested relative ``p``-adic precision for each Hodge-filtered piece.
 - `basis`: optional basis to use instead of computing the default basis.
 - `verbose`: diagnostic verbosity, forwarded to the computation.
 - `kwargs...`: additional keywords forwarded to [`zeta_coefficients`](@ref).
@@ -47,14 +49,16 @@ end
     frobenius_matrix_with_precision(f, r_m::AbstractVector; basis=nothing, verbose=0, kwargs...)
 
 Vector-precision overload of [`frobenius_matrix_with_precision`](@ref).
-`r_m` gives one requested relative ``p``-adic precision for each Hodge
-component and must have the length required by the selected basis. The matrix
+`r_m` gives one requested relative ``p``-adic precision for each
+Hodge-filtered piece and must have the length required by the selected basis.
+The returned matrix is computed with exactly these relative precisions; this
+function does not increase the requested precision automatically. The matrix
 is expressed in that basis, which defaults to DeRham's internal
 `get_basis_of_cohomology(f)` basis. Additional keywords are forwarded to
 [`zeta_coefficients`](@ref).
 
 - `f`: homogeneous polynomial defining the hypersurface.
-- `r_m`: vector of requested relative precisions, one per Hodge component.
+- `r_m`: vector of requested relative precisions, one per Hodge-filtered piece.
 - `basis`: optional basis to use instead of computing the default basis.
 - `verbose`: diagnostic verbosity, forwarded to the computation.
 - `kwargs...`: additional keywords forwarded to [`zeta_coefficients`](@ref).

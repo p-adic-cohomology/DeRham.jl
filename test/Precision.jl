@@ -61,6 +61,36 @@ function test_user_relative_precision_bypasses_default_table()
     legacy_auto_info = DeRham.precision_information(f, basis)
     @test legacy_auto_info[3] == default_table
 
+    small_user = zeros(Int, 3)
+    small_max_auto_info =
+        DeRham.precision_information_max_auto_r_m(f, small_user; basis = basis)
+    @test small_max_auto_info[2] == auto_info[2]
+    @test small_max_auto_info[3] == auto_info[3]
+    @test small_max_auto_info[4] == auto_info[4]
+
     max_auto_info = DeRham.precision_information_max_auto_r_m(f, r_m; basis = basis)
-    @test max_auto_info[3] == default_table
+    r_m_max = max.(auto_info[2], r_m)
+    calculated_max = DeRham.calculate_series_precision(p, 3, r_m_max)
+    expected_max = max.(default_table, calculated_max)
+    expected_max[expected_max .== 0] .= 1
+    @test max_auto_info[2] == r_m_max
+    @test max_auto_info[3] == expected_max
+    @test all(max_auto_info[3] .>= calculated_max)
+end
+
+function test_max_auto_precision_without_default_table()
+    p = 5
+    _, (x, y, z, w) = polynomial_ring(GF(p), 4)
+    f = x^3 + y^3 + z^3 + w^3
+    basis = DeRham.get_basis_of_cohomology(f)
+
+    @test DeRham.series_precision_default(p, 3, 3) === nothing
+
+    auto_info = DeRham.precision_information_auto(f; basis = basis)
+    user_r = zeros(Int, length(auto_info[2]))
+    max_auto_info = DeRham.precision_information_max_auto_r_m(f, user_r; basis = basis)
+    expected = max.(DeRham.calculate_series_precision(p, 3, auto_info[2]), 1)
+
+    @test max_auto_info[2] == auto_info[2]
+    @test max_auto_info[3] == expected
 end
