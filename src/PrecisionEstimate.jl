@@ -70,6 +70,37 @@ function ibm_derham_bound(p::Integer, m::Integer, n::Integer)
     _ibm_checked_int(total, "ibm_derham_bound")
 end
 
+function _ibm_floor_log_prefix_sum(p::Integer, upper::Integer)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    upper <= 0 && return BigInt(0)
+
+    base = BigInt(p)
+    value = BigInt(upper)
+    power = base
+    exponent = BigInt(1)
+    total = BigInt(0)
+    while power <= value
+        next_power = power * base
+        last = min(value, next_power - 1)
+        total += exponent * (last - power + 1)
+        power = next_power
+        exponent += 1
+    end
+    total
+end
+
+function _ibm_f0_from_prefix_sum(p::Integer, m::Integer, n::Integer)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    m >= 1 || throw(ArgumentError("m must be positive"))
+    n >= 1 || throw(ArgumentError("n must be positive"))
+
+    m_big = BigInt(m)
+    n_big = BigInt(n)
+    upper = m_big - 1
+    lower = max(BigInt(0), m_big - n_big - 1)
+    _ibm_floor_log_prefix_sum(p, upper) - _ibm_floor_log_prefix_sum(p, lower)
+end
+
 function _ibm_vp_factorial(n::Integer, p::Integer)
     n >= 0 || throw(ArgumentError("factorial valuation requires n ≥ 0"))
     p >= 2 || throw(ArgumentError("p must be at least 2"))
@@ -132,7 +163,7 @@ function ibm_constant(
         if index <= stored_length
             return BigInt(ibm_bound[_ibm_checked_int(index, "bound index")])
         end
-        BigInt(ibm_derham_bound(p_big, index, n_int))
+        _ibm_f0_from_prefix_sum(p_big, index, n_big)
     end
 
     function nn(l::BigInt)

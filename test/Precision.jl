@@ -97,6 +97,10 @@ function test_akr_lattice_bound()
         @test DeRham._ibm_floor_log(p, power - 1) == k - 1
     end
 
+    for (p, m, n) in ((2, 1, 1), (2, 17, 5), (3, 244, 2), (101, 304, 3))
+        @test DeRham._ibm_f0_from_prefix_sum(p, m, n) == _reference_ibm_f0(p, m, n)
+    end
+
     @test DeRham.ibm_derham_bound(3, 244, 2) == 9
     @test DeRham.ibm_lattice_correction(2, 3) == 1
     @test DeRham.ibm_lattice_correction(2, 5) == 3
@@ -135,6 +139,7 @@ function test_akr_lattice_bound()
     @test_throws OverflowError DeRham.ibm_derham_bound(2, 1, too_large)
     @test_throws OverflowError DeRham.ibm_crank_bound(2, too_large, 1)
     @test_throws OverflowError DeRham.ibm_crank_bound(2, 2, too_large)
+    @test_throws OverflowError DeRham.ibm_lattice_correction(2, 2 * (BigInt(typemax(Int)) + 1))
 
     regression_cases = [
         (2, 3, 6),
