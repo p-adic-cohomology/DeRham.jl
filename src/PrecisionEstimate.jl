@@ -179,6 +179,10 @@ function ibm_constant(
         if m_big + L >= 2 * n_big + 1 &&
            exponent >= 0 &&
            (p_big * (m_big + L) - 1)^n_int <= p_big^exponent
+            last_stored_l = div(BigInt(stored_length), p_big) - m_big
+            for stored_l in L:last_stored_l
+                best = max(best, nn(stored_l))
+            end
             return _ibm_checked_int(best, "ibm_constant")
         end
         best = max(best, nn(L))

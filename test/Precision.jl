@@ -127,6 +127,10 @@ function test_akr_lattice_bound()
     @test 113 + 2 * (7 + 1) < 2 * (113 + 2 * 7)
     @test DeRham.ibm_constant(2, 57, tail_bounds, 1) == tail_maximum
 
+    stored_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k in 1:12]
+    stored_bounds[12] = 6
+    @test DeRham.ibm_constant(2, 1, stored_bounds, 1) == 1
+
     n2_tail_bounds, n2_tail_values, n2_m, n2_tail_start = _independent_n2_tail_fixture()
     @test n2_tail_values == BigInt[11, 10, 9, 8, 7, 6, 5, 3, 2]
     n2_tail_maximum = maximum(n2_tail_values)
