@@ -19,15 +19,6 @@ function frobenius_precision(k, q)
     return r
 end
 
-"""
-    ibm_derham_bound(p,m,n)
-
-Returns the exact integer baseline
-`f₀(m) = sum(floor(log_p(max(1, m-i))) for i in 1:n)` from
-Theorem 3.4.6 of Abbott–Kedlaya–Roe. The integer logarithms are computed
-without floating-point arithmetic. The AKR estimate assumes that `p` is prime.
-The return value is checked to fit in `Int`.
-"""
 function _ibm_checked_int(value::Integer, description::AbstractString)
     typemin(Int) <= value <= typemax(Int) ||
         throw(OverflowError("$description does not fit in Int"))
@@ -48,6 +39,15 @@ function _ibm_floor_log(p::Integer, a::Integer)
     exponent
 end
 
+"""
+    ibm_derham_bound(p,m,n)
+
+Returns the exact integer baseline
+`f₀(m) = sum(floor(log_p(max(1, m-i))) for i in 1:n)` from
+Theorem 3.4.6 of Abbott–Kedlaya–Roe. The integer logarithms are computed
+without floating-point arithmetic. The AKR estimate assumes that `p` is prime.
+The return value is checked to fit in `Int`.
+"""
 function ibm_derham_bound(p::Integer, m::Integer, n::Integer)
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     m >= 1 || throw(ArgumentError("m must be positive"))
@@ -155,16 +155,6 @@ function ibm_constant(
     end
 end
 
-"""
-    ibm_crank_bound(p, n, K)
-
-Returns a single-pass certified upper bound on the coordinate lattice V for
-pole orders `1:K`, where `K` is the exact stored range. The one-pass H-lattice
-bound is pointwise at most `f₀`; the return values add
-`ibm_lattice_correction(p,n)`. No equality with the fully converged AKR bound
-or minimality is asserted. The AKR bound assumes that `p` is prime. During the
-pass, requests outside `1:K` use exact `f₀` values, rather than padded storage.
-"""
 function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     n >= 1 || throw(ArgumentError("n must be positive"))
@@ -192,6 +182,16 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
     bounds
 end
 
+"""
+    ibm_crank_bound(p, n, K)
+
+Returns a single-pass certified upper bound on the coordinate lattice V for
+pole orders `1:K`, where `K` is the exact stored range. The one-pass H-lattice
+bound is pointwise at most `f₀`; the return values add
+`ibm_lattice_correction(p,n)`. No equality with the fully converged AKR bound
+or minimality is asserted. The AKR bound assumes that `p` is prime. During the
+pass, requests outside `1:K` use exact `f₀` values, rather than padded storage.
+"""
 function ibm_crank_bound(p::Integer, n::Integer, K::Integer)
     h_bound = _ibm_crank_bound_h(p, n, K)
     correction = ibm_lattice_correction(p, n)

@@ -61,6 +61,14 @@ function _reference_ibm_crank_bound_h(p, n, K)
     bounds
 end
 
+"""
+The l ≥ 7 suffix in the tail fixture is bounded independently of the
+production stopping certificate. With p=2, n=1, and m=57, every omitted term
+is at most `floor(log₂(113 + 2l)) - l`. At l=7, `113 + 2l < 2^l`; if this
+holds for l, then `113 + 2(l+1) < 2(113 + 2l) < 2^(l+1)`, so it holds for all
+l ≥ 7. The omitted terms are therefore at most -1, below the maximum 2 found
+among l=1:6.
+"""
 function test_akr_lattice_bound()
     for (p, k) in ((3, 5), (3, 10), (11, 7))
         power = big(p)^k
@@ -84,11 +92,20 @@ function test_akr_lattice_bound()
     tail_bounds[120] = 3
     tail_values = [
         (2 * (57 + l) <= 120 ? tail_bounds[2 * (57 + l)] :
-         DeRham.ibm_derham_bound(2, 2 * (57 + l), 1)) - l -
+         _reference_ibm_f0(2, 2 * (57 + l), 1)) - l -
         _reference_vp(binomial(big(57 + l - 1), big(l)), 2) for l in 1:6
     ]
     @test tail_values == BigInt[1, 1, 0, 2, 1, 0]
-    @test DeRham.ibm_constant(2, 57, tail_bounds, 1) == 2
+    tail_maximum = maximum(tail_values)
+    @test tail_maximum == 2
+    @test 113 + 2 * 7 < 2^7
+    @test 113 + 2 * (7 + 1) < 2 * (113 + 2 * 7)
+    @test DeRham.ibm_constant(2, 57, tail_bounds, 1) == tail_maximum
+
+    too_large = BigInt(typemax(Int)) + 1
+    @test_throws OverflowError DeRham.ibm_derham_bound(2, 1, too_large)
+    @test_throws OverflowError DeRham.ibm_crank_bound(2, too_large, 1)
+    @test_throws OverflowError DeRham.ibm_crank_bound(2, 2, too_large)
 
     regression_cases = [
         (2, 3, 6),
