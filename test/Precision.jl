@@ -62,6 +62,27 @@ function _reference_ibm_crank_bound_h(p, n, K)
 end
 
 """
+    _independent_n2_tail_fixture()
+
+For p=2, n=2, and m=57, all terms with l ≥ 10 use f₀ and have
+g(m,l) ≥ 0, so they are at most `2log₂(2(m+l)) - l`. The finite terms
+for l=1:9 have maximum 11, and `(2(m+10))^2 ≤ 2^(10+11)`. For
+q=m+l ≥ 67, `(q+1)^2 < 2q^2`, so this inequality propagates to every
+l ≥ 10 and proves the omitted terms are at most 11.
+"""
+function _independent_n2_tail_fixture()
+    m = 57
+    tail_start = 10
+    bounds = [DeRham.ibm_derham_bound(2, k, 2) for k in 1:(2 * (m + tail_start - 1))]
+    values = [
+        _reference_ibm_f0(2, 2 * (m + l), 2) - l -
+        _reference_vp(binomial(big(m + l - 1), big(l)), 2) for l in 1:(tail_start - 1)
+    ]
+
+    (bounds, values, m, tail_start)
+end
+
+"""
 The l ≥ 7 suffix in the tail fixture is bounded independently of the
 production stopping certificate. With p=2, n=1, and m=57, every omitted term
 is at most `floor(log₂(113 + 2l)) - l`. At l=7, `113 + 2l < 2^l`; if this
@@ -101,6 +122,14 @@ function test_akr_lattice_bound()
     @test 113 + 2 * 7 < 2^7
     @test 113 + 2 * (7 + 1) < 2 * (113 + 2 * 7)
     @test DeRham.ibm_constant(2, 57, tail_bounds, 1) == tail_maximum
+
+    n2_tail_bounds, n2_tail_values, n2_m, n2_tail_start = _independent_n2_tail_fixture()
+    @test n2_tail_values == BigInt[11, 10, 9, 8, 7, 6, 5, 3, 2]
+    n2_tail_maximum = maximum(n2_tail_values)
+    @test n2_tail_maximum == 11
+    @test (2 * (n2_m + n2_tail_start))^2 <= 2^(n2_tail_start + n2_tail_maximum)
+    @test (n2_m + n2_tail_start + 1)^2 < 2 * (n2_m + n2_tail_start)^2
+    @test DeRham.ibm_constant(2, n2_m, n2_tail_bounds, 2) == n2_tail_maximum
 
     too_large = BigInt(typemax(Int)) + 1
     @test_throws OverflowError DeRham.ibm_derham_bound(2, 1, too_large)
