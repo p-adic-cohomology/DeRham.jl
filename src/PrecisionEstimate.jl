@@ -25,7 +25,8 @@ end
 Returns the exact integer baseline
 `f₀(m) = sum(floor(log_p(max(1, m-i))) for i in 1:n)` from
 Theorem 3.4.6 of Abbott–Kedlaya–Roe. The integer logarithms are computed
-without floating-point arithmetic. The return value is checked to fit in `Int`.
+without floating-point arithmetic. The AKR estimate assumes that `p` is prime.
+The return value is checked to fit in `Int`.
 """
 function _ibm_checked_int(value::Integer, description::AbstractString)
     typemin(Int) <= value <= typemax(Int) ||
@@ -56,8 +57,15 @@ function ibm_derham_bound(p::Integer, m::Integer, n::Integer)
     p_big = BigInt(p)
     m_big = BigInt(m)
     total = BigInt(0)
+    log_value = _ibm_floor_log(p_big, max(BigInt(1), m_big - 1))
+    threshold = p_big^log_value
     for i in 1:n_int
-        total += _ibm_floor_log(p_big, max(BigInt(1), m_big - i))
+        value = max(BigInt(1), m_big - i)
+        while value < threshold
+            threshold = div(threshold, p_big)
+            log_value -= 1
+        end
+        total += log_value
     end
     _ibm_checked_int(total, "ibm_derham_bound")
 end
@@ -86,6 +94,7 @@ end
 
 Returns the conservative correction from the AKR H-lattice bound to the
 coordinate lattice V bound, `v_p((n-1)!)` when `p < n`, and zero otherwise.
+The AKR correction assumes that `p` is prime.
 """
 function ibm_lattice_correction(p::Integer, n::Integer)
     p >= 2 || throw(ArgumentError("p must be at least 2"))
@@ -99,7 +108,7 @@ end
 
 Computes the exact supremum of `A((m+l)p) - l - v_p(binomial(m+l-1,l))`
 over all `l ≥ 1`, where `A` is the stored upper bound and is `f₀` outside the
-stored range. The tail ends only after the all-l certificate
+stored range. Here `p` is prime. The tail ends only after the all-l certificate
 `(p(m+L)-1)^n ≤ p^(L+S)` holds, with `L ≥ 2`, `m+L ≥ 2n+1`, and `L+S ≥ 0`;
 the certificate bounds every term for `l ≥ L` by the maximum `S` already seen.
 """
@@ -153,8 +162,8 @@ Returns a single-pass certified upper bound on the coordinate lattice V for
 pole orders `1:K`, where `K` is the exact stored range. The one-pass H-lattice
 bound is pointwise at most `f₀`; the return values add
 `ibm_lattice_correction(p,n)`. No equality with the fully converged AKR bound
-or minimality is asserted. During the pass, requests outside `1:K` use exact
-`f₀` values, rather than padded storage.
+or minimality is asserted. The AKR bound assumes that `p` is prime. During the
+pass, requests outside `1:K` use exact `f₀` values, rather than padded storage.
 """
 function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
     p >= 2 || throw(ArgumentError("p must be at least 2"))

@@ -73,6 +73,11 @@ function test_akr_lattice_bound()
     @test DeRham.ibm_lattice_correction(2, 5) == 3
     @test DeRham.ibm_lattice_correction(5, 3) == 0
 
+    @test DeRham._ibm_crank_bound_h(2, 2, 4) == [0, 0, 1, 2]
+    @test DeRham.ibm_crank_bound(2, 2, 4) == [0, 0, 1, 2]
+    @test DeRham._ibm_crank_bound_h(2, 3, 6) == [0, 0, 1, 2, 4, 5]
+    @test DeRham.ibm_crank_bound(2, 3, 6) == [1, 1, 2, 3, 5, 6]
+
     tail_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k in 1:120]
     tail_bounds[116] = 2
     tail_bounds[118] = 3
