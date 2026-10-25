@@ -149,6 +149,29 @@ function ibm_constant(
     ibm_bound::AbstractVector{<:Integer},
     n::Integer,
 )
+    _ibm_constant(p, m, ibm_bound, n, false)
+end
+
+"""
+    _ibm_constant(p, m, ibm_bound, n, stored_capped_by_f0)
+
+Shared implementation of `ibm_constant`. When `stored_capped_by_f0` is `false`,
+the stored terms from the certificate threshold `L` through the end of the
+stored range are also included, so the result is the exact supremum for an
+arbitrary stored vector. When it is `true`, the caller guarantees
+`ibm_bound[k] ≤ f₀(k)` for every stored `k`. Each stored term with `l ≥ L` is
+then at most the corresponding `f₀` term, which the certificate already bounds
+by the returned maximum, so that scan cannot change the result and is omitted.
+`_ibm_crank_bound_h` satisfies the guarantee because its bounds start at `f₀`
+and are only ever replaced by minima.
+"""
+function _ibm_constant(
+    p::Integer,
+    m::Integer,
+    ibm_bound::AbstractVector{<:Integer},
+    n::Integer,
+    stored_capped_by_f0::Bool,
+)
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     m >= 1 || throw(ArgumentError("m must be positive"))
     n >= 1 || throw(ArgumentError("n must be positive"))
@@ -179,9 +202,11 @@ function ibm_constant(
         if m_big + L >= 2 * n_big + 1 &&
            exponent >= 0 &&
            (p_big * (m_big + L) - 1)^n_int <= p_big^exponent
-            last_stored_l = div(BigInt(stored_length), p_big) - m_big
-            for stored_l in L:last_stored_l
-                best = max(best, nn(stored_l))
+            if !stored_capped_by_f0
+                last_stored_l = div(BigInt(stored_length), p_big) - m_big
+                for stored_l in L:last_stored_l
+                    best = max(best, nn(stored_l))
+                end
             end
             return _ibm_checked_int(best, "ibm_constant")
         end
@@ -206,7 +231,7 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
 
     for m in 1:m_max
         pm = _ibm_checked_int(p_big * m, "p*m index")
-        N = BigInt(ibm_constant(p_big, m, bounds, n_int))
+        N = BigInt(_ibm_constant(p_big, m, bounds, n_int, true))
         base = BigInt(n_int - 1) + bounds[m]
         updated = _ibm_checked_int(min(BigInt(bounds[pm]), max(base, N)), "updated bound")
         bounds[pm] = updated

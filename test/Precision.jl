@@ -130,6 +130,16 @@ function test_akr_lattice_bound()
     stored_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k in 1:12]
     stored_bounds[12] = 6
     @test DeRham.ibm_constant(2, 1, stored_bounds, 1) == 1
+    @test DeRham._ibm_constant(2, 1, stored_bounds, 1, false) == 1
+
+    for (p, n, K) in ((2, 1, 120), (2, 3, 6), (3, 2, 12), (5, 2, 11))
+        capped_bounds = DeRham._ibm_crank_bound_h(p, n, K)
+        @test all(capped_bounds .<= [DeRham.ibm_derham_bound(p, k, n) for k in 1:K])
+        for m in 1:div(K, p)
+            @test DeRham._ibm_constant(p, m, capped_bounds, n, true) ==
+                  DeRham.ibm_constant(p, m, capped_bounds, n)
+        end
+    end
 
     n2_tail_bounds, n2_tail_values, n2_m, n2_tail_start = _independent_n2_tail_fixture()
     @test n2_tail_values == BigInt[11, 10, 9, 8, 7, 6, 5, 3, 2]
