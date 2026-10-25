@@ -76,9 +76,9 @@ end
             ignore = (Symbol("@allowscalar"), :libflint),
         ) === nothing
 
-        # Scoped, temporary allowlist for non-public qualified accesses. The
-        # GPUFiniteFieldMatrices names below need to be made public or exported
-        # upstream; drop them from here once that lands.
+        # Scoped, temporary allowlist for non-public qualified accesses. Keep
+        # only the GPUFiniteFieldMatrices internals that DeRham still calls;
+        # public array, arithmetic, and Karatsuba APIs are checked directly.
         # This ExplicitImports version's `ignore` for this check only accepts
         # bare symbols or submodules (no `symbol => module` pairs), so a name
         # here is ignored regardless of which module it's accessed from.
@@ -86,20 +86,12 @@ end
             M;
             ignore = (
                 # GPUFiniteFieldMatrices co-developed sibling internals.
-                :CuModcopy,
-                :KMatMul!,
                 :KaratsubaZeros,
-                :Karatsubacopy,
-                :TILE_WIDTH,
-                :add!,
                 :divide_elements!,
                 :initialize_plan!,
                 :karatsuba_add_helper,
                 :karatsuba_scalar_multiply_helper,
                 :scalar_multiply!,
-                :sub!,
-                :zero!,
-                :zeros,
                 # Deep Nemo/FLINT internals reached through Oscar.
                 :fmpz_mod_ctx_struct,
                 Symbol("@allowscalar"),

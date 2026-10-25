@@ -9,7 +9,7 @@ my_mul!(A::KaratsubaMatrix, B::KaratsubaMatrix, c::Number) =
 
 my_matvecmul!(z::CuModVector, A::CuModMatrix, b::CuModVector) = LinearAlgebra.mul!(z, A, b)
 my_matvecmul!(z::KaratsubaVector, A::KaratsubaMatrix, b::KaratsubaVector) =
-    GPUFiniteFieldMatrices.KMatMul!(z, A, b)
+    LinearAlgebra.mul!(z, A, b)
 
 # copy
 
@@ -28,11 +28,11 @@ function my_copy(a)
 end
 
 function my_copy(a::KaratsubaArray)
-    GPUFiniteFieldMatrices.Karatsubacopy(a)
+    Base.copy(a)
 end
 
 function my_copy(a::CuModArray)
-    GPUFiniteFieldMatrices.CuModcopy(a)
+    copy(a)
 end
 
 # zero
