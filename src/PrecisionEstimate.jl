@@ -194,7 +194,10 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
     p_big = BigInt(p)
     n_int = _ibm_checked_int(n, "n")
     K_int = _ibm_checked_int(K, "K")
-    bounds = [ibm_derham_bound(p_big, k, n_int) for k in 1:K_int]
+    bounds = [
+        _ibm_checked_int(_ibm_f0_from_prefix_sum(p_big, k, n_int), "ibm_derham_bound")
+        for k in 1:K_int
+    ]
     m_max = _ibm_checked_int(div(BigInt(K_int), p_big), "maximum m")
 
     for m in 1:m_max

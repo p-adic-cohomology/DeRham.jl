@@ -157,6 +157,7 @@ function test_akr_lattice_bound()
         c = DeRham.ibm_lattice_correction(p, n)
 
         @test length(H) == K
+        @test eltype(H) === Int
         @test all(H .<= f0)
         @test BigInt.(H) == reference
         @test BigInt.(DeRham.ibm_crank_bound(p, n, K)) == reference .+ c
