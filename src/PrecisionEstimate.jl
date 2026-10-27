@@ -164,6 +164,9 @@ then at most the corresponding `f₀` term, which the certificate already bounds
 by the returned maximum, so that scan cannot change the result and is omitted.
 `_ibm_crank_bound_h` satisfies the guarantee because its bounds start at `f₀`
 and are only ever replaced by minima.
+The prefix maximum is updated at every `L`, while the expensive tail certificate
+is checked at exponentially spaced checkpoints; intervening candidate terms are
+still included in the maximum.
 """
 function _ibm_constant(
     p::Integer,
@@ -197,10 +200,12 @@ function _ibm_constant(
 
     best = nn(BigInt(1))
     L = BigInt(2)
+    next_certificate_check = BigInt(2)
     while true
         exponent = L + best
         if m_big + L >= 2 * n_big + 1 &&
            exponent >= 0 &&
+           L >= next_certificate_check &&
            (p_big * (m_big + L) - 1)^n_int <= p_big^exponent
             if !stored_capped_by_f0
                 last_stored_l = div(BigInt(stored_length), p_big) - m_big
@@ -209,6 +214,11 @@ function _ibm_constant(
                 end
             end
             return _ibm_checked_int(best, "ibm_constant")
+        end
+        if m_big + L >= 2 * n_big + 1 &&
+           exponent >= 0 &&
+           L >= next_certificate_check
+            next_certificate_check = 2 * L
         end
         best = max(best, nn(L))
         L += 1

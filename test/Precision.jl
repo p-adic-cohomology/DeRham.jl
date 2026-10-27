@@ -179,6 +179,18 @@ function test_akr_lattice_bound()
     @test DeRham.ibm_constant(2, 1, stored_bounds, 1) == 1
     @test DeRham._ibm_constant(2, 1, stored_bounds, 1, false) == 1
 
+    @test_throws ArgumentError DeRham.ibm_derham_bound(1, 1, 1)
+    @test_throws ArgumentError DeRham.ibm_derham_bound(2, 0, 1)
+    @test_throws ArgumentError DeRham.ibm_derham_bound(2, 1, 0)
+    @test_throws ArgumentError DeRham.ibm_lattice_correction(1, 1)
+    @test_throws ArgumentError DeRham.ibm_lattice_correction(2, 0)
+    @test_throws ArgumentError DeRham.ibm_constant(1, 1, [0], 1)
+    @test_throws ArgumentError DeRham.ibm_constant(2, 0, [0], 1)
+    @test_throws ArgumentError DeRham.ibm_constant(2, 1, [0], 0)
+    @test_throws ArgumentError DeRham.ibm_crank_bound(1, 1, 1)
+    @test_throws ArgumentError DeRham.ibm_crank_bound(2, 0, 1)
+    @test_throws ArgumentError DeRham.ibm_crank_bound(2, 1, 0)
+
     for (p, n, K) in ((2, 1, 120), (2, 3, 6), (3, 2, 12), (5, 2, 11))
         capped_bounds = DeRham._ibm_crank_bound_h(p, n, K)
         @test all(capped_bounds .<= [DeRham.ibm_derham_bound(p, k, n) for k in 1:K])
