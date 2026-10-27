@@ -140,6 +140,15 @@ function test_akr_lattice_bound()
     end
 
     @test DeRham.ibm_derham_bound(3, 244, 2) == 9
+    for (p, n) in ((2, 1), (2, 4), (3, 2), (5, 5), (101, 3))
+        for exponent in 0:4
+            power = BigInt(p)^exponent
+            for i in 1:n, offset in -1:1
+                m = max(BigInt(1), power + i + offset)
+                @test DeRham.ibm_derham_bound(p, m, n) == _reference_ibm_f0(p, m, n)
+            end
+        end
+    end
     @test DeRham.ibm_lattice_correction(2, 3) == 1
     @test DeRham.ibm_lattice_correction(2, 5) == 3
     @test DeRham.ibm_lattice_correction(5, 3) == 0
