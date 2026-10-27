@@ -11,7 +11,7 @@ function _reference_ibm_floor_log(p, a)
 end
 
 function _reference_ibm_f0(p, m, n)
-    sum(_reference_ibm_floor_log(p, max(big(1), BigInt(m) - i)) for i in 1:n)
+    sum(_reference_ibm_floor_log(p, max(big(1), BigInt(m) - i)) for i = 1:n)
 end
 
 function _reference_vp(value, p)
@@ -48,13 +48,13 @@ function _reference_ibm_constant(p, m, n, bounds, K)
 end
 
 function _reference_ibm_crank_bound_h(p, n, K)
-    bounds = BigInt[_reference_ibm_f0(p, k, n) for k in 1:K]
-    for m in 1:div(K, p)
+    bounds = BigInt[_reference_ibm_f0(p, k, n) for k = 1:K]
+    for m = 1:div(K, p)
         pm = p * m
         N = _reference_ibm_constant(p, m, n, bounds, K)
         updated = min(bounds[pm], max(n - 1 + bounds[m], N))
         bounds[pm] = updated
-        for k in (pm - p + 1):pm
+        for k = (pm-p+1):pm
             bounds[k] = min(bounds[k], updated)
         end
     end
@@ -89,12 +89,12 @@ function _independent_ibm_constant(p, m, n, bounds, K)
 end
 
 function _independent_ibm_crank_bound_h(p, n, K)
-    bounds = BigInt[_reference_ibm_f0(p, k, n) for k in 1:K]
-    for m in 1:div(K, p)
+    bounds = BigInt[_reference_ibm_f0(p, k, n) for k = 1:K]
+    for m = 1:div(K, p)
         pm = p * m
         N = _independent_ibm_constant(p, m, n, bounds, K)
         updated = min(bounds[pm], max(n - 1 + bounds[m], N))
-        bounds[(pm - p + 1):pm] .= min.(bounds[(pm - p + 1):pm], updated)
+        bounds[(pm-p+1):pm] .= min.(bounds[(pm-p+1):pm], updated)
     end
     bounds
 end
@@ -111,10 +111,10 @@ l ≥ 10 and proves the omitted terms are at most 11.
 function _independent_n2_tail_fixture()
     m = 57
     tail_start = 10
-    bounds = [DeRham.ibm_derham_bound(2, k, 2) for k in 1:(2 * (m + tail_start - 1))]
+    bounds = [DeRham.ibm_derham_bound(2, k, 2) for k = 1:(2*(m+tail_start-1))]
     values = [
         _reference_ibm_f0(2, 2 * (m + l), 2) - l -
-        _reference_vp(binomial(big(m + l - 1), big(l)), 2) for l in 1:(tail_start - 1)
+        _reference_vp(binomial(big(m + l - 1), big(l)), 2) for l = 1:(tail_start-1)
     ]
 
     (bounds, values, m, tail_start)
@@ -141,9 +141,9 @@ function test_akr_lattice_bound()
 
     @test DeRham.ibm_derham_bound(3, 244, 2) == 9
     for (p, n) in ((2, 1), (2, 4), (3, 2), (5, 5), (101, 3))
-        for exponent in 0:4
+        for exponent = 0:4
             power = BigInt(p)^exponent
-            for i in 1:n, offset in -1:1
+            for i = 1:n, offset = -1:1
                 m = max(BigInt(1), power + i + offset)
                 @test DeRham.ibm_derham_bound(p, m, n) == _reference_ibm_f0(p, m, n)
             end
@@ -158,14 +158,15 @@ function test_akr_lattice_bound()
     @test DeRham._ibm_crank_bound_h(2, 3, 6) == [0, 0, 1, 2, 4, 5]
     @test DeRham.ibm_crank_bound(2, 3, 6) == [1, 1, 2, 3, 5, 6]
 
-    tail_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k in 1:120]
+    tail_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k = 1:120]
     tail_bounds[116] = 2
     tail_bounds[118] = 3
     tail_bounds[120] = 3
     tail_values = [
-        (2 * (57 + l) <= 120 ? tail_bounds[2 * (57 + l)] :
-         _reference_ibm_f0(2, 2 * (57 + l), 1)) - l -
-        _reference_vp(binomial(big(57 + l - 1), big(l)), 2) for l in 1:6
+        (
+            2 * (57 + l) <= 120 ? tail_bounds[2*(57+l)] :
+            _reference_ibm_f0(2, 2 * (57 + l), 1)
+        ) - l - _reference_vp(binomial(big(57 + l - 1), big(l)), 2) for l = 1:6
     ]
     @test tail_values == BigInt[1, 1, 0, 2, 1, 0]
     tail_maximum = maximum(tail_values)
@@ -174,7 +175,7 @@ function test_akr_lattice_bound()
     @test 113 + 2 * (7 + 1) < 2 * (113 + 2 * 7)
     @test DeRham.ibm_constant(2, 57, tail_bounds, 1) == tail_maximum
 
-    stored_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k in 1:12]
+    stored_bounds = [DeRham.ibm_derham_bound(2, k, 1) for k = 1:12]
     stored_bounds[12] = 6
     @test DeRham.ibm_constant(2, 1, stored_bounds, 1) == 1
     @test DeRham._ibm_constant(2, 1, stored_bounds, 1, false) == 1
@@ -193,8 +194,8 @@ function test_akr_lattice_bound()
 
     for (p, n, K) in ((2, 1, 120), (2, 3, 6), (3, 2, 12), (5, 2, 11))
         capped_bounds = DeRham._ibm_crank_bound_h(p, n, K)
-        @test all(capped_bounds .<= [DeRham.ibm_derham_bound(p, k, n) for k in 1:K])
-        for m in 1:div(K, p)
+        @test all(capped_bounds .<= [DeRham.ibm_derham_bound(p, k, n) for k = 1:K])
+        for m = 1:div(K, p)
             @test DeRham._ibm_constant(p, m, capped_bounds, n, true) ==
                   DeRham.ibm_constant(p, m, capped_bounds, n)
         end
@@ -212,7 +213,10 @@ function test_akr_lattice_bound()
     @test_throws OverflowError DeRham.ibm_derham_bound(2, 1, too_large)
     @test_throws OverflowError DeRham.ibm_crank_bound(2, too_large, 1)
     @test_throws OverflowError DeRham.ibm_crank_bound(2, 2, too_large)
-    @test_throws OverflowError DeRham.ibm_lattice_correction(2, 2 * (BigInt(typemax(Int)) + 1))
+    @test_throws OverflowError DeRham.ibm_lattice_correction(
+        2,
+        2 * (BigInt(typemax(Int)) + 1),
+    )
 
     regression_cases = [
         (2, 3, 6),
@@ -225,7 +229,7 @@ function test_akr_lattice_bound()
     ]
     for (p, n, K) in regression_cases
         H = DeRham._ibm_crank_bound_h(p, n, K)
-        f0 = [DeRham.ibm_derham_bound(p, k, n) for k in 1:K]
+        f0 = [DeRham.ibm_derham_bound(p, k, n) for k = 1:K]
         reference = _reference_ibm_crank_bound_h(p, n, K)
         c = DeRham.ibm_lattice_correction(p, n)
 
@@ -238,9 +242,9 @@ function test_akr_lattice_bound()
     end
 
     for (p, n, K) in ((2, 3, 6), (2, 3, 18), (3, 3, 27), (2, 10, 1000), (101, 3, 303))
-        f0 = [DeRham.ibm_derham_bound(p, k, n) for k in 1:K]
+        f0 = [DeRham.ibm_derham_bound(p, k, n) for k = 1:K]
         H = DeRham._ibm_crank_bound_h(p, n, K)
-        for m in 1:div(K, p)
+        for m = 1:div(K, p)
             @test DeRham.ibm_constant(p, m, f0, n) ==
                   _independent_ibm_constant(p, m, n, f0, K)
             @test DeRham.ibm_constant(p, m, H, n) ==
@@ -251,7 +255,7 @@ function test_akr_lattice_bound()
     for p in (2, 3, 5, 101), n in (2, 3), multiplier in (1, 2, 3)
         K = p * n * multiplier
         H = DeRham._ibm_crank_bound_h(p, n, K)
-        f0 = [DeRham.ibm_derham_bound(p, k, n) for k in 1:K]
+        f0 = [DeRham.ibm_derham_bound(p, k, n) for k = 1:K]
         @test all(H .<= f0)
         @test BigInt.(H) == _reference_ibm_crank_bound_h(p, n, K)
         @test BigInt.(H) == _independent_ibm_crank_bound_h(p, n, K)

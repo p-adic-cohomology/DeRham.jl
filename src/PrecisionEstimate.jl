@@ -59,7 +59,7 @@ function ibm_derham_bound(p::Integer, m::Integer, n::Integer)
     total = BigInt(0)
     log_value = _ibm_floor_log(p_big, max(BigInt(1), m_big - 1))
     threshold = p_big^log_value
-    for i in 1:n_int
+    for i = 1:n_int
         value = max(BigInt(1), m_big - i)
         while value < threshold
             threshold = div(threshold, p_big)
@@ -209,15 +209,13 @@ function _ibm_constant(
            (p_big * (m_big + L) - 1)^n_int <= p_big^exponent
             if !stored_capped_by_f0
                 last_stored_l = div(BigInt(stored_length), p_big) - m_big
-                for stored_l in L:last_stored_l
+                for stored_l = L:last_stored_l
                     best = max(best, nn(stored_l))
                 end
             end
             return _ibm_checked_int(best, "ibm_constant")
         end
-        if m_big + L >= 2 * n_big + 1 &&
-           exponent >= 0 &&
-           L >= next_certificate_check
+        if m_big + L >= 2 * n_big + 1 && exponent >= 0 && L >= next_certificate_check
             next_certificate_check = 2 * L
         end
         best = max(best, nn(L))
@@ -235,11 +233,11 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
     K_int = _ibm_checked_int(K, "K")
     bounds = [
         _ibm_checked_int(_ibm_f0_from_prefix_sum(p_big, k, n_int), "ibm_derham_bound")
-        for k in 1:K_int
+        for k = 1:K_int
     ]
     m_max = _ibm_checked_int(div(BigInt(K_int), p_big), "maximum m")
 
-    for m in 1:m_max
+    for m = 1:m_max
         pm = _ibm_checked_int(p_big * m, "p*m index")
         N = BigInt(_ibm_constant(p_big, m, bounds, n_int, true))
         base = BigInt(n_int - 1) + bounds[m]
@@ -247,7 +245,7 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
         bounds[pm] = updated
 
         first_backfill = _ibm_checked_int(BigInt(pm) - p_big + 1, "back-fill index")
-        for k in first_backfill:pm
+        for k = first_backfill:pm
             bounds[k] = min(bounds[k], updated)
         end
     end
@@ -268,7 +266,10 @@ pass, requests outside `1:K` use exact `f₀` values, rather than padded storage
 function ibm_crank_bound(p::Integer, n::Integer, K::Integer)
     h_bound = _ibm_crank_bound_h(p, n, K)
     correction = ibm_lattice_correction(p, n)
-    [_ibm_checked_int(BigInt(value) + correction, "coordinate-lattice bound") for value in h_bound]
+    [
+        _ibm_checked_int(BigInt(value) + correction, "coordinate-lattice bound") for
+        value in h_bound
+    ]
 end
 
 """
