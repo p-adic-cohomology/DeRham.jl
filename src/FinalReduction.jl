@@ -111,17 +111,30 @@ VS - a matrix space for where the vector will end up
 poly_to_reduce - a polynomial with pole that will
 
 """
-function reduce_order_n_to_basis(n, p, e, precision, VS, poly_to_reduce, T, R, cache, ev)
+function reduce_order_n_to_basis(
+    n,
+    p,
+    e,
+    precision,
+    VS,
+    poly_to_reduce,
+    T,
+    R,
+    cache,
+    ev;
+    output_ring = R,
+    final_scale = nothing,
+)
 
     N = precision
 
     if N == 0
-        return zero_matrix(R, nrows(T), 1)
+        return zero_matrix(output_ring, nrows(T), 1)
     end
 
     ff = factorial(ZZ(p*(e+N-1)-1))
     val_ff = valuation(ff, p)
-    final_val = (n-1) - val_ff
+    final_val = final_scale === nothing ? (n-1) - val_ff : final_scale
     ff_invertible = ff / p^val_ff
 
     inverse_ff = inv(R(ff_invertible))
@@ -132,18 +145,18 @@ function reduce_order_n_to_basis(n, p, e, precision, VS, poly_to_reduce, T, R, c
         temp[i, 1] = R(temp2[i])
     end
     temp = T * temp
+    output = zero_matrix(output_ring, length(temp), 1)
     for i = 1:length(temp)
         ele = inverse_ff * temp[i]
         if 0 ≤ final_val
-            ele *= p^final_val
+            output[i, 1] = output_ring(lift(ZZ, ele)) * p^final_val
         else
-            lifted = lift(ZZ, ele)
-            ele = divexact(ele, p^(-final_val))
+            lifted = divexact(lift(ZZ, ele), ZZ(p)^(-final_val))
+            output[i, 1] = output_ring(lifted)
         end
-        temp[i] = ele
     end
 
-    temp
+    output
 
 end
 
@@ -167,6 +180,30 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
     termorder = params.termorder
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")
     R = parent(T[1, 1])
+    scale_exponents = Int[]
+    for i in 1:length(Reductions)
+        e = Basis[i][2]
+        N = N_m[e]
+        if N == 0
+            push!(scale_exponents, 0)
+        else
+            factorial_argument = BigInt(p) * (BigInt(e) + BigInt(N) - 1) - 1
+            factorial_valuation = valuation(factorial(ZZ(factorial_argument)), p)
+            push!(
+                scale_exponents,
+                _ibm_checked_int(
+                    BigInt(n - 1) - factorial_valuation,
+                    "final scaling exponent",
+                ),
+            )
+        end
+    end
+    maximum_scale = max(0, maximum(scale_exponents; init = 0))
+    output_ring = R
+    if maximum_scale > 0
+        output_modulus = BigInt(modulus(R)) * BigInt(p)^maximum_scale
+        output_ring, = residue_ring(ZZ, output_modulus)
+    end
     frob_mat_temp = []
     denomArray = []
     ev = cache[d*n-n-1]#gen_exp_vec(n+1,d*n-n-1,termorder)
@@ -175,7 +212,20 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
         e = Basis[i][2] # pole order of basis element
         N = N_m[e]
         poly_to_reduce = Reductions[i][1]
-        temp = reduce_order_n_to_basis(n, p, e, N, VS, poly_to_reduce, T, R, cache, ev)
+        temp = reduce_order_n_to_basis(
+            n,
+            p,
+            e,
+            N,
+            VS,
+            poly_to_reduce,
+            T,
+            R,
+            cache,
+            ev;
+            output_ring = output_ring,
+            final_scale = scale_exponents[i],
+        )
 
         push!(frob_mat_temp, temp)
     end

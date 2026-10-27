@@ -4,9 +4,11 @@
 Compute the Frobenius matrix for the smooth hypersurface defined by ``f`` to
 the requested relative ``p``-adic precision ``r``. The scalar request is applied
 to every Hodge-filtered piece. The returned matrix is computed with exactly
-this relative precision for each piece; this function does not increase the
-requested precision automatically. Unless `basis` is supplied, the matrix is expressed
-in the internal cohomology basis computed by `get_basis_of_cohomology(f)`;
+this relative precision for each piece, using the certificate in dr-eevm.1,
+“Certified series precision: proof of the fixed algorithm.” This function does
+not increase the requested precision automatically. Unless `basis` is supplied,
+the matrix is expressed in the internal cohomology basis computed by
+`get_basis_of_cohomology(f)`;
 that helper and its basis ordering are not public API. Additional keywords
 are forwarded to [`zeta_coefficients`](@ref).
 
@@ -51,9 +53,12 @@ end
 Vector-precision overload of [`frobenius_matrix_with_precision`](@ref).
 `r_m` gives one requested relative ``p``-adic precision for each
 Hodge-filtered piece and must have the length required by the selected basis.
-The returned matrix is computed with exactly these relative precisions; this
-function does not increase the requested precision automatically. The matrix
-is expressed in that basis, which defaults to DeRham's internal
+The returned matrix is computed with exactly these relative precisions, using
+the certificate in dr-eevm.1, “Certified series precision: proof of the fixed
+algorithm”; this function does not increase the requested precision
+automatically. An all-zero request returns the Hodge-bound zero matrix; zero
+requests require `p ≥ nvars(parent(f)) - 1`. The matrix is expressed in that
+basis, which defaults to DeRham's internal
 `get_basis_of_cohomology(f)` basis. Additional keywords are forwarded to
 [`zeta_coefficients`](@ref).
 
@@ -71,7 +76,23 @@ function frobenius_matrix_with_precision(
     verbose = 0,
     kwargs...,
 )
-    precision_info = precision_information_user_r_m(f, r; basis = basis, verbose = verbose)
+    p = Int(characteristic(parent(f)))
+    n = nvars(parent(f)) - 1
+    r_m = [Int(x) for x in r]
+    _validate_series_precision_request(p, n, r_m)
+    if all(iszero, r_m)
+        check_smoothness(f) || return false
+        cohomology_basis = basis === nothing ? get_basis_of_cohomology(f) : basis
+        hodge_polygon = _hodge_polygon(cohomology_basis, n)
+        hodge_numbers = hodge_polygon.slopelengths
+        first_nonzero_piece = findfirst(x -> x > 0, hodge_numbers)
+        absolute_precision = first_nonzero_piece === nothing ? 1 : first_nonzero_piece
+        precision_ring, = residue_ring(ZZ, BigInt(p)^absolute_precision)
+        dimension = sum(hodge_numbers)
+        return zero_matrix(precision_ring, dimension, dimension)
+    end
+    precision_info =
+        precision_information_user_r_m(f, r_m; basis = basis, verbose = verbose)
     result = zeta_coefficients(
         f;
         precision_info = precision_info,

@@ -39,8 +39,9 @@ When we compute the Frobenius matrix, we always compute each vector with a preci
 
 We also provide the option to choose a relative precision for each basis vector.
 `DeRham.frobenius_matrix_with_precision` computes the returned matrix with
-exactly the requested relative precision for each Hodge-filtered piece. It does
-not automatically increase the requested precision.
+exactly the requested relative precision for each Hodge-filtered piece, using
+the certificate proved in dr-eevm.1, “Certified series precision: proof of the
+fixed algorithm.” It does not automatically increase the requested precision.
 
 ```@docs
 DeRham.frobenius_matrix_with_precision
