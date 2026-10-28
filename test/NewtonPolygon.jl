@@ -50,4 +50,18 @@
         f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
         @test DeRham.newton_polygon(f_nonsmooth) == false
     end
+
+    @testset "quartic K3 slopes from Artin-Mazur height" begin
+        f5 = DeRham.fermat_hypersurface(4, 4, 5)
+        f7 = DeRham.fermat_hypersurface(4, 4, 7)
+        ordinary = DeRham.newton_polygon(f5)
+        supersingular = DeRham.newton_polygon(f7)
+
+        @test ordinary.slopes == [0 // 1, 1 // 1, 2 // 1]
+        @test ordinary.slopelengths == [1, 19, 1]
+        @test supersingular.slopes == [1 // 1]
+        @test supersingular.slopelengths == [21]
+        @test ordinary == DeRham.newton_polygon(DeRham.zeta_coefficients(f5), 5)
+        @test supersingular == DeRham.newton_polygon(DeRham.zeta_coefficients(f7), 7)
+    end
 end
