@@ -1,6 +1,6 @@
 """
     artin_invariant(f::MPolyRingElem; basis=nothing, kwargs...)
-    artin_invariant(F; column_moduli=nothing)
+    artin_invariant(F)
 
 Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface from
 its Frobenius matrix modulo ``p²``. The computation uses linear algebra over
@@ -18,14 +18,11 @@ for its cohomology basis and forwarding the remaining keyword arguments to
 rejects the polynomial as non-smooth.
 
 The matrix method requires a 21×21 Frobenius matrix computed with relative
-precision request `[0, 1, 2]` in the chosen pole-order basis.
-Every column must be known modulo ``p²``.
-When the matrix uses a common ring but columns have different known precisions,
-pass the optional `column_moduli` vector; without it, the method assumes every
-column is known to the full base-ring modulus. Obtain the vector from
-`frobenius_matrix_with_precision` with `return_column_moduli=true`. The
-matrix-level method checks the supplied precision contract. Its first column
-must be divisible by p^2 in the chosen pole-order basis.
+precision request `[0, 1, 2]` in the chosen pole-order basis. That request
+provides the precision needed by the columns used in this computation. The
+matrix-level method assumes this contract and does not carry or check precision
+metadata. Its first column must be divisible by ``p²`` in the chosen pole-order
+basis.
 
 The algorithm is from forthcoming work of Bhamidipati, Broe, Garzella, Nair,
 Pagano, and Zhang.
@@ -43,7 +40,7 @@ julia> DeRham.artin_invariant(f)
 2
 ```
 """
-function artin_invariant(F::Union{MatElem,AbstractMatrix}; column_moduli = nothing)
+function artin_invariant(F::Union{MatElem,AbstractMatrix})
     @assert size(F) == (21, 21)
     F = _as_frobenius_matrix(F)
 
@@ -54,12 +51,6 @@ function artin_invariant(F::Union{MatElem,AbstractMatrix}; column_moduli = nothi
     @assert p > 2
 
     precision_modulus = p^2
-    known_column_moduli = _checked_frobenius_column_moduli(F, column_moduli)
-    @assert all(
-        mod(column_modulus, precision_modulus) == 0 for
-        column_modulus in known_column_moduli
-    )
-
     R, _ = residue_ring(ZZ, precision_modulus)
     F_mod_p2 = map_entries(entry -> R(lift(ZZ, entry)), F)
     A = map_entries(entry -> lift(ZZ, entry), F_mod_p2)
@@ -124,14 +115,12 @@ function artin_invariant(f::MPolyRingElem; basis = nothing, kwargs...)
 
     cohomology_basis = basis === nothing ? get_basis_of_cohomology(f) : basis
     relative_precision = [0, 1, 2]
-    result = frobenius_matrix_with_precision(
+    F = frobenius_matrix_with_precision(
         f,
         relative_precision;
         basis = cohomology_basis,
-        return_column_moduli = true,
         kwargs...,
     )
-    result === false && return false
-    F, column_moduli = result
-    return artin_invariant(F; column_moduli = column_moduli)
+    F === false && return false
+    return artin_invariant(F)
 end
