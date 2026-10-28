@@ -184,24 +184,60 @@ function _ibm_crank_bound_h(p::Int, n::Int, K::Int; fixed_point::Bool = false)
     bounds = [ibm_derham_bound(p, k, n) for k = 1:K]
     m_max = div(K, p)
 
-    while true
-        changed = false
-        for m in 1:m_max
-            pm = p * m
-            N = _ibm_constant(p, m, bounds, n, true)
-            base = n - 1 + bounds[m]
-            updated = min(bounds[pm], max(base, N))
-            changed |= updated < bounds[pm]
+    function update_bound!(m, changed_indices)
+        pm = p * m
+        N = _ibm_constant(p, m, bounds, n, true)
+        base = n - 1 + bounds[m]
+        updated = min(bounds[pm], max(base, N))
+        if updated < bounds[pm]
             bounds[pm] = updated
-
-            first_backfill = pm - p + 1
-            for k in first_backfill:pm
-                backfilled = min(bounds[k], updated)
-                changed |= backfilled < bounds[k]
-                bounds[k] = backfilled
+            if changed_indices !== nothing
+                push!(changed_indices, pm)
             end
         end
-        (!fixed_point || !changed) && break
+
+        first_backfill = pm - p + 1
+        for k in first_backfill:pm
+            backfilled = min(bounds[k], updated)
+            if backfilled < bounds[k]
+                bounds[k] = backfilled
+                if changed_indices !== nothing
+                    push!(changed_indices, k)
+                end
+            end
+        end
+    end
+
+    if fixed_point
+        pending = collect(1:m_max)
+        queued = trues(m_max)
+        head = 1
+        while head <= length(pending)
+            m = pending[head]
+            head += 1
+            queued[m] = false
+            changed_indices = Int[]
+            update_bound!(m, changed_indices)
+            for index in changed_indices
+                if index <= m_max && !queued[index]
+                    push!(pending, index)
+                    queued[index] = true
+                end
+                if rem(index, p) == 0
+                    last_dependent = min(m_max, div(index, p))
+                    for dependent = 1:last_dependent
+                        if !queued[dependent]
+                            push!(pending, dependent)
+                            queued[dependent] = true
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for m = 1:m_max
+            update_bound!(m, nothing)
+        end
     end
 
     bounds
