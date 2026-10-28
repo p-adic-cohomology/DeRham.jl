@@ -237,25 +237,61 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer; fixed_point::Boo
     ]
     m_max = _ibm_checked_int(div(BigInt(K_int), p_big), "maximum m")
 
-    while true
-        changed = false
-        for m = 1:m_max
-            pm = _ibm_checked_int(p_big * m, "p*m index")
-            N = BigInt(_ibm_constant(p_big, m, bounds, n_int, true))
-            base = BigInt(n_int - 1) + bounds[m]
-            updated =
-                _ibm_checked_int(min(BigInt(bounds[pm]), max(base, N)), "updated bound")
-            changed |= updated < bounds[pm]
+    function update_bound!(m, changed_indices)
+        pm = _ibm_checked_int(p_big * m, "p*m index")
+        N = BigInt(_ibm_constant(p_big, m, bounds, n_int, true))
+        base = BigInt(n_int - 1) + bounds[m]
+        updated = _ibm_checked_int(min(BigInt(bounds[pm]), max(base, N)), "updated bound")
+        if updated < bounds[pm]
             bounds[pm] = updated
-
-            first_backfill = _ibm_checked_int(BigInt(pm) - p_big + 1, "back-fill index")
-            for k = first_backfill:pm
-                backfilled = min(bounds[k], updated)
-                changed |= backfilled < bounds[k]
-                bounds[k] = backfilled
+            if changed_indices !== nothing
+                push!(changed_indices, pm)
             end
         end
-        (!fixed_point || !changed) && break
+
+        first_backfill = _ibm_checked_int(BigInt(pm) - p_big + 1, "back-fill index")
+        for k = first_backfill:pm
+            backfilled = min(bounds[k], updated)
+            if backfilled < bounds[k]
+                bounds[k] = backfilled
+                if changed_indices !== nothing
+                    push!(changed_indices, k)
+                end
+            end
+        end
+    end
+
+    if fixed_point
+        pending = collect(1:m_max)
+        queued = trues(m_max)
+        head = 1
+        while head <= length(pending)
+            m = pending[head]
+            head += 1
+            queued[m] = false
+            changed_indices = Int[]
+            update_bound!(m, changed_indices)
+            for index in changed_indices
+                if index <= m_max && !queued[index]
+                    push!(pending, index)
+                    queued[index] = true
+                end
+                if rem(BigInt(index), p_big) == 0
+                    last_dependent =
+                        min(m_max, _ibm_checked_int(div(BigInt(index), p_big), "dependent index"))
+                    for dependent = 1:last_dependent
+                        if !queued[dependent]
+                            push!(pending, dependent)
+                            queued[dependent] = true
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for m = 1:m_max
+            update_bound!(m, nothing)
+        end
     end
 
     bounds

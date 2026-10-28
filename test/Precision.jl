@@ -421,6 +421,12 @@ function test_certified_series_precision()
         end
     end
 
+    floor_request = ones(Int, 3)
+    floor_table = DeRham.series_precision_default(3, 3, 4)
+    floor_calculated = DeRham.calculate_series_precision(3, 3, floor_request)
+    @test all(floor_table .> floor_calculated)
+    @test DeRham.series_precision(3, 3, 4, floor_request) == floor_table
+
     p_below_n = 2
     ambient_dimension = 5
     positive_requests = ones(Int, ambient_dimension)

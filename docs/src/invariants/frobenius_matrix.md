@@ -46,7 +46,10 @@ precision: proof of the fixed algorithm.”
 
 For nonzero precision requests, each column retains its own parent ring and
 modulus. Use `parent(FM[i, j])` to inspect an entry's modulus; column parents
-can differ.
+can differ. The result is a Julia Matrix, not a matrix over one common quotient
+ring. Generic matrix operations that assume a single coefficient ring may
+fail; for such operations, first lift each entry into a chosen common residue
+ring, which reduces all columns to that common precision.
 
 @id sec-certified-series-truncation
 ### Certified series truncation
