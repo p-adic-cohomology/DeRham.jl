@@ -484,6 +484,33 @@ function test_certified_series_precision()
         @test coefficients[end] == 1
     end
 
+    elliptic_p = 7
+    elliptic_ring, (elliptic_x, elliptic_y, elliptic_z) =
+        polynomial_ring(GF(elliptic_p), ["x", "y", "z"])
+    elliptic_curve =
+        elliptic_y^2 * elliptic_z - elliptic_x^3 - elliptic_x * elliptic_z^2 - elliptic_z^3
+    zero_relative_request = zeros(Int, 2)
+    elliptic_zero_frobenius =
+        DeRham.frobenius_matrix_with_precision(elliptic_curve, zero_relative_request)
+    elliptic_column_offsets = [1, 0]
+    elliptic_column_precisions = BigInt[
+        BigInt(elliptic_p)^(
+            zero_relative_request[column] + elliptic_column_offsets[column]
+        ) for column in eachindex(zero_relative_request)
+    ]
+    elliptic_reference = Matrix(ZZ[231 11; 294 17])
+    @test elliptic_zero_frobenius isa MatElem
+    @test size(elliptic_zero_frobenius) == size(elliptic_reference)
+    @test modulus(base_ring(elliptic_zero_frobenius)) == maximum(elliptic_column_precisions)
+    @test all(
+        rem(
+            lift(ZZ, elliptic_zero_frobenius[row, column]) -
+            elliptic_reference[row, column],
+            elliptic_column_precisions[column],
+        ) == 0 for
+        row in axes(elliptic_zero_frobenius, 1), column in axes(elliptic_zero_frobenius, 2)
+    )
+
     quadric = DeRham.fermat_hypersurface(4, 2, 5)
     zero_frobenius = DeRham.frobenius_matrix_with_precision(quadric, [0, 0, 0])
     @test zero_frobenius isa MatElem
