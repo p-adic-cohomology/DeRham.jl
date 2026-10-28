@@ -66,8 +66,14 @@
     @testset "f form" begin
         R5, (a, b, c, d) = polynomial_ring(GF(5), ["a", "b", "c", "d"])
         fk3 = a^4 + b^4 + c^4 + d^4
-        @test DeRham.artin_mazur_height(fk3) ==
-              DeRham.artin_mazur_height(DeRham.zeta_coefficients(fk3), 5)
+        full_coeffs = DeRham.zeta_coefficients(fk3)
+        @test DeRham.artin_mazur_height(fk3) == DeRham.artin_mazur_height(full_coeffs, 5)
+        @test DeRham.artin_mazur_height(fk3) == 1
+
+        f7 = DeRham.fermat_hypersurface(4, 4, 7)
+        full_coeffs_f7 = DeRham.zeta_coefficients(f7)
+        @test DeRham.artin_mazur_height(f7) == DeRham.artin_mazur_height(full_coeffs_f7, 7)
+        @test DeRham.artin_mazur_height(f7) == Inf
 
         R5b, (y1, y2, y3, y4) = polynomial_ring(GF(5), ["x1", "x2", "x3", "x4"])
         f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
