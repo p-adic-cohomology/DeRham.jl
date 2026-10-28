@@ -41,8 +41,9 @@ We also provide the option to choose a relative precision for each basis vector.
 `DeRham.frobenius_matrix_with_precision` computes the returned matrix with
 at least the requested relative precision for each Hodge-filtered piece. An
 existing automatic table floor can provide more. The certified truncation
-argument is summarized below, with the full proof given in “Certified series
-precision: proof of the fixed algorithm.”
+argument is summarized below. The full proof, “Certified series precision:
+proof of the fixed algorithm,” is not included in this repository; see
+`dr-eevm.1` for the proof report.
 
 For nonzero precision requests, each column retains its own parent ring and
 modulus in a `FrobeniusMatrix`. Use `parent(FM[i, j])` to inspect an entry's
@@ -51,8 +52,7 @@ single coefficient ring may fail. Use `DeRham.frobenius_matrix_in_ring(FM, R)`
 to copy entries into a chosen common ring, which reduces all columns to that
 common precision.
 
-@id sec-certified-series-truncation
-### Certified series truncation
+### [Certified series truncation](@id sec-certified-series-truncation)
 
 Here $n$ is DeRham's ambient projective dimension, $p$ is prime, $m$ is a pole
 order from $1$ to $n$, and $r_m$ is its requested relative precision. Assume a
