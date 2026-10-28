@@ -41,7 +41,8 @@ directly. Other inputs obtain the characteristic ``p`` from `parent(f)`, call
 `zeta_coefficients(f; kwargs...)`, and delegate to the coefficient method.
 
 - `f`: homogeneous polynomial defining the hypersurface.
-- `kwargs...`: keywords forwarded to [`zeta_coefficients`](@ref).
+- `kwargs...`: keywords forwarded to [`artin_mazur_height`](@ref) for a
+  prime-field quartic K3, or to [`zeta_coefficients`](@ref) otherwise.
 
 Returns a [`SlopesPolygon`](@ref), or `false` when ``f`` is not smooth, matching
 `zeta_coefficients`.
