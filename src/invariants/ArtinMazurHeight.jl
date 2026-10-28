@@ -82,7 +82,8 @@ function _artin_mazur_height_from_frobenius(f, p; kwargs...)
     FM === false && return false
 
     P, _ = polynomial_ring(ZZ, "T")
-    raw = collect(coefficients(charpoly(P, frobenius_matrix_in_ring(FM, ZZ))))
+    integer_lift = map_entries(entry -> lift(ZZ, entry), FM)
+    raw = collect(coefficients(charpoly(P, integer_lift)))
     @assert length(raw) == 22
 
     pz = ZZ(p)
@@ -104,10 +105,12 @@ end
 the homogeneous polynomial ``f``. For a quartic in four variables over a prime
 field, this requests relative precision ``[1, 1, 1]`` from
 [`frobenius_matrix_with_precision`](@ref), computes the characteristic
-polynomial of the returned Frobenius matrix, and tests the coefficient
-residues needed for the height. Other inputs use `zeta_coefficients` and the
-coefficient method. Returns `false` when ``f`` is not smooth, matching
-`zeta_coefficients`.
+polynomial after lifting entries of its plain matrix over ``\\mathbb{Z}/p^M``
+to ``\\mathbb{Z}``, and tests the coefficient residues needed for the height.
+The matrix has one common parent ring; its columns are known to the absolute
+precisions implied by their Hodge offsets and the requested relative precision.
+Other inputs use `zeta_coefficients` and the coefficient method. Returns
+`false` when ``f`` is not smooth, matching `zeta_coefficients`.
 """
 function artin_mazur_height(f::MPolyRingElem; kwargs...)
     q = Int64(characteristic(parent(f)))
