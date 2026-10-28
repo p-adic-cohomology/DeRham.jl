@@ -29,6 +29,9 @@ function testEllCurve1_7()
         parent(frobmat[row, column]) == parent(frobmat[1, column]) for
         row in axes(frobmat, 1), column in axes(frobmat, 2)
     )
+    hasse_witt = DeRham.hasse_witt_matrix(frobmat, 1)
+    @test size(hasse_witt) == (1, 1)
+    @test lift(ZZ, hasse_witt[1, 1]) == 3
 end
 
 function testMonomialBasis()
