@@ -15,7 +15,13 @@ function zeta_coefficients_from_frobenius(FM, n, q, polygon, relative_precision,
     @assert size(FM, 1) == size(FM, 2) "FM is not a square matrix"
 
     P, T = polynomial_ring(ZZ, "T")
-    lift_to_int(s) = map(x -> lift(ZZ, x), s)
+    lift_to_int(s) = begin
+        integer_matrix = matrix_space(ZZ, size(s, 1), size(s, 2))()
+        for column in axes(s, 2), row in axes(s, 1)
+            integer_matrix[row, column] = lift(ZZ, s[row, column])
+        end
+        integer_matrix
+    end
 
     f = charpoly(P, lift_to_int(FM))
     cp_coeffs = collect(coefficients(f))

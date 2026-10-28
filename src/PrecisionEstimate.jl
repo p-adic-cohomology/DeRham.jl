@@ -223,12 +223,7 @@ function _ibm_constant(
     end
 end
 
-function _ibm_crank_bound_h(
-    p::Integer,
-    n::Integer,
-    K::Integer;
-    fixed_point::Bool = false,
-)
+function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer; fixed_point::Bool = false)
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     n >= 1 || throw(ArgumentError("n must be positive"))
     K >= 1 || throw(ArgumentError("K must be positive"))
@@ -244,19 +239,17 @@ function _ibm_crank_bound_h(
 
     while true
         changed = false
-        for m in 1:m_max
+        for m = 1:m_max
             pm = _ibm_checked_int(p_big * m, "p*m index")
             N = BigInt(_ibm_constant(p_big, m, bounds, n_int, true))
             base = BigInt(n_int - 1) + bounds[m]
-            updated = _ibm_checked_int(
-                min(BigInt(bounds[pm]), max(base, N)),
-                "updated bound",
-            )
+            updated =
+                _ibm_checked_int(min(BigInt(bounds[pm]), max(base, N)), "updated bound")
             changed |= updated < bounds[pm]
             bounds[pm] = updated
 
             first_backfill = _ibm_checked_int(BigInt(pm) - p_big + 1, "back-fill index")
-            for k in first_backfill:pm
+            for k = first_backfill:pm
                 backfilled = min(bounds[k], updated)
                 changed |= backfilled < bounds[k]
                 bounds[k] = backfilled
@@ -279,12 +272,7 @@ return values add `ibm_lattice_correction(p,n)`. The AKR bound assumes that `p`
 is prime. During each pass, requests outside `1:K` use exact `f₀` values,
 rather than padded storage.
 """
-function ibm_crank_bound(
-    p::Integer,
-    n::Integer,
-    K::Integer;
-    fixed_point = false,
-)
+function ibm_crank_bound(p::Integer, n::Integer, K::Integer; fixed_point = false)
     h_bound = _ibm_crank_bound_h(p, n, K; fixed_point = fixed_point)
     correction = ibm_lattice_correction(p, n)
     [
@@ -352,8 +340,7 @@ function _validate_series_precision_request(
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     n >= 1 || throw(ArgumentError("n must be positive"))
     length(r_m) == n || throw(ArgumentError("r_m must have length n"))
-    all(r -> r >= 0, r_m) ||
-        throw(ArgumentError("relative precisions must be nonnegative"))
+    all(r -> r >= 0, r_m) || throw(ArgumentError("relative precisions must be nonnegative"))
     if p < n && any(iszero, r_m)
         throw(ArgumentError("zero relative precision requests require p ≥ n"))
     end
@@ -380,18 +367,15 @@ function _ibm_certified_tail_cutoff(
     r_big = BigInt(r)
     correction_big = BigInt(correction)
 
-    lower = max(
-        BigInt(0),
-        2 * n_big + 1 - m_big,
-        r_big + correction_big - m_big + 1,
-    )
+    lower = max(BigInt(0), 2 * n_big + 1 - m_big, r_big + correction_big - m_big + 1)
     upper = max(16 * n_big^2, 2 * (r_big + correction_big + 1), m_big) - m_big
 
-    certified = cutoff -> begin
-        exponent = m_big - 1 + cutoff - r_big - correction_big
-        pole_order = m_big + cutoff
-        exponent >= 0 && (p_big * pole_order - 1)^n_int <= p_big^exponent
-    end
+    certified =
+        cutoff -> begin
+            exponent = m_big - 1 + cutoff - r_big - correction_big
+            pole_order = m_big + cutoff
+            exponent >= 0 && (p_big * pole_order - 1)^n_int <= p_big^exponent
+        end
 
     lower <= upper || error("certified tail cutoff upper bound is inconsistent")
     while lower < upper
@@ -412,37 +396,28 @@ Returns retained-term counts whose omitted Frobenius tails meet every requested
 relative precision. The all-tail certificate and its proof are given in dr-eevm.1,
 “Certified series precision: proof of the fixed algorithm.”
 """
-function calculate_series_precision(
-    p::Integer,
-    n::Integer,
-    r_m::AbstractVector{<:Integer},
-)
+function calculate_series_precision(p::Integer, n::Integer, r_m::AbstractVector{<:Integer})
     _validate_series_precision_request(p, n, r_m)
     n_int = _ibm_checked_int(n, "n")
     correction = ibm_lattice_correction(p, n)
-    cutoffs = [
-        _ibm_certified_tail_cutoff(p, n, m, r_m[m], correction) for m in 1:n_int
-    ]
+    cutoffs = [_ibm_certified_tail_cutoff(p, n, m, r_m[m], correction) for m = 1:n_int]
 
     maximum_pole_order = BigInt(1)
     p_big = BigInt(p)
-    for m in 1:n_int
+    for m = 1:n_int
         cutoff = cutoffs[m]
         if cutoff > 0
-            maximum_pole_order = max(
-                maximum_pole_order,
-                p_big * (BigInt(m) + cutoff - 1),
-            )
+            maximum_pole_order = max(maximum_pole_order, p_big * (BigInt(m) + cutoff - 1))
         end
     end
     bound_length = _ibm_checked_int(maximum_pole_order, "series bound range")
     bounds = ibm_crank_bound(p, n, bound_length; fixed_point = true)
 
     selected = Vector{Int}(undef, n_int)
-    for m in 1:n_int
+    for m = 1:n_int
         last_failure = BigInt(-1)
         cutoff = cutoffs[m]
-        for index in BigInt(0):(cutoff - 1)
+        for index = BigInt(0):(cutoff-1)
             pole_index = _ibm_checked_int(p_big * (BigInt(m) + index), "bound index")
             margin = BigInt(m - 1) + index - bounds[pole_index]
             if margin < r_m[m]
@@ -455,6 +430,33 @@ function calculate_series_precision(
     selected
 end
 
+const _series_precision_table_cache_lock = ReentrantLock()
+const _series_precision_table_cache = Dict{Any,Vector{Int}}()
+const _series_precision_table_cache_limit = 64
+
+"""
+    _cached_table_series_precision(p, n, d, r_m, table)
+
+Caches the certified selector result for repeated table-backed requests, while
+retaining the table as a lower bound. The selector certificate is given in
+“Certified series precision: proof of the fixed algorithm” (dr-eevm.1).
+"""
+function _cached_table_series_precision(p, n, d, r_m, table)
+    key = (BigInt(p), BigInt(n), BigInt(d), Tuple(BigInt(request) for request in r_m))
+    lock(_series_precision_table_cache_lock) do
+        cached = get(_series_precision_table_cache, key, nothing)
+        cached === nothing || return copy(cached)
+
+        calculated = calculate_series_precision(p, n, r_m)
+        result = max.(table, calculated)
+        if length(_series_precision_table_cache) >= _series_precision_table_cache_limit
+            empty!(_series_precision_table_cache)
+        end
+        _series_precision_table_cache[key] = result
+        copy(result)
+    end
+end
+
 """
     series_precision(p, n, d, r_m; use_default_table=true)
 
@@ -462,12 +464,10 @@ Uses the certified selector from dr-eevm.1, “Certified series precision: proof
 of the fixed algorithm,” while retaining any existing table value as a lower bound.
 """
 function series_precision(p, n, d, r_m; use_default_table = true)
-    calculated = calculate_series_precision(p, n, r_m)
-    if use_default_table
-        table = series_precision_default(p, n, d)
-        return table === nothing ? calculated : max.(table, calculated)
-    end
-    calculated
+    use_default_table || return calculate_series_precision(p, n, r_m)
+    table = series_precision_default(p, n, d)
+    table === nothing && return calculate_series_precision(p, n, r_m)
+    _cached_table_series_precision(p, n, d, r_m, table)
 end
 
 """

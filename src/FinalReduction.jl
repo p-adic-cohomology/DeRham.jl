@@ -133,8 +133,13 @@ function reduce_order_n_to_basis(
     end
 
     ff = factorial(ZZ(p*(e+N-1)-1))
-    val_ff = valuation(ff, p)
-    final_val = final_scale === nothing ? (n-1) - val_ff : final_scale
+    if final_scale === nothing
+        val_ff = valuation(ff, p)
+        final_val = (n-1) - val_ff
+    else
+        final_val = final_scale
+        val_ff = BigInt(n - 1) - BigInt(final_val)
+    end
     ff_invertible = ff / p^val_ff
 
     inverse_ff = inv(R(ff_invertible))
@@ -181,14 +186,14 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")
     R = parent(T[1, 1])
     scale_exponents = Int[]
-    for i in 1:length(Reductions)
+    for i = 1:length(Reductions)
         e = Basis[i][2]
         N = N_m[e]
         if N == 0
             push!(scale_exponents, 0)
         else
             factorial_argument = BigInt(p) * (BigInt(e) + BigInt(N) - 1) - 1
-            factorial_valuation = valuation(factorial(ZZ(factorial_argument)), p)
+            factorial_valuation = _ibm_vp_factorial(factorial_argument, p)
             push!(
                 scale_exponents,
                 _ibm_checked_int(
@@ -198,12 +203,6 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
             )
         end
     end
-    maximum_scale = max(0, maximum(scale_exponents; init = 0))
-    output_ring = R
-    if maximum_scale > 0
-        output_modulus = BigInt(modulus(R)) * BigInt(p)^maximum_scale
-        output_ring, = residue_ring(ZZ, output_modulus)
-    end
     frob_mat_temp = []
     denomArray = []
     ev = cache[d*n-n-1]#gen_exp_vec(n+1,d*n-n-1,termorder)
@@ -212,6 +211,16 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
         e = Basis[i][2] # pole order of basis element
         N = N_m[e]
         poly_to_reduce = Reductions[i][1]
+        scale = BigInt(scale_exponents[i])
+        output_modulus = BigInt(modulus(R))
+        if scale >= 0
+            output_modulus *= BigInt(p)^scale
+        else
+            output_modulus, remainder = divrem(output_modulus, BigInt(p)^(-scale))
+            iszero(remainder) || error("Frobenius column precision is not p-adic")
+        end
+        output_modulus > 1 || error("Frobenius column precision must be positive")
+        output_ring, = residue_ring(ZZ, output_modulus)
         temp = reduce_order_n_to_basis(
             n,
             p,
@@ -229,7 +238,12 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
 
         push!(frob_mat_temp, temp)
     end
-    frob_mat = hcat(frob_mat_temp...)
+    frob_mat = Matrix{typeof(R(0))}(undef, size(T, 1), length(frob_mat_temp))
+    for column in eachindex(frob_mat_temp)
+        for row = 1:size(T, 1)
+            frob_mat[row, column] = frob_mat_temp[column][row, 1]
+        end
+    end
 
     return frob_mat
 end

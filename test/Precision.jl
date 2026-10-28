@@ -365,6 +365,23 @@ Checks the repaired-bound selector and its all-tail certificate from dr-eevm.1,
 “Certified series precision: proof of the fixed algorithm.”
 """
 function test_certified_series_precision()
+    @test_throws ArgumentError DeRham.calculate_series_precision(1, 2, [1, 1])
+    @test_throws ArgumentError DeRham.calculate_series_precision(3, 0, [1, 1])
+    @test_throws ArgumentError DeRham.calculate_series_precision(3, 2, [1])
+    @test_throws ArgumentError DeRham.calculate_series_precision(3, 2, [1, -1])
+
+    cached_request = [2, 3]
+    cached_key = (BigInt(3), BigInt(2), BigInt(4), (BigInt(2), BigInt(3)))
+    lock(DeRham._series_precision_table_cache_lock) do
+        pop!(DeRham._series_precision_table_cache, cached_key, nothing)
+    end
+    cached_result = DeRham.series_precision(3, 2, 4, cached_request)
+    stored_result = copy(DeRham._series_precision_table_cache[cached_key])
+    cached_result[1] = 0
+    repeated_result = DeRham.series_precision(3, 2, 4, cached_request)
+    @test repeated_result == stored_result
+    @test repeated_result !== DeRham._series_precision_table_cache[cached_key]
+
     for (p, expected) in ((3, [4, 4]), (5, [3, 3]))
         f = DeRham.fermat_hypersurface(3, 4, p)
         relative_precision = [2, 3]
@@ -373,6 +390,10 @@ function test_certified_series_precision()
         @test DeRham.series_precision_default(p, 2, 4) == expected
         @test DeRham.series_precision(p, 2, 4, relative_precision) == expected
         @test DeRham.precision_information_user_r_m(f, relative_precision)[3] == expected
+        automatic_coefficients =
+            DeRham.zeta_coefficients_with_precision(f, relative_precision)
+        @test automatic_coefficients[1] == p^3
+        @test automatic_coefficients[end] == 1
 
         cutoffs = [
             DeRham._ibm_certified_tail_cutoff(
@@ -381,21 +402,16 @@ function test_certified_series_precision()
                 m,
                 relative_precision[m],
                 DeRham.ibm_lattice_correction(p, 2),
-            ) for m in 1:2
+            ) for m = 1:2
         ]
         tail_end = maximum(cutoffs) + 32
-        bound_length = maximum(p * (m + cutoffs[m] - 1) for m in 1:2)
-        tail_bounds = DeRham.ibm_crank_bound(
-            p,
-            2,
-            bound_length;
-            fixed_point = true,
-        )
-        for m in 1:2
+        bound_length = maximum(p * (m + cutoffs[m] - 1) for m = 1:2)
+        tail_bounds = DeRham.ibm_crank_bound(p, 2, bound_length; fixed_point = true)
+        for m = 1:2
             @test selected[m] <= cutoffs[m]
-            for i in selected[m]:tail_end
+            for i = selected[m]:tail_end
                 bound = if i < cutoffs[m]
-                    tail_bounds[p * (m + i)]
+                    tail_bounds[p*(m+i)]
                 else
                     DeRham.ibm_derham_bound(p, p * (m + i), 2) +
                     DeRham.ibm_lattice_correction(p, 2)
@@ -405,15 +421,52 @@ function test_certified_series_precision()
         end
     end
 
+    p_below_n = 2
+    ambient_dimension = 5
+    positive_requests = ones(Int, ambient_dimension)
+    below_n_selected =
+        DeRham.calculate_series_precision(p_below_n, ambient_dimension, positive_requests)
+    below_n_cutoffs = [
+        DeRham._ibm_certified_tail_cutoff(
+            p_below_n,
+            ambient_dimension,
+            m,
+            positive_requests[m],
+            DeRham.ibm_lattice_correction(p_below_n, ambient_dimension),
+        ) for m = 1:ambient_dimension
+    ]
+    below_n_bound_length =
+        maximum(p_below_n * (m + below_n_cutoffs[m] - 1) for m = 1:ambient_dimension)
+    below_n_bounds = DeRham.ibm_crank_bound(
+        p_below_n,
+        ambient_dimension,
+        below_n_bound_length;
+        fixed_point = true,
+    )
+    below_n_tail_end = maximum(below_n_cutoffs) + 16
+    @test length(below_n_selected) == ambient_dimension
+    @test below_n_selected == [23, 22, 21, 20, 19]
+    for m = 1:ambient_dimension
+        @test below_n_selected[m] <= below_n_cutoffs[m]
+        for i = below_n_selected[m]:below_n_tail_end
+            bound = if i < below_n_cutoffs[m]
+                below_n_bounds[p_below_n*(m+i)]
+            else
+                DeRham.ibm_derham_bound(p_below_n, p_below_n * (m + i), ambient_dimension) + DeRham.ibm_lattice_correction(p_below_n, ambient_dimension)
+            end
+            @test m - 1 + i - bound >= positive_requests[m]
+        end
+    end
+
     f0_selected = [
         begin
             last_failure = maximum(
-                i for i in 0:32 if
+                i for i = 0:32 if
                 m - 1 + i - DeRham.ibm_derham_bound(3, 3 * (m + i), 2) < [2, 3][m];
                 init = -1,
             )
             last_failure + 1
-        end for m in 1:2
+        end for m = 1:2
     ]
     @test f0_selected == [6, 6]
 
@@ -451,7 +504,7 @@ function test_certified_series_precision()
     )
     frobenius = regression[1]
     entry = lift(ZZ, frobenius[1, 1])
-    @test modulus(base_ring(frobenius)) == 25
+    @test modulus(parent(frobenius[1, 1])) == 25
     @test rem(entry, ZZ(5)) == 0
     @test rem(divexact(entry, ZZ(5)), ZZ(5)) == 1
 end

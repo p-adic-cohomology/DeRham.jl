@@ -4,10 +4,10 @@
 Given a Frobenius matrix `FM` computed at relative precision 1 and the curve's
 genus ``h``, returns the Hasse-Witt matrix: the last ``h \\times h`` block of `FM`,
 reduced modulo ``p``. Here ``p`` is the unique prime factor of the modulus of
-`base_ring(FM)`.
+the first entry's parent ring.
 
-- `FM`: Frobenius matrix over a ring with prime-power modulus, computed at
-  precision 1.
+- `FM`: Frobenius matrix computed at relative precision 1. Each column has a
+  prime-power parent modulus, and all columns use the same prime.
 - `h`: genus of the curve, which is the size of the Hasse-Witt matrix.
 
 Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``.
@@ -23,15 +23,19 @@ julia> size(DeRham.hasse_witt_matrix(FM, 1))
 (1, 1)
 ```
 """
-function hasse_witt_matrix(FM::MatElem, h::Integer)
-    n = modulus(base_ring(FM))
+function hasse_witt_matrix(FM::Union{MatElem,AbstractMatrix}, h::Integer)
+    n = modulus(parent(FM[1, 1]))
     (p, _) = first(factor(ZZ(n)))
 
     highprec = FM[(end-h+1):end, (end-h+1):end]
 
     K = GF(Int(p))
 
-    map_entries(K, lift.(highprec))
+    result = matrix_space(K, size(highprec, 1), size(highprec, 2))()
+    for column in axes(highprec, 2), row in axes(highprec, 1)
+        result[row, column] = K(lift(ZZ, highprec[row, column]))
+    end
+    result
 end
 
 """
