@@ -40,8 +40,9 @@ julia> DeRham.artin_invariant(f)
 2
 ```
 """
-function artin_invariant(F::MatElem)
+function artin_invariant(F::Union{MatElem,AbstractMatrix})
     @assert size(F) == (21, 21)
+    F = _as_frobenius_matrix(F)
 
     base_modulus = modulus(base_ring(F))
     factors = factor(ZZ(base_modulus))

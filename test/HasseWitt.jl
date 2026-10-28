@@ -10,9 +10,12 @@
         h = DeRham._hodge_polygon(basis, n).slopelengths[1]
         FM = DeRham.frobenius_matrix_with_precision(f, r_m; basis = basis)
         @test modulus(base_ring(FM)) == BigInt(7)^2
+        FM_array = [FM[row, column] for row in axes(FM, 1), column in axes(FM, 2)]
 
         @test DeRham.hasse_witt_matrix(FM, h) == DeRham.hasse_witt_matrix(f)
         @test DeRham.a_number(FM, h) == DeRham.a_number(f)
+        @test DeRham.hasse_witt_matrix(FM_array, h) == DeRham.hasse_witt_matrix(FM, h)
+        @test DeRham.a_number(FM_array, h) == DeRham.a_number(FM, h)
     end
 
     @testset "pinned regression values (the curve is ordinary: a_7 = 3, coprime to 7)" begin

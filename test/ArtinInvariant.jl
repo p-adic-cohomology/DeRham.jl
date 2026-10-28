@@ -29,6 +29,8 @@
         @test F isa MatElem
         @test size(F) == (21, 21)
         @test DeRham.artin_invariant(F) == 1
+        F_array = [F[row, column] for row in axes(F, 1), column in axes(F, 2)]
+        @test DeRham.artin_invariant(F_array) == 1
 
         @test_throws AssertionError DeRham.artin_invariant(
             matrix(parent(F[1, 1]), zeros(Int, 20, 21)),

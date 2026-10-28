@@ -200,6 +200,11 @@ function _frobenius_output_ring(p, base_modulus, scale_exponent)
     output_ring
 end
 
+_frobenius_matrix_base_ring(FM::MatElem) = base_ring(FM)
+_frobenius_matrix_base_ring(FM::AbstractMatrix) = parent(FM[1, 1])
+_as_frobenius_matrix(FM::MatElem) = FM
+_as_frobenius_matrix(FM::AbstractMatrix) = matrix(_frobenius_matrix_base_ring(FM), FM)
+
 """
     compute_frobenius_matrix(n,d,Reductions,T)
 
