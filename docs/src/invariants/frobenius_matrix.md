@@ -35,7 +35,7 @@ p\ast & p\ast & p\ast & \ast & \ast & \ast
 ```
 where each $\ast$ denotes an element of $\mathbb{Z}_p$.
 
-When we compute the Frobenius matrix, we always compute each vector with a precision relative to the p-adic valuations guaranteed to us by strong Mazur divisibility. Thus, if we choose relative precision $r = 2$ for our curve of genus 3, the first three vectors will be computed modulo $p^3$ and the second three will be computed modulo $p^2$. If what you cared about was the *absolute* precision (i.e. the whole matrix modulo $p^2$), you can reduce the answer modulo $p^2$.
+The result is an ordinary matrix over $\mathbb{Z}/p^m$, where $m$ is at least the largest absolute column precision. Each column's entries are known only to that column's requested relative precision; higher digits in lower-precision columns are not meaningful. This applies to both all-zero and nonzero precision requests.
 
 We also provide the option to choose a relative precision for each basis vector.
 `DeRham.frobenius_matrix_with_precision` computes the returned matrix with
@@ -44,13 +44,6 @@ existing automatic table floor can provide more. The certified truncation
 argument is summarized below. The full proof, “Certified series precision:
 proof of the fixed algorithm,” is not included in this repository; see
 `dr-eevm.1` for the proof report.
-
-For nonzero precision requests, each column retains its own parent ring and
-modulus in a `FrobeniusMatrix`. Use `parent(FM[i, j])` to inspect an entry's
-modulus; column parents can differ. Generic matrix operations that assume a
-single coefficient ring may fail. Use `DeRham.frobenius_matrix_in_ring(FM, R)`
-to copy entries into a chosen common ring, which reduces all columns to that
-common precision.
 
 ### [Certified series truncation](@id sec-certified-series-truncation)
 
@@ -89,6 +82,4 @@ $p \ge n$, an all-zero request returns the Hodge-bound zero matrix.
 
 ```@docs
 DeRham.frobenius_matrix_with_precision
-DeRham.FrobeniusMatrix
-DeRham.frobenius_matrix_in_ring
 ```

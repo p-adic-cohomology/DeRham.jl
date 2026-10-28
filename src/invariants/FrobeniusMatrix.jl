@@ -14,13 +14,6 @@ the matrix is expressed in the internal cohomology basis computed by
 that helper and its basis ordering are not public API. Additional keywords
 are forwarded to [`zeta_coefficients`](@ref).
 
-For nonzero precision requests, the returned `FrobeniusMatrix` stores each
-column in its own parent ring to preserve that column's modulus. Use
-`parent(FM[i, j])` to inspect an entry's modulus; column parents can differ.
-Generic matrix operations that assume a single coefficient ring may fail. Use
-`frobenius_matrix_in_ring(FM, R)` to copy entries into a chosen common ring,
-which reduces all columns to that common precision.
-
 - `f`: homogeneous polynomial defining the hypersurface.
 - `r`: requested relative ``p``-adic precision for each Hodge-filtered piece.
 - `basis`: optional basis to use instead of computing the default basis.
@@ -71,12 +64,8 @@ basis, which defaults to DeRham's internal
 `get_basis_of_cohomology(f)` basis. Additional keywords are forwarded to
 [`zeta_coefficients`](@ref).
 
-For nonzero precision requests, each column retains its own parent ring and
-modulus in a `FrobeniusMatrix`. Use `parent(FM[i, j])` to inspect an entry's
-modulus; column parents can differ. Generic matrix operations that assume a
-single coefficient ring may fail. Use `frobenius_matrix_in_ring(FM, R)` to
-copy entries into a chosen common ring, which reduces all columns to that
-common precision.
+Returns an ordinary Oscar matrix. See the Frobenius matrix documentation for
+its per-column precision contract.
 
 - `f`: homogeneous polynomial defining the hypersurface.
 - `r_m`: vector of requested relative precisions, one per Hodge-filtered piece.

@@ -1,16 +1,20 @@
 """
-    hasse_witt_matrix(FM, h)
+    hasse_witt_matrix(FM, h; column_moduli=nothing)
 
 Given a Frobenius matrix `FM` computed at relative precision 1 and the curve's
 genus ``h``, returns the Hasse-Witt matrix: the last ``h \\times h`` block of `FM`,
-reduced modulo ``p``. Here ``p`` is the unique prime factor of the modulus of
-the first entry's parent ring.
+reduced modulo ``p``. Here ``p`` is the unique prime factor of the matrix's
+base-ring modulus.
 
-- `FM`: Frobenius matrix computed at relative precision 1. Each column has a
-  prime-power parent modulus, and all columns use the same prime.
+- `FM`: Frobenius matrix computed at relative precision 1.
 - `h`: genus of the curve, which is the size of the Hasse-Witt matrix.
+- `column_moduli`: optional vector of the known modulus for each column. When
+  omitted, the method assumes every entry is known modulo the matrix's base
+  ring modulus.
 
-Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``.
+Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``. When `FM` comes from
+`frobenius_matrix_with_precision`, pass its per-column known moduli if they
+differ; only the selected columns need precision divisible by ``p``.
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
@@ -23,14 +27,23 @@ julia> size(DeRham.hasse_witt_matrix(FM, 1))
 (1, 1)
 ```
 """
-function hasse_witt_matrix(FM::Union{MatElem,AbstractMatrix}, h::Integer)
-    n = modulus(parent(FM[1, 1]))
+function hasse_witt_matrix(
+    FM::Union{MatElem,AbstractMatrix},
+    h::Integer;
+    column_moduli = nothing,
+)
+    FM = _as_frobenius_matrix(FM)
+    n = modulus(base_ring(FM))
     (p, _) = first(factor(ZZ(n)))
+    known_column_moduli = _checked_frobenius_column_moduli(FM, column_moduli)
+    @assert all(
+        mod(known_column_moduli[column], p) == 0 for column = (size(FM, 2)-h+1):size(FM, 2)
+    )
 
     highprec = FM[(end-h+1):end, (end-h+1):end]
 
     K = GF(Int(p))
-    frobenius_matrix_in_ring(highprec, K)
+    map_entries(entry -> K(lift(ZZ, entry)), highprec)
 end
 
 """
@@ -78,7 +91,10 @@ function hasse_witt_matrix(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     fh = hodge_numbers[1]
 
+    precision_info =
+        precision_information_user_r_m(f, r_m; basis = basis, verbose = verbose)
+    column_moduli = _frobenius_column_moduli_for_precision_info(f, precision_info, basis)
     F = frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
 
-    hasse_witt_matrix(F, fh)
+    hasse_witt_matrix(F, fh; column_moduli = column_moduli)
 end

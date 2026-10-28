@@ -25,10 +25,25 @@
         _, (x, y, z, w) = polynomial_ring(GF(p), ["x", "y", "z", "w"])
         fermat = x^4 + y^4 + z^4 + w^4
         F = DeRham.frobenius_matrix_with_precision(fermat, [0, 1, 2])
+        basis = DeRham.get_basis_of_cohomology(fermat)
+        precision_info = DeRham.precision_information_user_r_m(fermat, [0, 1, 2]; basis)
+        column_moduli = DeRham._frobenius_column_moduli_for_precision_info(
+            fermat,
+            precision_info,
+            basis,
+        )
 
         @test F !== false
+        @test F isa MatElem
         @test size(F) == (21, 21)
-        @test DeRham.artin_invariant(F) == 1
+        @test DeRham.artin_invariant(F; column_moduli) == 1
+
+        low_precision_moduli = copy(column_moduli)
+        low_precision_moduli[2] = p
+        @test_throws AssertionError DeRham.artin_invariant(
+            F;
+            column_moduli = low_precision_moduli,
+        )
 
         @test_throws AssertionError DeRham.artin_invariant(
             matrix(parent(F[1, 1]), zeros(Int, 20, 21)),
@@ -36,7 +51,10 @@
 
         F_bad_first_column = deepcopy(F)
         F_bad_first_column[1, 1] = one(parent(F_bad_first_column[1, 1]))
-        @test_throws AssertionError DeRham.artin_invariant(F_bad_first_column)
+        @test_throws AssertionError DeRham.artin_invariant(
+            F_bad_first_column;
+            column_moduli,
+        )
 
         R3, _ = residue_ring(ZZ, p)
         @test_throws AssertionError DeRham.artin_invariant(matrix(R3, zeros(Int, 21, 21)))
