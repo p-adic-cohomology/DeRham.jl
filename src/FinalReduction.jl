@@ -187,27 +187,32 @@ function _frobenius_column_scale_exponents(n, p, N_m, Basis)
     scale_exponents
 end
 
-function _frobenius_column_modulus(p, base_modulus, scale)
-    column_modulus = BigInt(base_modulus)
-    if scale >= 0
-        column_modulus *= BigInt(p)^scale
-    else
-        column_modulus, remainder = divrem(column_modulus, BigInt(p)^(-scale))
-        iszero(remainder) || error("Frobenius column precision is not p-adic")
-    end
-    column_modulus > 1 || error("Frobenius column precision must be positive")
-    column_modulus
-end
-
 function _frobenius_column_moduli(p, base_modulus, scale_exponents)
-    [_frobenius_column_modulus(p, base_modulus, scale) for scale in scale_exponents]
+    column_moduli = BigInt[]
+    for scale in scale_exponents
+        column_modulus = BigInt(base_modulus)
+        if scale >= 0
+            column_modulus *= BigInt(p)^scale
+        else
+            column_modulus, remainder = divrem(column_modulus, BigInt(p)^(-scale))
+            iszero(remainder) || error("Frobenius column precision is not p-adic")
+        end
+        column_modulus > 1 || error("Frobenius column precision must be positive")
+        push!(column_moduli, column_modulus)
+    end
+    column_moduli
 end
 
 function _frobenius_output_ring(p, base_modulus, scale_exponent)
-    output_ring, = residue_ring(
-        ZZ,
-        _frobenius_column_modulus(p, base_modulus, scale_exponent),
-    )
+    output_modulus = BigInt(base_modulus)
+    if scale_exponent >= 0
+        output_modulus *= BigInt(p)^scale_exponent
+    else
+        output_modulus, remainder = divrem(output_modulus, BigInt(p)^(-scale_exponent))
+        iszero(remainder) || error("Frobenius precision is not p-adic")
+    end
+    output_modulus > 1 || error("Frobenius precision must be positive")
+    output_ring, = residue_ring(ZZ, output_modulus)
     output_ring
 end
 
