@@ -53,11 +53,8 @@ function artin_invariant(F::Union{MatElem,AbstractMatrix})
     )
 
     R, _ = residue_ring(ZZ, precision_modulus)
-    F_mod_p2 = matrix_space(R, size(F, 1), size(F, 2))()
-    for column in axes(F, 2), row in axes(F, 1)
-        F_mod_p2[row, column] = R(lift(ZZ, F[row, column]))
-    end
-    A = map_entries(ZZ, lift.(F_mod_p2))
+    F_mod_p2 = frobenius_matrix_in_ring(F, R)
+    A = frobenius_matrix_in_ring(F_mod_p2, ZZ)
     @assert all(iszero(A[row, 1]) for row = 1:21)
 
     Fp = GF(Int(p))

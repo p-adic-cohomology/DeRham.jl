@@ -14,13 +14,12 @@ the matrix is expressed in the internal cohomology basis computed by
 that helper and its basis ordering are not public API. Additional keywords
 are forwarded to [`zeta_coefficients`](@ref).
 
-For nonzero precision requests, the returned matrix stores each column in its
-own parent ring to preserve that column's modulus. Use `parent(FM[i, j])` to
-inspect an entry's modulus; column parents can differ.
-The result is a Julia Matrix, not a matrix over one common quotient ring.
-Generic matrix operations that assume a single coefficient ring may fail; for
-such operations, first lift each entry into a chosen common residue ring, which
-reduces all columns to that common precision.
+For nonzero precision requests, the returned `FrobeniusMatrix` stores each
+column in its own parent ring to preserve that column's modulus. Use
+`parent(FM[i, j])` to inspect an entry's modulus; column parents can differ.
+Generic matrix operations that assume a single coefficient ring may fail. Use
+`frobenius_matrix_in_ring(FM, R)` to copy entries into a chosen common ring,
+which reduces all columns to that common precision.
 
 - `f`: homogeneous polynomial defining the hypersurface.
 - `r`: requested relative ``p``-adic precision for each Hodge-filtered piece.
@@ -73,11 +72,11 @@ basis, which defaults to DeRham's internal
 [`zeta_coefficients`](@ref).
 
 For nonzero precision requests, each column retains its own parent ring and
-modulus. Use `parent(FM[i, j])` to inspect an entry's modulus; column parents
-can differ. The result is a Julia Matrix, not a matrix over one common quotient
-ring. Generic matrix operations that assume a single coefficient ring may
-fail; for such operations, first lift each entry into a chosen common residue
-ring, which reduces all columns to that common precision.
+modulus in a `FrobeniusMatrix`. Use `parent(FM[i, j])` to inspect an entry's
+modulus; column parents can differ. Generic matrix operations that assume a
+single coefficient ring may fail. Use `frobenius_matrix_in_ring(FM, R)` to
+copy entries into a chosen common ring, which reduces all columns to that
+common precision.
 
 - `f`: homogeneous polynomial defining the hypersurface.
 - `r_m`: vector of requested relative precisions, one per Hodge-filtered piece.

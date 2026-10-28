@@ -264,26 +264,30 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer; fixed_point::Boo
     if fixed_point
         pending = collect(1:m_max)
         queued = trues(m_max)
+        unqueued = BitSet()
         head = 1
         while head <= length(pending)
             m = pending[head]
             head += 1
             queued[m] = false
+            push!(unqueued, m)
             changed_indices = Int[]
             update_bound!(m, changed_indices)
             for index in changed_indices
                 if index <= m_max && !queued[index]
+                    delete!(unqueued, index)
                     push!(pending, index)
                     queued[index] = true
                 end
                 if rem(BigInt(index), p_big) == 0
                     last_dependent =
                         min(m_max, _ibm_checked_int(div(BigInt(index), p_big), "dependent index"))
-                    for dependent = 1:last_dependent
-                        if !queued[dependent]
-                            push!(pending, dependent)
-                            queued[dependent] = true
-                        end
+                    while !isempty(unqueued)
+                        dependent = first(unqueued)
+                        dependent <= last_dependent || break
+                        delete!(unqueued, dependent)
+                        push!(pending, dependent)
+                        queued[dependent] = true
                     end
                 end
             end

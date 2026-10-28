@@ -22,6 +22,7 @@ function testEllCurve1_7()
     x, y, z = Vars
     f = y^2*z - x^3 - x*z^2 - z^3
     frobmat = DeRham.zeta_coefficients(f, givefrobmat = true)[1]
+    @test frobmat isa DeRham.FrobeniusMatrix
     @test map(entry -> lift(ZZ, entry), frobmat) == Matrix(ZZ[231 11; 294 17])
     column_moduli = [modulus(parent(frobmat[1, column])) for column in axes(frobmat, 2)]
     @test length(unique(column_moduli)) > 1
@@ -32,6 +33,14 @@ function testEllCurve1_7()
     hasse_witt = DeRham.hasse_witt_matrix(frobmat, 1)
     @test size(hasse_witt) == (1, 1)
     @test lift(ZZ, hasse_witt[1, 1]) == 3
+    common_modulus = minimum(column_moduli)
+    common_ring, = residue_ring(ZZ, common_modulus)
+    common_frobmat = DeRham.frobenius_matrix_in_ring(frobmat, common_ring)
+    @test modulus(base_ring(common_frobmat)) == common_modulus
+    @test all(
+        common_frobmat[row, column] == common_ring(lift(ZZ, frobmat[row, column])) for
+        row in axes(frobmat, 1), column in axes(frobmat, 2)
+    )
 end
 
 function testMonomialBasis()

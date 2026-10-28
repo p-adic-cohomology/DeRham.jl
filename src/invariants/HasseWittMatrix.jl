@@ -30,12 +30,7 @@ function hasse_witt_matrix(FM::Union{MatElem,AbstractMatrix}, h::Integer)
     highprec = FM[(end-h+1):end, (end-h+1):end]
 
     K = GF(Int(p))
-
-    result = matrix_space(K, size(highprec, 1), size(highprec, 2))()
-    for column in axes(highprec, 2), row in axes(highprec, 1)
-        result[row, column] = K(lift(ZZ, highprec[row, column]))
-    end
-    result
+    frobenius_matrix_in_ring(highprec, K)
 end
 
 """
