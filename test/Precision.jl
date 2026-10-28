@@ -486,12 +486,14 @@ function test_certified_series_precision()
 
     quadric = DeRham.fermat_hypersurface(4, 2, 5)
     zero_frobenius = DeRham.frobenius_matrix_with_precision(quadric, [0, 0, 0])
+    @test zero_frobenius isa MatElem
     @test size(zero_frobenius) == (1, 1)
     @test modulus(base_ring(zero_frobenius)) == 25
     @test iszero(zero_frobenius[1, 1])
     partial_zero_frobenius =
         DeRham.frobenius_matrix_with_precision(quadric, [0, 1, 0]; S = [3])
     @test partial_zero_frobenius !== false
+    @test partial_zero_frobenius isa MatElem
 
     cubic_fourfold = DeRham.fermat_hypersurface(6, 3, 2)
     @test_throws ArgumentError DeRham.frobenius_matrix_with_precision(
@@ -509,8 +511,10 @@ function test_certified_series_precision()
         S = [3],
     )
     frobenius = regression[1]
+    @test frobenius isa MatElem
     entry = lift(ZZ, frobenius[1, 1])
-    @test modulus(parent(frobenius[1, 1])) == 25
+    @test modulus(base_ring(frobenius)) == 25
     @test rem(entry, ZZ(5)) == 0
     @test rem(divexact(entry, ZZ(5)), ZZ(5)) == 1
+    @test rem(entry - 5, ZZ(25)) == 0
 end

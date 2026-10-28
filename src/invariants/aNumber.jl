@@ -1,5 +1,5 @@
 """
-    a_number(FM, h)
+    a_number(FM, h; column_moduli=nothing)
 
 For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
 matrix ``H``: ``h - \\operatorname{rank}(H)``.
@@ -8,6 +8,10 @@ matrix ``H``: ``h - \\operatorname{rank}(H)``.
 - `h`: genus of the curve.
 
 Returns the curve's a-number as an integer.
+
+When `FM` comes from `frobenius_matrix_with_precision`, pass its per-column
+known moduli if they differ; only the selected columns need precision divisible
+by ``p``.
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
@@ -20,8 +24,8 @@ julia> DeRham.a_number(FM, 1)
 1
 ```
 """
-function a_number(FM::Union{MatElem,AbstractMatrix}, h::Integer)
-    return h - rank(hasse_witt_matrix(FM, h))
+function a_number(FM::Union{MatElem,AbstractMatrix}, h::Integer; column_moduli = nothing)
+    return h - rank(hasse_witt_matrix(FM, h; column_moduli = column_moduli))
 end
 
 """
@@ -67,8 +71,11 @@ function a_number(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     g = hodge_numbers[1]
 
+    precision_info =
+        precision_information_user_r_m(f, r_m; basis = basis, verbose = verbose)
+    column_moduli = _frobenius_column_moduli_for_precision_info(f, precision_info, basis)
     FM =
         frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
 
-    a_number(FM, g)
+    a_number(FM, g; column_moduli = column_moduli)
 end

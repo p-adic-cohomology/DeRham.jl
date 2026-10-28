@@ -165,38 +165,61 @@ function reduce_order_n_to_basis(
 
 end
 
-"""
-    FrobeniusMatrix
-
-An `AbstractMatrix` whose columns may have different coefficient rings. Entry
-access preserves each column's parent ring; use [`frobenius_matrix_in_ring`](@ref)
-when an operation requires one common ring.
-"""
-struct FrobeniusMatrix{T} <: AbstractMatrix{T}
-    entries::Matrix{T}
-end
-
-Base.IndexStyle(::Type{<:FrobeniusMatrix}) = IndexCartesian()
-Base.size(matrix::FrobeniusMatrix) = size(matrix.entries)
-Base.getindex(matrix::FrobeniusMatrix, indices...) = getindex(matrix.entries, indices...)
-function Base.setindex!(matrix::FrobeniusMatrix, value, row::Int, column::Int)
-    matrix.entries[row, column] = parent(matrix.entries[row, column])(value)
-    matrix
-end
-
-"""
-    frobenius_matrix_in_ring(FM, R)
-
-Copies a Frobenius matrix into a single coefficient ring `R`, lifting each
-entry before coercion. This is useful when a matrix operation requires one
-common coefficient ring; the requested ring determines the retained precision.
-"""
-function frobenius_matrix_in_ring(FM::Union{MatElem,AbstractMatrix}, R)
-    result = matrix_space(R, size(FM, 1), size(FM, 2))()
-    for column in axes(FM, 2), row in axes(FM, 1)
-        result[row, column] = R(lift(ZZ, FM[row, column]))
+function _frobenius_column_scale_exponents(n, p, N_m, Basis)
+    scale_exponents = Int[]
+    for i = 1:length(Basis)
+        e = Basis[i][2]
+        N = N_m[e]
+        if N == 0
+            push!(scale_exponents, 0)
+        else
+            factorial_argument = BigInt(p) * (BigInt(e) + BigInt(N) - 1) - 1
+            factorial_valuation = _ibm_vp_factorial(factorial_argument, p)
+            push!(
+                scale_exponents,
+                _ibm_checked_int(
+                    BigInt(n - 1) - factorial_valuation,
+                    "final scaling exponent",
+                ),
+            )
+        end
     end
-    result
+    scale_exponents
+end
+
+function _frobenius_column_moduli(p, base_modulus, scale_exponents)
+    column_moduli = BigInt[]
+    for scale in scale_exponents
+        column_modulus = BigInt(base_modulus)
+        if scale >= 0
+            column_modulus *= BigInt(p)^scale
+        else
+            column_modulus, remainder = divrem(column_modulus, BigInt(p)^(-scale))
+            iszero(remainder) || error("Frobenius column precision is not p-adic")
+        end
+        column_modulus > 1 || error("Frobenius column precision must be positive")
+        push!(column_moduli, column_modulus)
+    end
+    column_moduli
+end
+
+_frobenius_matrix_base_ring(FM::MatElem) = base_ring(FM)
+_frobenius_matrix_base_ring(FM::AbstractMatrix) = parent(FM[1, 1])
+_as_frobenius_matrix(FM::MatElem) = FM
+_as_frobenius_matrix(FM::AbstractMatrix) = matrix(_frobenius_matrix_base_ring(FM), FM)
+
+function _checked_frobenius_column_moduli(FM, column_moduli)
+    base_modulus = BigInt(modulus(_frobenius_matrix_base_ring(FM)))
+    if column_moduli === nothing
+        return fill(base_modulus, size(FM, 2))
+    end
+    checked_moduli = BigInt.(column_moduli)
+    @assert length(checked_moduli) == size(FM, 2)
+    @assert all(
+        column_modulus > 1 && mod(base_modulus, column_modulus) == 0 for
+        column_modulus in checked_moduli
+    )
+    checked_moduli
 end
 
 """
@@ -219,24 +242,9 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
     termorder = params.termorder
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")
     R = parent(T[1, 1])
-    scale_exponents = Int[]
-    for i = 1:length(Reductions)
-        e = Basis[i][2]
-        N = N_m[e]
-        if N == 0
-            push!(scale_exponents, 0)
-        else
-            factorial_argument = BigInt(p) * (BigInt(e) + BigInt(N) - 1) - 1
-            factorial_valuation = _ibm_vp_factorial(factorial_argument, p)
-            push!(
-                scale_exponents,
-                _ibm_checked_int(
-                    BigInt(n - 1) - factorial_valuation,
-                    "final scaling exponent",
-                ),
-            )
-        end
-    end
+    scale_exponents = _frobenius_column_scale_exponents(n, p, N_m, Basis)
+    column_moduli = _frobenius_column_moduli(p, modulus(R), scale_exponents)
+    output_ring, = residue_ring(ZZ, maximum(column_moduli))
     frob_mat_temp = []
     denomArray = []
     ev = cache[d*n-n-1]#gen_exp_vec(n+1,d*n-n-1,termorder)
@@ -245,16 +253,6 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
         e = Basis[i][2] # pole order of basis element
         N = N_m[e]
         poly_to_reduce = Reductions[i][1]
-        scale = BigInt(scale_exponents[i])
-        output_modulus = BigInt(modulus(R))
-        if scale >= 0
-            output_modulus *= BigInt(p)^scale
-        else
-            output_modulus, remainder = divrem(output_modulus, BigInt(p)^(-scale))
-            iszero(remainder) || error("Frobenius column precision is not p-adic")
-        end
-        output_modulus > 1 || error("Frobenius column precision must be positive")
-        output_ring, = residue_ring(ZZ, output_modulus)
         temp = reduce_order_n_to_basis(
             n,
             p,
@@ -272,14 +270,14 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
 
         push!(frob_mat_temp, temp)
     end
-    frob_mat = Matrix{typeof(R(0))}(undef, size(T, 1), length(frob_mat_temp))
+    frob_mat = matrix_space(output_ring, size(T, 1), length(frob_mat_temp))()
     for column in eachindex(frob_mat_temp)
         for row = 1:size(T, 1)
             frob_mat[row, column] = frob_mat_temp[column][row, 1]
         end
     end
 
-    return FrobeniusMatrix(frob_mat)
+    return frob_mat
 end
 
 #end
