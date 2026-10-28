@@ -26,7 +26,8 @@ julia> size(DeRham.hasse_witt_matrix(FM, 1))
 (1, 1)
 ```
 """
-function hasse_witt_matrix(FM::MatElem, h::Integer)
+function hasse_witt_matrix(FM::Union{MatElem,AbstractMatrix}, h::Integer)
+    FM = _as_frobenius_matrix(FM)
     n = modulus(base_ring(FM))
     (p, _) = first(factor(ZZ(n)))
 
