@@ -63,5 +63,11 @@
         @test supersingular.slopelengths == [21]
         @test ordinary == DeRham.newton_polygon(DeRham.zeta_coefficients(f5), 5)
         @test supersingular == DeRham.newton_polygon(DeRham.zeta_coefficients(f7), 7)
+
+        R5h2, (u, v, w, z) = polynomial_ring(GF(5), ["u", "v", "w", "z"])
+        f_h2 = 2 * u^4 + v^4 + w^4 + z^4 + u^2 * v^2
+        height_two = DeRham.newton_polygon(f_h2)
+        @test height_two.slopes == [1 // 2, 1 // 1, 3 // 2]
+        @test height_two.slopelengths == [2, 17, 2]
     end
 end

@@ -76,6 +76,12 @@
         @test DeRham.artin_mazur_height(f7) == Inf
 
         R5b, (y1, y2, y3, y4) = polynomial_ring(GF(5), ["x1", "x2", "x3", "x4"])
+        f_h2 = 2 * y1^4 + y2^4 + y3^4 + y4^4 + y1^2 * y2^2
+        full_coeffs_h2 = DeRham.zeta_coefficients(f_h2)
+        height_h2 = DeRham.artin_mazur_height(f_h2)
+        @test height_h2 == 2
+        @test height_h2 == DeRham.artin_mazur_height(full_coeffs_h2, 5)
+
         f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
         @test DeRham.artin_mazur_height(f_nonsmooth) == false
     end
