@@ -166,6 +166,40 @@ function reduce_order_n_to_basis(
 end
 
 """
+    FrobeniusMatrix
+
+An `AbstractMatrix` whose columns may have different coefficient rings. Entry
+access preserves each column's parent ring; use [`frobenius_matrix_in_ring`](@ref)
+when an operation requires one common ring.
+"""
+struct FrobeniusMatrix{T} <: AbstractMatrix{T}
+    entries::Matrix{T}
+end
+
+Base.IndexStyle(::Type{<:FrobeniusMatrix}) = IndexCartesian()
+Base.size(matrix::FrobeniusMatrix) = size(matrix.entries)
+Base.getindex(matrix::FrobeniusMatrix, indices...) = getindex(matrix.entries, indices...)
+function Base.setindex!(matrix::FrobeniusMatrix, value, row::Int, column::Int)
+    matrix.entries[row, column] = parent(matrix.entries[row, column])(value)
+    matrix
+end
+
+"""
+    frobenius_matrix_in_ring(FM, R)
+
+Copies a Frobenius matrix into a single coefficient ring `R`, lifting each
+entry before coercion. This is useful when a matrix operation requires one
+common coefficient ring; the requested ring determines the retained precision.
+"""
+function frobenius_matrix_in_ring(FM::Union{MatElem,AbstractMatrix}, R)
+    result = matrix_space(R, size(FM, 1), size(FM, 2))()
+    for column in axes(FM, 2), row in axes(FM, 1)
+        result[row, column] = R(lift(ZZ, FM[row, column]))
+    end
+    result
+end
+
+"""
     compute_frobenius_matrix(n,d,Reductions,T)
 
 Computes Frobenius Matrix
@@ -245,7 +279,7 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
         end
     end
 
-    return frob_mat
+    return FrobeniusMatrix(frob_mat)
 end
 
 #end
