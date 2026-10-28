@@ -37,6 +37,15 @@ where each $\ast$ denotes an element of $\mathbb{Z}_p$.
 
 The result is an ordinary matrix over $\mathbb{Z}/p^m$, where $m$ is at least the largest absolute column precision. Each column's entries are known only to that column's requested relative precision; higher digits in lower-precision columns are not meaningful. This applies to both all-zero and nonzero precision requests.
 
+To retain this information for a matrix-level invariant calculation, call
+`DeRham.frobenius_matrix_with_precision(...; return_column_moduli=true)`. It
+returns `(FM, column_moduli)`, where each entry of `column_moduli` is the
+modulus to which the corresponding column is known. Pass it to
+`DeRham.hasse_witt_matrix(FM, h; column_moduli=column_moduli)`,
+`DeRham.a_number(FM, h; column_moduli=column_moduli)`, or
+`DeRham.artin_invariant(FM; column_moduli=column_moduli)`. Without the keyword,
+the function continues to return only the matrix.
+
 We also provide the option to choose a relative precision for each basis vector.
 `DeRham.frobenius_matrix_with_precision` computes the returned matrix with
 at least the requested relative precision for each Hodge-filtered piece. An

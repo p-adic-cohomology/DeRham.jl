@@ -21,6 +21,8 @@ every column known modulo ``p²``. Its first column must be divisible by
 ``p²`` in the chosen pole-order basis. Pass `column_moduli` when the matrix
 uses a common ring but its columns have different known precisions; without it,
 the method assumes every column is known to the full base-ring modulus.
+Obtain the vector from `frobenius_matrix_with_precision` with
+`return_column_moduli=true`.
 
 The algorithm is from forthcoming work of Bhamidipati, Broe, Garzella, Nair,
 Pagano, and Zhang.
@@ -119,16 +121,14 @@ function artin_invariant(f::MPolyRingElem; basis = nothing, kwargs...)
 
     cohomology_basis = basis === nothing ? get_basis_of_cohomology(f) : basis
     relative_precision = [0, 1, 2]
-    precision_info =
-        precision_information_user_r_m(f, relative_precision; basis = cohomology_basis)
-    column_moduli =
-        _frobenius_column_moduli_for_precision_info(f, precision_info, cohomology_basis)
-    F = frobenius_matrix_with_precision(
+    result = frobenius_matrix_with_precision(
         f,
         relative_precision;
         basis = cohomology_basis,
+        return_column_moduli = true,
         kwargs...,
     )
-    F === false && return false
+    result === false && return false
+    F, column_moduli = result
     return artin_invariant(F; column_moduli = column_moduli)
 end
