@@ -72,8 +72,10 @@ $h'(u) = 1 - n/((m+u-1/p)\ln p) > 0$. Therefore
 $m-1+i-B_V(p(m+i)) \ge r_m$ for every integer $i \ge T$.
 
 The selector checks the same inequality exactly for every $i < T$ using the
-repaired bound. It returns one more than the largest failing index, or zero if
-there is no failure. Every omitted term $i \ge N_m$ then satisfies the
+repaired bound. This gives a candidate retained-term count: one more than the
+largest failing index, or zero if no index fails. The public count $N_m$ is
+raised to the Hodge-bound minimum $n-m+1$, so it can be positive even when
+there is no failing index. Every omitted term $i \ge N_m$ then satisfies the
 inequality, which is Costa's truncation condition. Such a $T$ always exists;
 the proof gives
 $T \le \max\{16n^2, 2(r_m+c+1), m\}-m$. Raising $N_m$ to an existing table

@@ -443,17 +443,23 @@ retaining the table as a lower bound. The selector certificate is given in
 """
 function _cached_table_series_precision(p, n, d, r_m, table)
     key = (BigInt(p), BigInt(n), BigInt(d), Tuple(BigInt(request) for request in r_m))
+    cached = lock(_series_precision_table_cache_lock) do
+        get(_series_precision_table_cache, key, nothing)
+    end
+    cached === nothing || return copy(cached)
+
+    calculated = calculate_series_precision(p, n, r_m)
+    result = max.(table, calculated)
     lock(_series_precision_table_cache_lock) do
         cached = get(_series_precision_table_cache, key, nothing)
-        cached === nothing || return copy(cached)
-
-        calculated = calculate_series_precision(p, n, r_m)
-        result = max.(table, calculated)
-        if length(_series_precision_table_cache) >= _series_precision_table_cache_limit
-            empty!(_series_precision_table_cache)
+        if cached === nothing
+            if length(_series_precision_table_cache) >= _series_precision_table_cache_limit
+                empty!(_series_precision_table_cache)
+            end
+            _series_precision_table_cache[key] = result
+            cached = result
         end
-        _series_precision_table_cache[key] = result
-        copy(result)
+        copy(cached)
     end
 end
 
