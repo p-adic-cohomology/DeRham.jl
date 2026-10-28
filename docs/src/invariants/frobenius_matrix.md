@@ -42,7 +42,7 @@ We also provide the option to choose a relative precision for each basis vector.
 at least the requested relative precision for each Hodge-filtered piece. An
 existing automatic table floor can provide more. The certified truncation
 argument is summarized below, with the full proof given in “Certified series
-precision: proof of the fixed algorithm” (dr-eevm.1).
+precision: proof of the fixed algorithm.”
 
 For nonzero precision requests, each column retains its own parent ring and
 modulus. Use `parent(FM[i, j])` to inspect an entry's modulus; column parents
