@@ -21,11 +21,16 @@ function testEllCurve1_7()
     PR, Vars = polynomial_ring(R, ["x$i" for i = 0:n])
     x, y, z = Vars
     f = y^2*z - x^3 - x*z^2 - z^3
+    basis = DeRham.get_basis_of_cohomology(f)
+    (_, automatic_relative_precision, _, _) =
+        DeRham.calculate_precision_information(f, basis)
+    @test automatic_relative_precision == [1, 2]
     frobmat = DeRham.zeta_coefficients(f, givefrobmat = true)[1]
     @test frobmat isa MatElem
     @test modulus(base_ring(frobmat)) == 343
     expected = Matrix(ZZ[231 11; 294 17])
-    column_moduli = [343, 49]
+    expected_moduli = BigInt[p^3, p^2]
+    @test modulus(base_ring(frobmat)) == maximum(expected_moduli)
     @test all(
         parent(frobmat[row, column]) == base_ring(frobmat) for
         row in axes(frobmat, 1), column in axes(frobmat, 2)
@@ -33,10 +38,10 @@ function testEllCurve1_7()
     @test all(
         rem(
             lift(ZZ, frobmat[row, column]) - expected[row, column],
-            column_moduli[column],
+            expected_moduli[column],
         ) == 0 for row in axes(frobmat, 1), column in axes(frobmat, 2)
     )
-    hasse_witt = DeRham.hasse_witt_matrix(frobmat, 1; column_moduli = column_moduli)
+    hasse_witt = DeRham.hasse_witt_matrix(frobmat, 1)
     @test size(hasse_witt) == (1, 1)
     @test lift(ZZ, hasse_witt[1, 1]) == 3
 end

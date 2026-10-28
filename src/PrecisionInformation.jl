@@ -85,14 +85,6 @@ function precision_information_user_r_m(f, r_m; basis = nothing, verbose = 0)
     return (hodge_polygon, r_m_int, N_m, M)
 end
 
-function _frobenius_column_moduli_for_precision_info(f, precision_info, basis)
-    p = Int(characteristic(parent(f)))
-    n = nvars(parent(f)) - 1
-    _, _, N_m, M = precision_info
-    scale_exponents = _frobenius_column_scale_exponents(n, p, N_m, basis)
-    return _frobenius_column_moduli(p, BigInt(p)^M, scale_exponents)
-end
-
 function precision_information_max_auto_r(f, r; basis = nothing, verbose = 0)
     n = nvars(parent(f)) - 1
     r_m = fill(Int(r), n)

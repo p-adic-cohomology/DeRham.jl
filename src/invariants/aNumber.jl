@@ -1,5 +1,5 @@
 """
-    a_number(FM, h; column_moduli=nothing)
+    a_number(FM, h)
 
 For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
 matrix ``H``: ``h - \\operatorname{rank}(H)``.
@@ -9,25 +9,23 @@ matrix ``H``: ``h - \\operatorname{rank}(H)``.
 
 Returns the curve's a-number as an integer.
 
-When `FM` comes from `frobenius_matrix_with_precision`, pass its per-column
-known moduli if they differ; only the selected columns need precision divisible
-by ``p``. Request them with `return_column_moduli=true` on
-`frobenius_matrix_with_precision`.
+When `FM` comes from `frobenius_matrix_with_precision`, its relative precision
+request should be `[1, 0]` or stronger. The matrix-level method assumes this
+precision contract; see the [Frobenius matrix documentation](@ref).
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(3, 3, 5);
 
-julia> FM, column_moduli = DeRham.frobenius_matrix_with_precision(
-           f, [1, 0]; return_column_moduli = true);
+julia> FM = DeRham.frobenius_matrix_with_precision(f, [1, 0]);
 
-julia> DeRham.a_number(FM, 1; column_moduli = column_moduli)
+julia> DeRham.a_number(FM, 1)
 1
 ```
 """
-function a_number(FM::Union{MatElem,AbstractMatrix}, h::Integer; column_moduli = nothing)
-    return h - rank(hasse_witt_matrix(FM, h; column_moduli = column_moduli))
+function a_number(FM::MatElem, h::Integer)
+    return h - rank(hasse_witt_matrix(FM, h))
 end
 
 """
@@ -73,16 +71,9 @@ function a_number(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     g = hodge_numbers[1]
 
-    result = frobenius_matrix_with_precision(
-        f,
-        r_m;
-        basis = basis,
-        verbose = verbose,
-        return_column_moduli = true,
-        kwargs...,
-    )
-    result === false && return false
-    FM, column_moduli = result
+    FM =
+        frobenius_matrix_with_precision(f, r_m; basis = basis, verbose = verbose, kwargs...)
+    FM === false && return false
 
-    a_number(FM, g; column_moduli = column_moduli)
+    a_number(FM, g)
 end

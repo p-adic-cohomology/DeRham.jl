@@ -8,15 +8,11 @@
         r_m[1] = 1
         basis = DeRham.get_basis_of_cohomology(f)
         h = DeRham._hodge_polygon(basis, n).slopelengths[1]
-        FM, column_moduli = DeRham.frobenius_matrix_with_precision(
-            f,
-            r_m;
-            basis = basis,
-            return_column_moduli = true,
-        )
+        FM = DeRham.frobenius_matrix_with_precision(f, r_m; basis = basis)
+        @test modulus(base_ring(FM)) == BigInt(7)^2
 
-        @test DeRham.hasse_witt_matrix(FM, h; column_moduli) == DeRham.hasse_witt_matrix(f)
-        @test DeRham.a_number(FM, h; column_moduli) == DeRham.a_number(f)
+        @test DeRham.hasse_witt_matrix(FM, h) == DeRham.hasse_witt_matrix(f)
+        @test DeRham.a_number(FM, h) == DeRham.a_number(f)
     end
 
     @testset "pinned regression values (the curve is ordinary: a_7 = 3, coprime to 7)" begin
