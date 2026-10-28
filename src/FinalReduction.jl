@@ -111,17 +111,35 @@ VS - a matrix space for where the vector will end up
 poly_to_reduce - a polynomial with pole that will
 
 """
-function reduce_order_n_to_basis(n, p, e, precision, VS, poly_to_reduce, T, R, cache, ev)
+function reduce_order_n_to_basis(
+    n,
+    p,
+    e,
+    precision,
+    VS,
+    poly_to_reduce,
+    T,
+    R,
+    cache,
+    ev;
+    output_ring = R,
+    final_scale = nothing,
+)
 
     N = precision
 
     if N == 0
-        return zero_matrix(R, nrows(T), 1)
+        return zero_matrix(output_ring, nrows(T), 1)
     end
 
     ff = factorial(ZZ(p*(e+N-1)-1))
-    val_ff = valuation(ff, p)
-    final_val = (n-1) - val_ff
+    if final_scale === nothing
+        val_ff = valuation(ff, p)
+        final_val = (n-1) - val_ff
+    else
+        final_val = final_scale
+        val_ff = BigInt(n - 1) - BigInt(final_val)
+    end
     ff_invertible = ff / p^val_ff
 
     inverse_ff = inv(R(ff_invertible))
@@ -132,20 +150,60 @@ function reduce_order_n_to_basis(n, p, e, precision, VS, poly_to_reduce, T, R, c
         temp[i, 1] = R(temp2[i])
     end
     temp = T * temp
+    output = zero_matrix(output_ring, length(temp), 1)
     for i = 1:length(temp)
         ele = inverse_ff * temp[i]
         if 0 ≤ final_val
-            ele *= p^final_val
+            output[i, 1] = output_ring(lift(ZZ, ele)) * p^final_val
         else
-            lifted = lift(ZZ, ele)
-            ele = divexact(ele, p^(-final_val))
+            lifted = divexact(lift(ZZ, ele), ZZ(p)^(-final_val))
+            output[i, 1] = output_ring(lifted)
         end
-        temp[i] = ele
     end
 
-    temp
+    output
 
 end
+
+function _frobenius_column_scale_exponents(n, p, N_m, Basis)
+    scale_exponents = Int[]
+    for i = 1:length(Basis)
+        e = Basis[i][2]
+        N = N_m[e]
+        if N == 0
+            push!(scale_exponents, 0)
+        else
+            factorial_argument = BigInt(p) * (BigInt(e) + BigInt(N) - 1) - 1
+            factorial_valuation = _ibm_vp_factorial(factorial_argument, p)
+            push!(
+                scale_exponents,
+                _ibm_checked_int(
+                    BigInt(n - 1) - factorial_valuation,
+                    "final scaling exponent",
+                ),
+            )
+        end
+    end
+    scale_exponents
+end
+
+function _frobenius_output_ring(p, base_modulus, scale_exponent)
+    output_modulus = BigInt(base_modulus)
+    if scale_exponent >= 0
+        output_modulus *= BigInt(p)^scale_exponent
+    else
+        output_modulus, remainder = divrem(output_modulus, BigInt(p)^(-scale_exponent))
+        iszero(remainder) || error("Frobenius precision is not p-adic")
+    end
+    output_modulus > 1 || error("Frobenius precision must be positive")
+    output_ring, = residue_ring(ZZ, output_modulus)
+    output_ring
+end
+
+_frobenius_matrix_base_ring(FM::MatElem) = base_ring(FM)
+_frobenius_matrix_base_ring(FM::AbstractMatrix) = parent(FM[1, 1])
+_as_frobenius_matrix(FM::MatElem) = FM
+_as_frobenius_matrix(FM::AbstractMatrix) = matrix(_frobenius_matrix_base_ring(FM), FM)
 
 """
     compute_frobenius_matrix(n,d,Reductions,T)
@@ -167,19 +225,40 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
     termorder = params.termorder
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")
     R = parent(T[1, 1])
+    scale_exponents = _frobenius_column_scale_exponents(n, p, N_m, Basis)
+    output_ring = _frobenius_output_ring(p, modulus(R), maximum(scale_exponents))
     frob_mat_temp = []
     denomArray = []
     ev = cache[d*n-n-1]#gen_exp_vec(n+1,d*n-n-1,termorder)
     VS = matrix_space(R, length(ev), 1)
-    for i = 1:length(Reductions)
+    for i in eachindex(Reductions)
         e = Basis[i][2] # pole order of basis element
         N = N_m[e]
         poly_to_reduce = Reductions[i][1]
-        temp = reduce_order_n_to_basis(n, p, e, N, VS, poly_to_reduce, T, R, cache, ev)
+        column_ring = _frobenius_output_ring(p, modulus(R), scale_exponents[i])
+        temp = reduce_order_n_to_basis(
+            n,
+            p,
+            e,
+            N,
+            VS,
+            poly_to_reduce,
+            T,
+            R,
+            cache,
+            ev;
+            output_ring = column_ring,
+            final_scale = scale_exponents[i],
+        )
 
         push!(frob_mat_temp, temp)
     end
-    frob_mat = hcat(frob_mat_temp...)
+    frob_mat = matrix_space(output_ring, size(T, 1), length(frob_mat_temp))()
+    for column in eachindex(frob_mat_temp)
+        for row = 1:size(T, 1)
+            frob_mat[row, column] = output_ring(lift(ZZ, frob_mat_temp[column][row, 1]))
+        end
+    end
 
     return frob_mat
 end

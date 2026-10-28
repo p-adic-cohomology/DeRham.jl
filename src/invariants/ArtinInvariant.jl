@@ -1,6 +1,6 @@
 """
-    artin_invariant(f::MPolyRingElem; kwargs...)
-    artin_invariant(F::MatElem)
+    artin_invariant(f::MPolyRingElem; basis=nothing, kwargs...)
+    artin_invariant(F)
 
 Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface from
 its Frobenius matrix modulo ``p²``. The computation uses linear algebra over
@@ -12,13 +12,17 @@ Supersingularity is a precondition and is not checked. A non-supersingular
 input, such as an ordinary quartic, can produce an incorrect value or an
 assertion error. The polynomial method requires a homogeneous quartic in four
 variables over the prime field ``𝔽_p`` for an odd prime. It computes the
-Frobenius matrix with relative precision `[0, 1, 2]` and forwards keyword
-arguments to `frobenius_matrix_with_precision`. It returns `false` if that
-computation rejects the polynomial as non-smooth.
+Frobenius matrix with relative precision `[0, 1, 2]`, using the optional `basis`
+for its cohomology basis and forwarding the remaining keyword arguments to
+`frobenius_matrix_with_precision`. It returns `false` if that computation
+rejects the polynomial as non-smooth.
 
-The matrix method requires a 21×21 Frobenius matrix over ``ℤ/p^M`` with odd
-prime ``p`` and ``p²`` dividing the modulus. Its first column must be divisible
-by ``p²`` in the chosen pole-order basis.
+The matrix method requires a 21×21 Frobenius matrix computed with relative
+precision request `[0, 1, 2]` in the chosen pole-order basis. That request
+provides the precision needed by the columns used in this computation. The
+matrix-level method assumes this contract and does not carry or check precision
+metadata. Its first column must be divisible by ``p²`` in the chosen pole-order
+basis.
 
 The algorithm is from forthcoming work of Bhamidipati, Broe, Garzella, Nair,
 Pagano, and Zhang.
@@ -36,8 +40,9 @@ julia> DeRham.artin_invariant(f)
 2
 ```
 """
-function artin_invariant(F::MatElem)
-    @assert nrows(F) == 21 && ncols(F) == 21
+function artin_invariant(F::Union{MatElem,AbstractMatrix})
+    @assert size(F) == (21, 21)
+    F = _as_frobenius_matrix(F)
 
     base_modulus = modulus(base_ring(F))
     factors = factor(ZZ(base_modulus))
@@ -46,11 +51,9 @@ function artin_invariant(F::MatElem)
     @assert p > 2
 
     precision_modulus = p^2
-    @assert mod(base_modulus, precision_modulus) == 0
-
     R, _ = residue_ring(ZZ, precision_modulus)
-    F_mod_p2 = map_entries(R, lift.(F))
-    A = map_entries(ZZ, lift.(F_mod_p2))
+    F_mod_p2 = map_entries(entry -> R(lift(ZZ, entry)), F)
+    A = map_entries(entry -> lift(ZZ, entry), F_mod_p2)
     @assert all(iszero(A[row, 1]) for row = 1:21)
 
     Fp = GF(Int(p))
@@ -100,7 +103,7 @@ function _artin_invariant_preimage(K::MatElem, B::MatElem, target::MatElem)
     return K * coefficients
 end
 
-function artin_invariant(f::MPolyRingElem; kwargs...)
+function artin_invariant(f::MPolyRingElem; basis = nothing, kwargs...)
     @assert total_degree(f) == 4
     @assert is_homogeneous(f)
     @assert nvars(parent(f)) == 4
@@ -110,7 +113,14 @@ function artin_invariant(f::MPolyRingElem; kwargs...)
     @assert is_prime(p)
     @assert Oscar.order(coefficient_ring(parent(f))) == p
 
-    F = frobenius_matrix_with_precision(f, [0, 1, 2]; kwargs...)
+    cohomology_basis = basis === nothing ? get_basis_of_cohomology(f) : basis
+    relative_precision = [0, 1, 2]
+    F = frobenius_matrix_with_precision(
+        f,
+        relative_precision;
+        basis = cohomology_basis,
+        kwargs...,
+    )
     F === false && return false
     return artin_invariant(F)
 end

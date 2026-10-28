@@ -223,7 +223,7 @@ function _ibm_constant(
     end
 end
 
-function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
+function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer; fixed_point::Bool = false)
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     n >= 1 || throw(ArgumentError("n must be positive"))
     K >= 1 || throw(ArgumentError("K must be positive"))
@@ -237,16 +237,66 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer)
     ]
     m_max = _ibm_checked_int(div(BigInt(K_int), p_big), "maximum m")
 
-    for m = 1:m_max
+    function update_bound!(m, changed_indices)
         pm = _ibm_checked_int(p_big * m, "p*m index")
         N = BigInt(_ibm_constant(p_big, m, bounds, n_int, true))
         base = BigInt(n_int - 1) + bounds[m]
         updated = _ibm_checked_int(min(BigInt(bounds[pm]), max(base, N)), "updated bound")
-        bounds[pm] = updated
+        if updated < bounds[pm]
+            bounds[pm] = updated
+            if changed_indices !== nothing
+                push!(changed_indices, pm)
+            end
+        end
 
         first_backfill = _ibm_checked_int(BigInt(pm) - p_big + 1, "back-fill index")
         for k = first_backfill:pm
-            bounds[k] = min(bounds[k], updated)
+            backfilled = min(bounds[k], updated)
+            if backfilled < bounds[k]
+                bounds[k] = backfilled
+                if changed_indices !== nothing
+                    push!(changed_indices, k)
+                end
+            end
+        end
+    end
+
+    if fixed_point
+        pending = collect(1:m_max)
+        queued = trues(m_max)
+        unqueued = BitSet()
+        head = 1
+        while head <= length(pending)
+            m = pending[head]
+            head += 1
+            queued[m] = false
+            push!(unqueued, m)
+            changed_indices = Int[]
+            update_bound!(m, changed_indices)
+            for index in changed_indices
+                if index <= m_max && !queued[index]
+                    delete!(unqueued, index)
+                    push!(pending, index)
+                    queued[index] = true
+                end
+                if rem(BigInt(index), p_big) == 0
+                    last_dependent = min(
+                        m_max,
+                        _ibm_checked_int(div(BigInt(index), p_big), "dependent index"),
+                    )
+                    while !isempty(unqueued)
+                        dependent = first(unqueued)
+                        dependent <= last_dependent || break
+                        delete!(unqueued, dependent)
+                        push!(pending, dependent)
+                        queued[dependent] = true
+                    end
+                end
+            end
+        end
+    else
+        for m = 1:m_max
+            update_bound!(m, nothing)
         end
     end
 
@@ -256,15 +306,16 @@ end
 """
     ibm_crank_bound(p, n, K)
 
-Returns a single-pass certified upper bound on the coordinate lattice V for
-pole orders `1:K`, where `K` is the exact stored range. The one-pass H-lattice
-bound is pointwise at most `f₀`; the return values add
-`ibm_lattice_correction(p,n)`. No equality with the fully converged AKR bound
-or minimality is asserted. The AKR bound assumes that `p` is prime. During the
-pass, requests outside `1:K` use exact `f₀` values, rather than padded storage.
+Returns a certified upper bound on the coordinate lattice V for pole orders
+`1:K`, where `K` is the exact stored range. By default, the bound uses one
+ordered pass; set `fixed_point=true` to repeat passes on this same finite range
+until no entry changes. The H-lattice values are pointwise at most `f₀`; the
+return values add `ibm_lattice_correction(p,n)`. The AKR bound assumes that `p`
+is prime. During each pass, requests outside `1:K` use exact `f₀` values,
+rather than padded storage.
 """
-function ibm_crank_bound(p::Integer, n::Integer, K::Integer)
-    h_bound = _ibm_crank_bound_h(p, n, K)
+function ibm_crank_bound(p::Integer, n::Integer, K::Integer; fixed_point = false)
+    h_bound = _ibm_crank_bound_h(p, n, K; fixed_point = fixed_point)
     correction = ibm_lattice_correction(p, n)
     [
         _ibm_checked_int(BigInt(value) + correction, "coordinate-lattice bound") for
@@ -317,30 +368,154 @@ function calculate_relative_precision(polygon, weight, p)
     return reverse(r_vector)
 end
 
-function calculate_series_precision(p, n, r_m)
+"""
+    _validate_series_precision_request(p, n, r_m)
 
-    # TODO: prove that this is correct
-    #
-    # We may assume in (1.8) of Costa's thesis that the worst case is i=0
-
-    bounds = ibm_crank_bound(p, n, p*n)
-
-    #TODO: why does ibm_derham_bound sometimes give answers that are better than the crank?
-
-    N = [(r_m[m] == 0 ? 0 : r_m[m] - m + 1 + bounds[p*m]) for m = 1:n]
-
-    #println("Series precision: $N")
-    N
+Validates the integer requests used by the certified selector in “Certified
+series precision: proof of the fixed algorithm.”
+"""
+function _validate_series_precision_request(
+    p::Integer,
+    n::Integer,
+    r_m::AbstractVector{<:Integer},
+)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    n >= 1 || throw(ArgumentError("n must be positive"))
+    length(r_m) == n || throw(ArgumentError("r_m must have length n"))
+    all(r -> r >= 0, r_m) || throw(ArgumentError("relative precisions must be nonnegative"))
+    if p < n && any(iszero, r_m)
+        throw(ArgumentError("zero relative precision requests require p ≥ n"))
+    end
+    nothing
 end
 
-function series_precision(p, n, d, r_m; use_default_table = true)
-    if use_default_table
-        N = series_precision_default(p, n, d)
-        if N !== nothing
-            return N
+"""
+    _ibm_certified_tail_cutoff(p, n, m, r, correction)
+
+Finds the least all-tail cutoff from the integer certificate in “Certified
+series precision: proof of the fixed algorithm.”
+"""
+function _ibm_certified_tail_cutoff(
+    p::Integer,
+    n::Integer,
+    m::Integer,
+    r::Integer,
+    correction::Integer,
+)
+    n_int = _ibm_checked_int(n, "n")
+    p_big = BigInt(p)
+    n_big = BigInt(n)
+    m_big = BigInt(m)
+    r_big = BigInt(r)
+    correction_big = BigInt(correction)
+
+    lower = max(BigInt(0), 2 * n_big + 1 - m_big, r_big + correction_big - m_big + 1)
+    upper = max(16 * n_big^2, 2 * (r_big + correction_big + 1), m_big) - m_big
+
+    certified =
+        cutoff -> begin
+            exponent = m_big - 1 + cutoff - r_big - correction_big
+            pole_order = m_big + cutoff
+            exponent >= 0 && (p_big * pole_order - 1)^n_int <= p_big^exponent
+        end
+
+    lower <= upper || error("certified tail cutoff upper bound is inconsistent")
+    while lower < upper
+        midpoint = div(lower + upper, 2)
+        if certified(midpoint)
+            upper = midpoint
+        else
+            lower = midpoint + 1
         end
     end
+    lower
+end
+
+"""
     calculate_series_precision(p, n, r_m)
+
+Returns retained-term counts whose omitted Frobenius tails meet every requested
+relative precision. The all-tail certificate and its proof are given in
+“Certified series precision: proof of the fixed algorithm.”
+"""
+function calculate_series_precision(p::Integer, n::Integer, r_m::AbstractVector{<:Integer})
+    _validate_series_precision_request(p, n, r_m)
+    n_int = _ibm_checked_int(n, "n")
+    correction = ibm_lattice_correction(p, n)
+    cutoffs = [_ibm_certified_tail_cutoff(p, n, m, r_m[m], correction) for m = 1:n_int]
+
+    maximum_pole_order = BigInt(1)
+    p_big = BigInt(p)
+    for m = 1:n_int
+        cutoff = cutoffs[m]
+        if cutoff > 0
+            maximum_pole_order = max(maximum_pole_order, p_big * (BigInt(m) + cutoff - 1))
+        end
+    end
+    bound_length = _ibm_checked_int(maximum_pole_order, "series bound range")
+    bounds = ibm_crank_bound(p, n, bound_length; fixed_point = true)
+
+    selected = Vector{Int}(undef, n_int)
+    for m = 1:n_int
+        last_failure = BigInt(-1)
+        cutoff = cutoffs[m]
+        for index = BigInt(0):(cutoff-1)
+            pole_index = _ibm_checked_int(p_big * (BigInt(m) + index), "bound index")
+            margin = BigInt(m - 1) + index - bounds[pole_index]
+            if margin < r_m[m]
+                last_failure = index
+            end
+        end
+        certified_count = max(last_failure + 1, BigInt(n_int - m + 1))
+        selected[m] = _ibm_checked_int(certified_count, "series precision")
+    end
+    selected
+end
+
+const _series_precision_table_cache_lock = ReentrantLock()
+const _series_precision_table_cache = Dict{Any,Vector{Int}}()
+const _series_precision_table_cache_limit = 64
+
+"""
+    _cached_table_series_precision(p, n, d, r_m, table)
+
+Caches the certified selector result for repeated table-backed requests, while
+retaining the table as a lower bound. The selector certificate is given in
+“Certified series precision: proof of the fixed algorithm.”
+"""
+function _cached_table_series_precision(p, n, d, r_m, table)
+    key = (BigInt(p), BigInt(n), BigInt(d), Tuple(BigInt(request) for request in r_m))
+    cached = lock(_series_precision_table_cache_lock) do
+        get(_series_precision_table_cache, key, nothing)
+    end
+    cached === nothing || return copy(cached)
+
+    calculated = calculate_series_precision(p, n, r_m)
+    result = max.(table, calculated)
+    lock(_series_precision_table_cache_lock) do
+        cached = get(_series_precision_table_cache, key, nothing)
+        if cached === nothing
+            if length(_series_precision_table_cache) >= _series_precision_table_cache_limit
+                empty!(_series_precision_table_cache)
+            end
+            _series_precision_table_cache[key] = result
+            cached = result
+        end
+        copy(cached)
+    end
+end
+
+"""
+    series_precision(p, n, d, r_m; use_default_table=true)
+
+Uses the certified selector from “Certified series precision: proof of the fixed
+algorithm,” while retaining any existing table value as a lower bound.
+"""
+function series_precision(p, n, d, r_m; use_default_table = true)
+    use_default_table || return calculate_series_precision(p, n, r_m)
+    table = series_precision_default(p, n, d)
+    table === nothing && return calculate_series_precision(p, n, r_m)
+    _cached_table_series_precision(p, n, d, r_m, table)
 end
 
 """

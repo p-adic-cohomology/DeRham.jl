@@ -1,16 +1,19 @@
 """
     hasse_witt_matrix(FM, h)
 
-Given a Frobenius matrix `FM` computed at relative precision 1 and the curve's
-genus ``h``, returns the Hasse-Witt matrix: the last ``h \\times h`` block of `FM`,
-reduced modulo ``p``. Here ``p`` is the unique prime factor of the modulus of
-`base_ring(FM)`.
+Given a Frobenius matrix `FM` computed with relative precision request
+`[1, 0]` or stronger and the curve's genus ``h``, returns the Hasse-Witt
+matrix: the last ``h \\times h`` block of `FM`,
+reduced modulo ``p``. Here ``p`` is the unique prime factor of the matrix's
+base-ring modulus.
 
-- `FM`: Frobenius matrix over a ring with prime-power modulus, computed at
-  precision 1.
+- `FM`: Frobenius matrix computed at relative precision 1.
 - `h`: genus of the curve, which is the size of the Hasse-Witt matrix.
 
-Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``.
+Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``. When `FM` comes from
+`frobenius_matrix_with_precision`, its relative precision request should be
+`[1, 0]` or stronger. The matrix-level method assumes this precision contract;
+see the [precision contract](@ref sec-certified-series-truncation).
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
@@ -23,15 +26,15 @@ julia> size(DeRham.hasse_witt_matrix(FM, 1))
 (1, 1)
 ```
 """
-function hasse_witt_matrix(FM::MatElem, h::Integer)
+function hasse_witt_matrix(FM::Union{MatElem,AbstractMatrix}, h::Integer)
+    FM = _as_frobenius_matrix(FM)
     n = modulus(base_ring(FM))
     (p, _) = first(factor(ZZ(n)))
 
     highprec = FM[(end-h+1):end, (end-h+1):end]
 
     K = GF(Int(p))
-
-    map_entries(K, lift.(highprec))
+    map_entries(entry -> K(lift(ZZ, entry)), highprec)
 end
 
 """
@@ -79,7 +82,9 @@ function hasse_witt_matrix(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     fh = hodge_numbers[1]
 
-    F = frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
+    FM =
+        frobenius_matrix_with_precision(f, r_m; basis = basis, verbose = verbose, kwargs...)
+    FM === false && return false
 
-    hasse_witt_matrix(F, fh)
+    hasse_witt_matrix(FM, fh)
 end

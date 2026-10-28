@@ -309,7 +309,7 @@ function test_user_relative_precision_bypasses_default_table()
     default_table = DeRham.series_precision_default(p, 3, 4)
 
     user_info = DeRham.precision_information_user_r_m(f, r_m; basis = basis)
-    @test calculated[1] == 0
+    @test calculated[1] == 3
     @test user_info[3] == expected_user
     @test user_info[3] != default_table
 
@@ -356,4 +356,192 @@ function test_max_auto_precision_without_default_table()
 
     @test max_auto_info[2] == auto_info[2]
     @test max_auto_info[3] == expected
+end
+
+"""
+    test_certified_series_precision()
+
+Checks the repaired-bound selector and its all-tail certificate from “Certified
+series precision: proof of the fixed algorithm.”
+"""
+function test_certified_series_precision()
+    @test_throws ArgumentError DeRham.calculate_series_precision(1, 2, [1, 1])
+    @test_throws ArgumentError DeRham.calculate_series_precision(3, 0, [1, 1])
+    @test_throws ArgumentError DeRham.calculate_series_precision(3, 2, [1])
+    @test_throws ArgumentError DeRham.calculate_series_precision(3, 2, [1, -1])
+
+    cached_request = [2, 3]
+    cached_key = (BigInt(3), BigInt(2), BigInt(4), (BigInt(2), BigInt(3)))
+    lock(DeRham._series_precision_table_cache_lock) do
+        pop!(DeRham._series_precision_table_cache, cached_key, nothing)
+    end
+    cached_result = DeRham.series_precision(3, 2, 4, cached_request)
+    stored_result = copy(DeRham._series_precision_table_cache[cached_key])
+    cached_result[1] = 0
+    repeated_result = DeRham.series_precision(3, 2, 4, cached_request)
+    @test repeated_result == stored_result
+    @test repeated_result !== DeRham._series_precision_table_cache[cached_key]
+
+    for (p, expected) in ((3, [4, 4]), (5, [3, 3]))
+        f = DeRham.fermat_hypersurface(3, 4, p)
+        relative_precision = [2, 3]
+        selected = DeRham.calculate_series_precision(p, 2, relative_precision)
+        @test selected == expected
+        @test DeRham.series_precision_default(p, 2, 4) == expected
+        @test DeRham.series_precision(p, 2, 4, relative_precision) == expected
+        @test DeRham.precision_information_user_r_m(f, relative_precision)[3] == expected
+        automatic_coefficients =
+            DeRham.zeta_coefficients_with_precision(f, relative_precision)
+        @test automatic_coefficients[1] == p^3
+        @test automatic_coefficients[end] == 1
+
+        cutoffs = [
+            DeRham._ibm_certified_tail_cutoff(
+                p,
+                2,
+                m,
+                relative_precision[m],
+                DeRham.ibm_lattice_correction(p, 2),
+            ) for m = 1:2
+        ]
+        tail_end = maximum(cutoffs) + 32
+        bound_length = maximum(p * (m + cutoffs[m] - 1) for m = 1:2)
+        tail_bounds = DeRham.ibm_crank_bound(p, 2, bound_length; fixed_point = true)
+        for m = 1:2
+            @test selected[m] <= cutoffs[m]
+            for i = selected[m]:tail_end
+                bound = if i < cutoffs[m]
+                    tail_bounds[p*(m+i)]
+                else
+                    DeRham.ibm_derham_bound(p, p * (m + i), 2) +
+                    DeRham.ibm_lattice_correction(p, 2)
+                end
+                @test m - 1 + i - bound >= relative_precision[m]
+            end
+        end
+    end
+
+    floor_request = ones(Int, 3)
+    floor_table = DeRham.series_precision_default(3, 3, 4)
+    floor_calculated = DeRham.calculate_series_precision(3, 3, floor_request)
+    @test all(floor_table .> floor_calculated)
+    @test DeRham.series_precision(3, 3, 4, floor_request) == floor_table
+
+    p_below_n = 2
+    ambient_dimension = 5
+    positive_requests = ones(Int, ambient_dimension)
+    below_n_selected =
+        DeRham.calculate_series_precision(p_below_n, ambient_dimension, positive_requests)
+    below_n_cutoffs = [
+        DeRham._ibm_certified_tail_cutoff(
+            p_below_n,
+            ambient_dimension,
+            m,
+            positive_requests[m],
+            DeRham.ibm_lattice_correction(p_below_n, ambient_dimension),
+        ) for m = 1:ambient_dimension
+    ]
+    below_n_bound_length =
+        maximum(p_below_n * (m + below_n_cutoffs[m] - 1) for m = 1:ambient_dimension)
+    below_n_bounds = DeRham.ibm_crank_bound(
+        p_below_n,
+        ambient_dimension,
+        below_n_bound_length;
+        fixed_point = true,
+    )
+    below_n_tail_end = maximum(below_n_cutoffs) + 16
+    @test length(below_n_selected) == ambient_dimension
+    @test below_n_selected == [23, 22, 21, 20, 19]
+    for m = 1:ambient_dimension
+        @test below_n_selected[m] <= below_n_cutoffs[m]
+        for i = below_n_selected[m]:below_n_tail_end
+            bound = if i < below_n_cutoffs[m]
+                below_n_bounds[p_below_n*(m+i)]
+            else
+                DeRham.ibm_derham_bound(p_below_n, p_below_n * (m + i), ambient_dimension) + DeRham.ibm_lattice_correction(p_below_n, ambient_dimension)
+            end
+            @test m - 1 + i - bound >= positive_requests[m]
+        end
+    end
+
+    f0_selected = [
+        begin
+            last_failure = maximum(
+                i for i = 0:32 if
+                m - 1 + i - DeRham.ibm_derham_bound(3, 3 * (m + i), 2) < [2, 3][m];
+                init = -1,
+            )
+            last_failure + 1
+        end for m = 1:2
+    ]
+    @test f0_selected == [6, 6]
+
+    for p in (3, 5)
+        f = DeRham.fermat_hypersurface(3, 4, p)
+        coefficients = DeRham.zeta_coefficients_with_precision(f, [5, 6])
+        @test length(coefficients) == 7
+        @test coefficients[1] == p^3
+        @test coefficients[end] == 1
+    end
+
+    elliptic_p = 7
+    elliptic_ring, (elliptic_x, elliptic_y, elliptic_z) =
+        polynomial_ring(GF(elliptic_p), ["x", "y", "z"])
+    elliptic_curve =
+        elliptic_y^2 * elliptic_z - elliptic_x^3 - elliptic_x * elliptic_z^2 - elliptic_z^3
+    zero_relative_request = zeros(Int, 2)
+    elliptic_zero_frobenius =
+        DeRham.frobenius_matrix_with_precision(elliptic_curve, zero_relative_request)
+    elliptic_column_offsets = [1, 0]
+    elliptic_column_precisions = BigInt[
+        BigInt(elliptic_p)^(
+            zero_relative_request[column] + elliptic_column_offsets[column]
+        ) for column in eachindex(zero_relative_request)
+    ]
+    elliptic_reference = Matrix(ZZ[231 11; 294 17])
+    @test elliptic_zero_frobenius isa MatElem
+    @test size(elliptic_zero_frobenius) == size(elliptic_reference)
+    @test modulus(base_ring(elliptic_zero_frobenius)) == maximum(elliptic_column_precisions)
+    @test all(
+        rem(
+            lift(ZZ, elliptic_zero_frobenius[row, column]) -
+            elliptic_reference[row, column],
+            elliptic_column_precisions[column],
+        ) == 0 for
+        row in axes(elliptic_zero_frobenius, 1), column in axes(elliptic_zero_frobenius, 2)
+    )
+
+    quadric = DeRham.fermat_hypersurface(4, 2, 5)
+    zero_frobenius = DeRham.frobenius_matrix_with_precision(quadric, [0, 0, 0])
+    @test zero_frobenius isa MatElem
+    @test size(zero_frobenius) == (1, 1)
+    @test modulus(base_ring(zero_frobenius)) == 25
+    @test iszero(zero_frobenius[1, 1])
+    partial_zero_frobenius =
+        DeRham.frobenius_matrix_with_precision(quadric, [0, 1, 0]; S = [3])
+    @test partial_zero_frobenius !== false
+    @test partial_zero_frobenius isa MatElem
+
+    cubic_fourfold = DeRham.fermat_hypersurface(6, 3, 2)
+    @test_throws ArgumentError DeRham.frobenius_matrix_with_precision(
+        cubic_fourfold,
+        zeros(Int, 5),
+    )
+
+    regression = DeRham.zeta_coefficients_with_precision(
+        quadric,
+        [0, 1, 0],
+        [0, 1, 0],
+        [1, 1, 1],
+        1;
+        givefrobmat = true,
+        S = [3],
+    )
+    frobenius = regression[1]
+    @test frobenius isa MatElem
+    entry = lift(ZZ, frobenius[1, 1])
+    @test modulus(base_ring(frobenius)) == 25
+    @test rem(entry, ZZ(5)) == 0
+    @test rem(divexact(entry, ZZ(5)), ZZ(5)) == 1
+    @test rem(entry - 5, ZZ(25)) == 0
 end
