@@ -15,11 +15,13 @@ $h^{n-1-r,r}$, for $r = 0, \ldots, n-1$. Both functions return a
 their horizontal lengths starting from $(0, 0)$.
 
 For a smooth quartic K3 surface over a prime field, `newton_polygon(f)` uses
-`artin_mazur_height(f)` instead of computing the full zeta coefficients. At
-finite height h, it returns slopes 1 - 1/h, 1, and 1 + 1/h with lengths h,
-21 - 2h, and h. At infinite height, all 21 slopes are 1. Other hypersurfaces
-and non-prime finite fields retain the full zeta-coefficient path; the
-coefficient form `newton_polygon(coeffs, p)` is unchanged.
+`artin_mazur_height(f)` at relative Frobenius precision $[1,1,1]$ instead of
+computing the full zeta coefficients. This path uses the returned plain
+matrix over $\mathbb{Z}/p^M$ and its documented column precision contract.
+At finite height $h$, it returns slopes $1-1/h$, $1$, and $1+1/h$ with lengths
+$h$, $21-2h$, and $h$. At infinite height, all 21 slopes are 1. Other
+hypersurfaces and non-prime finite fields retain the full zeta-coefficient
+path; the coefficient form `newton_polygon(coeffs, p)` is unchanged.
 
 ```@docs
 DeRham.newton_polygon
