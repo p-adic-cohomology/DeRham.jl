@@ -33,6 +33,8 @@
         @test F isa MatElem
         @test size(F) == (21, 21)
         @test length(column_moduli) == size(F, 2)
+        expected_column_moduli = vcat(BigInt(p)^6, fill(BigInt(p)^3, 19), BigInt(p)^2)
+        @test column_moduli == expected_column_moduli
         @test DeRham.artin_invariant(F; column_moduli) == 1
 
         low_precision_moduli = copy(column_moduli)
