@@ -1,5 +1,5 @@
 """
-    artin_invariant(f::MPolyRingElem; kwargs...)
+    artin_invariant(f::MPolyRingElem; basis=nothing, kwargs...)
     artin_invariant(F; column_moduli=nothing)
 
 Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface from
@@ -12,9 +12,10 @@ Supersingularity is a precondition and is not checked. A non-supersingular
 input, such as an ordinary quartic, can produce an incorrect value or an
 assertion error. The polynomial method requires a homogeneous quartic in four
 variables over the prime field ``𝔽_p`` for an odd prime. It computes the
-Frobenius matrix with relative precision `[0, 1, 2]` and forwards keyword
-arguments to `frobenius_matrix_with_precision`. It returns `false` if that
-computation rejects the polynomial as non-smooth.
+Frobenius matrix with relative precision `[0, 1, 2]`, using the optional `basis`
+for its cohomology basis and forwarding the remaining keyword arguments to
+`frobenius_matrix_with_precision`. It returns `false` if that computation
+rejects the polynomial as non-smooth.
 
 The matrix method requires a 21×21 Frobenius matrix with odd prime ``p`` and
 every column known modulo ``p²``. Its first column must be divisible by
