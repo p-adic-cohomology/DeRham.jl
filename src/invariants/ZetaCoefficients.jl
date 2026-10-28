@@ -373,8 +373,9 @@ as a requested relative ``p``-adic precision for the Frobenius matrix. This
 scalar overload applies the same request to every Hodge-filtered piece. The
 intermediate Frobenius matrix, or the returned matrix when `givefrobmat=true`,
 is computed to at least that relative precision and may use greater precision
-when needed for the zeta coefficients to be correct. The certified selector is
-proved in dr-eevm.1, “Certified series precision: proof of the fixed algorithm.”
+when needed for the zeta coefficients to be correct. The selector certificate
+is summarized in the [Frobenius matrix precision proof](@ref sec-certified-series-truncation),
+based on “Certified series precision: proof of the fixed algorithm.”
 
 - `f`: homogeneous polynomial over a finite field.
 - `r`: requested relative precision, repeated across the Hodge-filtered pieces.
@@ -419,10 +420,11 @@ Vector-precision overload of [`zeta_coefficients_with_precision`](@ref).
 Hodge-filtered piece and must have the length required by the basis. The
 intermediate Frobenius matrix, or the returned matrix when `givefrobmat=true`,
 is computed to at least each requested relative precision and may use greater
-precision when needed for the zeta coefficients to be correct. The certified
-selector is proved in dr-eevm.1, “Certified series precision: proof of the
-fixed algorithm.” The return value and other keywords are the same as for the
-scalar overload.
+precision when needed for the zeta coefficients to be correct. The selector
+certificate is summarized in the
+[Frobenius matrix precision proof](@ref sec-certified-series-truncation), based
+on “Certified series precision: proof of the fixed algorithm.” The return value
+and other keywords are the same as for the scalar overload.
 
 ### Examples
 

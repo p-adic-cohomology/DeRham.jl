@@ -329,8 +329,8 @@ end
 """
     _validate_series_precision_request(p, n, r_m)
 
-Validates the integer requests used by the certified selector in dr-eevm.1,
-“Certified series precision: proof of the fixed algorithm.”
+Validates the integer requests used by the certified selector in “Certified
+series precision: proof of the fixed algorithm.”
 """
 function _validate_series_precision_request(
     p::Integer,
@@ -350,8 +350,8 @@ end
 """
     _ibm_certified_tail_cutoff(p, n, m, r, correction)
 
-Finds the least all-tail cutoff from the integer certificate proved in dr-eevm.1,
-“Certified series precision: proof of the fixed algorithm.”
+Finds the least all-tail cutoff from the integer certificate in “Certified
+series precision: proof of the fixed algorithm.”
 """
 function _ibm_certified_tail_cutoff(
     p::Integer,
@@ -393,7 +393,7 @@ end
     calculate_series_precision(p, n, r_m)
 
 Returns retained-term counts whose omitted Frobenius tails meet every requested
-relative precision. The all-tail certificate and its proof are given in dr-eevm.1,
+relative precision. The all-tail certificate and its proof are given in
 “Certified series precision: proof of the fixed algorithm.”
 """
 function calculate_series_precision(p::Integer, n::Integer, r_m::AbstractVector{<:Integer})
@@ -439,7 +439,7 @@ const _series_precision_table_cache_limit = 64
 
 Caches the certified selector result for repeated table-backed requests, while
 retaining the table as a lower bound. The selector certificate is given in
-“Certified series precision: proof of the fixed algorithm” (dr-eevm.1).
+“Certified series precision: proof of the fixed algorithm.”
 """
 function _cached_table_series_precision(p, n, d, r_m, table)
     key = (BigInt(p), BigInt(n), BigInt(d), Tuple(BigInt(request) for request in r_m))
@@ -460,8 +460,8 @@ end
 """
     series_precision(p, n, d, r_m; use_default_table=true)
 
-Uses the certified selector from dr-eevm.1, “Certified series precision: proof
-of the fixed algorithm,” while retaining any existing table value as a lower bound.
+Uses the certified selector from “Certified series precision: proof of the fixed
+algorithm,” while retaining any existing table value as a lower bound.
 """
 function series_precision(p, n, d, r_m; use_default_table = true)
     use_default_table || return calculate_series_precision(p, n, r_m)

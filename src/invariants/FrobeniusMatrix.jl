@@ -7,7 +7,7 @@ to every Hodge-filtered piece. The returned matrix meets at least this relative
 precision for each piece; an existing automatic table floor can provide more.
 The finite-tail certificate is documented in the
 [Frobenius matrix precision proof](@ref sec-certified-series-truncation), based
-on dr-eevm.1, “Certified series precision: proof of the fixed algorithm.”
+on the full proof report, “Certified series precision: proof of the fixed algorithm.”
 Unless `basis` is supplied,
 the matrix is expressed in the internal cohomology basis computed by
 `get_basis_of_cohomology(f)`;

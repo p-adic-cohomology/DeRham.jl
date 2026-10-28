@@ -361,8 +361,8 @@ end
 """
     test_certified_series_precision()
 
-Checks the repaired-bound selector and its all-tail certificate from dr-eevm.1,
-“Certified series precision: proof of the fixed algorithm.”
+Checks the repaired-bound selector and its all-tail certificate from “Certified
+series precision: proof of the fixed algorithm.”
 """
 function test_certified_series_precision()
     @test_throws ArgumentError DeRham.calculate_series_precision(1, 2, [1, 1])

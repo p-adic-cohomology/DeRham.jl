@@ -33,9 +33,10 @@ The relative precision passed to `DeRham.zeta_coefficients_with_precision` is
 the requested relative precision of the Frobenius matrix. The intermediate
 Frobenius matrix, or the returned matrix when `givefrobmat=true`, is computed to
 at least that precision on each Hodge-filtered piece and may use greater
-precision when needed for the zeta coefficients to be correct. The certified
-series-precision selector is proved in dr-eevm.1, “Certified series precision:
-proof of the fixed algorithm.”
+precision when needed for the zeta coefficients to be correct. The selector
+certificate is summarized in [Certified series truncation](@ref sec-certified-series-truncation),
+with the full proof in “Certified series precision: proof of the fixed
+algorithm.”
 
 ```@docs
 DeRham.zeta_coefficients
