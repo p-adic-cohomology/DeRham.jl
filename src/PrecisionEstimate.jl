@@ -280,8 +280,10 @@ function _ibm_crank_bound_h(p::Integer, n::Integer, K::Integer; fixed_point::Boo
                     queued[index] = true
                 end
                 if rem(BigInt(index), p_big) == 0
-                    last_dependent =
-                        min(m_max, _ibm_checked_int(div(BigInt(index), p_big), "dependent index"))
+                    last_dependent = min(
+                        m_max,
+                        _ibm_checked_int(div(BigInt(index), p_big), "dependent index"),
+                    )
                     while !isempty(unqueued)
                         dependent = first(unqueued)
                         dependent <= last_dependent || break
