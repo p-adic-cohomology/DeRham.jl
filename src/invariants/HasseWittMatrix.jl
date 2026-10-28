@@ -1,8 +1,9 @@
 """
     hasse_witt_matrix(FM, h)
 
-Given a Frobenius matrix `FM` computed at relative precision 1 and the curve's
-genus ``h``, returns the Hasse-Witt matrix: the last ``h \\times h`` block of `FM`,
+Given a Frobenius matrix `FM` computed with relative precision request
+`[1, 0]` or stronger and the curve's genus ``h``, returns the Hasse-Witt
+matrix: the last ``h \\times h`` block of `FM`,
 reduced modulo ``p``. Here ``p`` is the unique prime factor of the matrix's
 base-ring modulus.
 
@@ -12,7 +13,7 @@ base-ring modulus.
 Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``. When `FM` comes from
 `frobenius_matrix_with_precision`, its relative precision request should be
 `[1, 0]` or stronger. The matrix-level method assumes this precision contract;
-see the [Frobenius matrix documentation](@ref).
+see the [precision contract](@ref sec-certified-series-truncation).
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
