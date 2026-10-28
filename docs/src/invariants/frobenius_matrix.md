@@ -45,8 +45,11 @@ precision requests and is determined by the request and chosen basis.
 By default, the matrix carries no per-column precision metadata. Set
 `return_column_moduli=true` to also return `(FM, column_moduli)`, where each
 column's value is the modulus to which it is known. Pass that vector to
-matrix-level invariant methods when columns have different known precision;
-without it, they assume every column is known to the full base-ring modulus.
+matrix-level invariant methods when columns have different known precision.
+The `artin_invariant` matrix method requires it to validate the p² precision of
+every column. The `hasse_witt_matrix` and `a_number` matrix methods use it when
+provided and otherwise assume each column is known to the full base-ring
+modulus.
 
 We also provide the option to choose a relative precision for each basis vector.
 `DeRham.frobenius_matrix_with_precision` computes the returned matrix with
