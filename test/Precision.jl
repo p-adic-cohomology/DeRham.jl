@@ -490,14 +490,6 @@ function test_certified_series_precision()
     @test size(zero_frobenius) == (1, 1)
     @test modulus(base_ring(zero_frobenius)) == 25
     @test iszero(zero_frobenius[1, 1])
-    zero_frobenius_with_moduli, zero_column_moduli =
-        DeRham.frobenius_matrix_with_precision(
-            quadric,
-            [0, 0, 0];
-            return_column_moduli = true,
-        )
-    @test zero_frobenius_with_moduli == zero_frobenius
-    @test zero_column_moduli == fill(BigInt(25), size(zero_frobenius, 2))
     partial_zero_frobenius =
         DeRham.frobenius_matrix_with_precision(quadric, [0, 1, 0]; S = [3])
     @test partial_zero_frobenius !== false

@@ -187,22 +187,6 @@ function _frobenius_column_scale_exponents(n, p, N_m, Basis)
     scale_exponents
 end
 
-function _frobenius_column_moduli(p, base_modulus, scale_exponents)
-    column_moduli = BigInt[]
-    for scale in scale_exponents
-        column_modulus = BigInt(base_modulus)
-        if scale >= 0
-            column_modulus *= BigInt(p)^scale
-        else
-            column_modulus, remainder = divrem(column_modulus, BigInt(p)^(-scale))
-            iszero(remainder) || error("Frobenius column precision is not p-adic")
-        end
-        column_modulus > 1 || error("Frobenius column precision must be positive")
-        push!(column_moduli, column_modulus)
-    end
-    column_moduli
-end
-
 function _frobenius_output_ring(p, base_modulus, scale_exponent)
     output_modulus = BigInt(base_modulus)
     if scale_exponent >= 0
@@ -220,20 +204,6 @@ _frobenius_matrix_base_ring(FM::MatElem) = base_ring(FM)
 _frobenius_matrix_base_ring(FM::AbstractMatrix) = parent(FM[1, 1])
 _as_frobenius_matrix(FM::MatElem) = FM
 _as_frobenius_matrix(FM::AbstractMatrix) = matrix(_frobenius_matrix_base_ring(FM), FM)
-
-function _checked_frobenius_column_moduli(FM, column_moduli)
-    base_modulus = BigInt(modulus(_frobenius_matrix_base_ring(FM)))
-    if column_moduli === nothing
-        return fill(base_modulus, size(FM, 2))
-    end
-    checked_moduli = BigInt.(column_moduli)
-    @assert length(checked_moduli) == size(FM, 2)
-    @assert all(
-        column_modulus > 1 && mod(base_modulus, column_modulus) == 0 for
-        column_modulus in checked_moduli
-    )
-    checked_moduli
-end
 
 """
     compute_frobenius_matrix(n,d,Reductions,T)

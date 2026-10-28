@@ -41,12 +41,9 @@ relative precision applies to each Hodge-filtered piece, and every column in
 that piece is guaranteed at least that relative precision. The common matrix
 ring can represent more digits than are known for some columns; those higher
 digits are not meaningful. This contract applies to both all-zero and nonzero
-precision requests and is determined by the request and chosen basis.
-By default, the matrix carries no per-column precision metadata. Set
-`return_column_moduli=true` to also return `(FM, column_moduli)`, where each
-column's value is the modulus to which it is known. Pass that vector to
-matrix-level invariant methods when columns have different known precision;
-without it, they assume every column is known to the full base-ring modulus.
+precision requests and is determined by the request and chosen basis. The
+matrix carries no per-column precision metadata, so matrix-level invariant
+methods rely on the caller to meet their documented precision preconditions.
 
 We also provide the option to choose a relative precision for each basis vector.
 `DeRham.frobenius_matrix_with_precision` computes the returned matrix with
