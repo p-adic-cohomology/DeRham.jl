@@ -1,6 +1,6 @@
 """
     artin_invariant(f::MPolyRingElem; basis=nothing, kwargs...)
-    artin_invariant(F; column_moduli)
+    artin_invariant(F; column_moduli=nothing)
 
 Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface from
 its Frobenius matrix modulo ``p²``. The computation uses linear algebra over
@@ -20,10 +20,11 @@ rejects the polynomial as non-smooth.
 The matrix method requires a 21×21 Frobenius matrix computed with relative
 precision request `[0, 1, 2]` in the chosen pole-order basis.
 Every column must be known modulo ``p²``.
-Pass the required `column_moduli` vector when calling the matrix method. Obtain
-it from `frobenius_matrix_with_precision` with `return_column_moduli=true`. The
-matrix-level method checks the supplied precision contract instead of
-inferring column precision from the common base ring. Its first column
+When the matrix uses a common ring but columns have different known precisions,
+pass the optional `column_moduli` vector; without it, the method assumes every
+column is known to the full base-ring modulus. Obtain the vector from
+`frobenius_matrix_with_precision` with `return_column_moduli=true`. The
+matrix-level method checks the supplied precision contract. Its first column
 must be divisible by p^2 in the chosen pole-order basis.
 
 The algorithm is from forthcoming work of Bhamidipati, Broe, Garzella, Nair,
@@ -42,7 +43,7 @@ julia> DeRham.artin_invariant(f)
 2
 ```
 """
-function artin_invariant(F::Union{MatElem,AbstractMatrix}; column_moduli)
+function artin_invariant(F::Union{MatElem,AbstractMatrix}; column_moduli = nothing)
     @assert size(F) == (21, 21)
     F = _as_frobenius_matrix(F)
 

@@ -36,7 +36,6 @@
         @test length(column_moduli) == size(F, 2)
         @test column_moduli == expected_column_moduli
         @test DeRham.artin_invariant(F; column_moduli) == 1
-        @test_throws UndefKeywordError DeRham.artin_invariant(F)
         F_array = [F[row, column] for row in axes(F, 1), column in axes(F, 2)]
         @test DeRham.artin_invariant(F_array; column_moduli) == 1
 
@@ -48,22 +47,15 @@
         )
 
         @test_throws AssertionError DeRham.artin_invariant(
-            matrix(parent(F[1, 1]), zeros(Int, 20, 21));
-            column_moduli = fill(BigInt(p)^2, 21),
+            matrix(parent(F[1, 1]), zeros(Int, 20, 21)),
         )
 
         F_bad_first_column = deepcopy(F)
         F_bad_first_column[1, 1] = one(parent(F_bad_first_column[1, 1]))
-        @test_throws AssertionError DeRham.artin_invariant(
-            F_bad_first_column;
-            column_moduli,
-        )
+        @test_throws AssertionError DeRham.artin_invariant(F_bad_first_column)
 
         R3, _ = residue_ring(ZZ, p)
-        @test_throws AssertionError DeRham.artin_invariant(
-            matrix(R3, zeros(Int, 21, 21));
-            column_moduli = fill(BigInt(p), 21),
-        )
+        @test_throws AssertionError DeRham.artin_invariant(matrix(R3, zeros(Int, 21, 21)))
     end
 
     @testset "input guards" begin
