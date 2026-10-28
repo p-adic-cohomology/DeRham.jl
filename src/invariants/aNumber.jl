@@ -1,17 +1,20 @@
 """
-    a_number(FM, h)
+    a_number(FM, h; column_moduli=nothing)
 
 For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
 matrix ``H``: ``h - \\operatorname{rank}(H)``.
 
 - `FM`: Frobenius matrix computed with relative precision request `[1, 0]` or stronger.
 - `h`: genus of the curve.
+- `column_moduli`: optional vector of the known modulus for each column.
 
 Returns the curve's a-number as an integer.
 
 When `FM` comes from `frobenius_matrix_with_precision`, its relative precision
-request should be `[1, 0]` or stronger. The matrix-level method assumes this
-precision contract; see the [precision contract](@ref sec-certified-series-truncation).
+request should be `[1, 0]` or stronger. When columns have different known
+precisions, pass their known moduli, obtained from `frobenius_matrix_with_precision`
+with `return_column_moduli=true`. If `column_moduli` is omitted, the method assumes
+every column is known modulo the matrix's base-ring modulus.
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
@@ -24,8 +27,12 @@ julia> DeRham.a_number(FM, 1)
 1
 ```
 """
-function a_number(FM::Union{MatElem,AbstractMatrix}, h::Integer)
-    return h - rank(hasse_witt_matrix(FM, h))
+function a_number(
+    FM::Union{MatElem,AbstractMatrix},
+    h::Integer;
+    column_moduli = nothing,
+)
+    return h - rank(hasse_witt_matrix(FM, h; column_moduli = column_moduli))
 end
 
 """
@@ -71,9 +78,16 @@ function a_number(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     g = hodge_numbers[1]
 
-    FM =
-        frobenius_matrix_with_precision(f, r_m; basis = basis, verbose = verbose, kwargs...)
-    FM === false && return false
+    result = frobenius_matrix_with_precision(
+        f,
+        r_m;
+        basis = basis,
+        verbose = verbose,
+        return_column_moduli = true,
+        kwargs...,
+    )
+    result === false && return false
+    FM, column_moduli = result
 
-    a_number(FM, g)
+    a_number(FM, g; column_moduli = column_moduli)
 end
