@@ -24,18 +24,15 @@
         p = 3
         _, (x, y, z, w) = polynomial_ring(GF(p), ["x", "y", "z", "w"])
         fermat = x^4 + y^4 + z^4 + w^4
-        F = DeRham.frobenius_matrix_with_precision(fermat, [0, 1, 2])
-        basis = DeRham.get_basis_of_cohomology(fermat)
-        precision_info = DeRham.precision_information_user_r_m(fermat, [0, 1, 2]; basis)
-        column_moduli = DeRham._frobenius_column_moduli_for_precision_info(
+        F, column_moduli = DeRham.frobenius_matrix_with_precision(
             fermat,
-            precision_info,
-            basis,
+            [0, 1, 2];
+            return_column_moduli = true,
         )
-
         @test F !== false
         @test F isa MatElem
         @test size(F) == (21, 21)
+        @test length(column_moduli) == size(F, 2)
         @test DeRham.artin_invariant(F; column_moduli) == 1
 
         low_precision_moduli = copy(column_moduli)

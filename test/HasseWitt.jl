@@ -8,10 +8,12 @@
         r_m[1] = 1
         basis = DeRham.get_basis_of_cohomology(f)
         h = DeRham._hodge_polygon(basis, n).slopelengths[1]
-        FM = DeRham.frobenius_matrix_with_precision(f, r_m, basis = basis)
-        precision_info = DeRham.precision_information_user_r_m(f, r_m; basis = basis)
-        column_moduli =
-            DeRham._frobenius_column_moduli_for_precision_info(f, precision_info, basis)
+        FM, column_moduli = DeRham.frobenius_matrix_with_precision(
+            f,
+            r_m;
+            basis = basis,
+            return_column_moduli = true,
+        )
 
         @test DeRham.hasse_witt_matrix(FM, h; column_moduli) == DeRham.hasse_witt_matrix(f)
         @test DeRham.a_number(FM, h; column_moduli) == DeRham.a_number(f)

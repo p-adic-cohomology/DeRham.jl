@@ -15,15 +15,18 @@ base-ring modulus.
 Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``. When `FM` comes from
 `frobenius_matrix_with_precision`, pass its per-column known moduli if they
 differ; only the selected columns need precision divisible by ``p``.
+Request them with `return_column_moduli=true` on
+`frobenius_matrix_with_precision`.
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(3, 3, 7);
 
-julia> FM = DeRham.frobenius_matrix_with_precision(f, [1, 0]);
+julia> FM, column_moduli = DeRham.frobenius_matrix_with_precision(
+           f, [1, 0]; return_column_moduli = true);
 
-julia> size(DeRham.hasse_witt_matrix(FM, 1))
+julia> size(DeRham.hasse_witt_matrix(FM, 1; column_moduli = column_moduli))
 (1, 1)
 ```
 """
@@ -91,10 +94,16 @@ function hasse_witt_matrix(f::MPolyRingElem; verbose = 0, kwargs...)
     hodge_numbers = hodge_polygon.slopelengths
     fh = hodge_numbers[1]
 
-    precision_info =
-        precision_information_user_r_m(f, r_m; basis = basis, verbose = verbose)
-    column_moduli = _frobenius_column_moduli_for_precision_info(f, precision_info, basis)
-    F = frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
+    result = frobenius_matrix_with_precision(
+        f,
+        r_m;
+        basis = basis,
+        verbose = verbose,
+        return_column_moduli = true,
+        kwargs...,
+    )
+    result === false && return false
+    F, column_moduli = result
 
     hasse_witt_matrix(F, fh; column_moduli = column_moduli)
 end
