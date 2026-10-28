@@ -1,6 +1,6 @@
 """
     artin_invariant(f::MPolyRingElem; kwargs...)
-    artin_invariant(F::MatElem)
+    artin_invariant(F)
 
 Compute the Artin invariant ``σ`` of a supersingular quartic K3 surface from
 its Frobenius matrix modulo ``p²``. The computation uses linear algebra over
@@ -16,8 +16,8 @@ Frobenius matrix with relative precision `[0, 1, 2]` and forwards keyword
 arguments to `frobenius_matrix_with_precision`. It returns `false` if that
 computation rejects the polynomial as non-smooth.
 
-The matrix method requires a 21×21 Frobenius matrix over ``ℤ/p^M`` with odd
-prime ``p`` and ``p²`` dividing the modulus. Its first column must be divisible
+The matrix method requires a 21×21 Frobenius matrix with odd prime ``p`` and
+every column modulus divisible by ``p²``. Its first column must be divisible
 by ``p²`` in the chosen pole-order basis.
 
 The algorithm is from forthcoming work of Bhamidipati, Broe, Garzella, Nair,
@@ -36,10 +36,10 @@ julia> DeRham.artin_invariant(f)
 2
 ```
 """
-function artin_invariant(F::MatElem)
-    @assert nrows(F) == 21 && ncols(F) == 21
+function artin_invariant(F::Union{MatElem,AbstractMatrix})
+    @assert size(F) == (21, 21)
 
-    base_modulus = modulus(base_ring(F))
+    base_modulus = modulus(parent(F[1, 1]))
     factors = factor(ZZ(base_modulus))
     @assert length(factors) == 1
     p, _ = first(factors)
@@ -47,9 +47,16 @@ function artin_invariant(F::MatElem)
 
     precision_modulus = p^2
     @assert mod(base_modulus, precision_modulus) == 0
+    @assert all(
+        mod(modulus(parent(F[row, column])), precision_modulus) == 0 for
+        row in axes(F, 1), column in axes(F, 2)
+    )
 
     R, _ = residue_ring(ZZ, precision_modulus)
-    F_mod_p2 = map_entries(R, lift.(F))
+    F_mod_p2 = matrix_space(R, size(F, 1), size(F, 2))()
+    for column in axes(F, 2), row in axes(F, 1)
+        F_mod_p2[row, column] = R(lift(ZZ, F[row, column]))
+    end
     A = map_entries(ZZ, lift.(F_mod_p2))
     @assert all(iszero(A[row, 1]) for row = 1:21)
 

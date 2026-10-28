@@ -20,7 +20,7 @@ julia> DeRham.a_number(FM, 1)
 1
 ```
 """
-function a_number(FM::MatElem, h::Integer)
+function a_number(FM::Union{MatElem,AbstractMatrix}, h::Integer)
     return h - rank(hasse_witt_matrix(FM, h))
 end
 

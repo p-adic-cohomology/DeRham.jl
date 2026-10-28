@@ -31,11 +31,11 @@
         @test DeRham.artin_invariant(F) == 1
 
         @test_throws AssertionError DeRham.artin_invariant(
-            matrix(base_ring(F), zeros(Int, 20, 21)),
+            matrix(parent(F[1, 1]), zeros(Int, 20, 21)),
         )
 
         F_bad_first_column = deepcopy(F)
-        F_bad_first_column[1, 1] = one(base_ring(F_bad_first_column))
+        F_bad_first_column[1, 1] = one(parent(F_bad_first_column[1, 1]))
         @test_throws AssertionError DeRham.artin_invariant(F_bad_first_column)
 
         R3, _ = residue_ring(ZZ, p)
