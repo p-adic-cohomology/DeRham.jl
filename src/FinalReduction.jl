@@ -187,39 +187,17 @@ function _frobenius_column_scale_exponents(n, p, N_m, Basis)
     scale_exponents
 end
 
-function _frobenius_column_moduli(p, base_modulus, scale_exponents)
-    column_moduli = BigInt[]
-    for scale in scale_exponents
-        column_modulus = BigInt(base_modulus)
-        if scale >= 0
-            column_modulus *= BigInt(p)^scale
-        else
-            column_modulus, remainder = divrem(column_modulus, BigInt(p)^(-scale))
-            iszero(remainder) || error("Frobenius column precision is not p-adic")
-        end
-        column_modulus > 1 || error("Frobenius column precision must be positive")
-        push!(column_moduli, column_modulus)
+function _frobenius_output_ring(p, base_modulus, scale_exponent)
+    output_modulus = BigInt(base_modulus)
+    if scale_exponent >= 0
+        output_modulus *= BigInt(p)^scale_exponent
+    else
+        output_modulus, remainder = divrem(output_modulus, BigInt(p)^(-scale_exponent))
+        iszero(remainder) || error("Frobenius precision is not p-adic")
     end
-    column_moduli
-end
-
-_frobenius_matrix_base_ring(FM::MatElem) = base_ring(FM)
-_frobenius_matrix_base_ring(FM::AbstractMatrix) = parent(FM[1, 1])
-_as_frobenius_matrix(FM::MatElem) = FM
-_as_frobenius_matrix(FM::AbstractMatrix) = matrix(_frobenius_matrix_base_ring(FM), FM)
-
-function _checked_frobenius_column_moduli(FM, column_moduli)
-    base_modulus = BigInt(modulus(_frobenius_matrix_base_ring(FM)))
-    if column_moduli === nothing
-        return fill(base_modulus, size(FM, 2))
-    end
-    checked_moduli = BigInt.(column_moduli)
-    @assert length(checked_moduli) == size(FM, 2)
-    @assert all(
-        column_modulus > 1 && mod(base_modulus, column_modulus) == 0 for
-        column_modulus in checked_moduli
-    )
-    checked_moduli
+    output_modulus > 1 || error("Frobenius precision must be positive")
+    output_ring, = residue_ring(ZZ, output_modulus)
+    output_ring
 end
 
 """
@@ -243,16 +221,16 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")
     R = parent(T[1, 1])
     scale_exponents = _frobenius_column_scale_exponents(n, p, N_m, Basis)
-    column_moduli = _frobenius_column_moduli(p, modulus(R), scale_exponents)
-    output_ring, = residue_ring(ZZ, maximum(column_moduli))
+    output_ring = _frobenius_output_ring(p, modulus(R), maximum(scale_exponents))
     frob_mat_temp = []
     denomArray = []
     ev = cache[d*n-n-1]#gen_exp_vec(n+1,d*n-n-1,termorder)
     VS = matrix_space(R, length(ev), 1)
-    for i = 1:length(Reductions)
+    for i in eachindex(Reductions)
         e = Basis[i][2] # pole order of basis element
         N = N_m[e]
         poly_to_reduce = Reductions[i][1]
+        column_ring = _frobenius_output_ring(p, modulus(R), scale_exponents[i])
         temp = reduce_order_n_to_basis(
             n,
             p,
@@ -264,7 +242,7 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
             R,
             cache,
             ev;
-            output_ring = output_ring,
+            output_ring = column_ring,
             final_scale = scale_exponents[i],
         )
 
@@ -273,7 +251,7 @@ function compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, ca
     frob_mat = matrix_space(output_ring, size(T, 1), length(frob_mat_temp))()
     for column in eachindex(frob_mat_temp)
         for row = 1:size(T, 1)
-            frob_mat[row, column] = frob_mat_temp[column][row, 1]
+            frob_mat[row, column] = output_ring(lift(ZZ, frob_mat_temp[column][row, 1]))
         end
     end
 
