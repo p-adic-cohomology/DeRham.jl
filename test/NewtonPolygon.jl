@@ -76,7 +76,8 @@
         R9, (x1, x2, x3, x4) = polynomial_ring(F9, ["x1", "x2", "x3", "x4"])
         f9 = x1^4 + x2^4 + x3^4 + x4^4
 
-        @test DeRham.newton_polygon(f9) ==
-              DeRham.newton_polygon(DeRham.zeta_coefficients(f9), 3)
+        polygon = DeRham.newton_polygon(f9)
+        @test polygon.slopes == [1 // 1]
+        @test polygon.slopelengths == [21]
     end
 end
