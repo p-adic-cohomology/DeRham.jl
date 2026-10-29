@@ -50,4 +50,34 @@
         f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
         @test DeRham.newton_polygon(f_nonsmooth) == false
     end
+
+    @testset "quartic K3 slopes from Artin-Mazur height" begin
+        f5 = DeRham.fermat_hypersurface(4, 4, 5)
+        f7 = DeRham.fermat_hypersurface(4, 4, 7)
+        ordinary = DeRham.newton_polygon(f5)
+        supersingular = DeRham.newton_polygon(f7)
+
+        @test ordinary.slopes == [0 // 1, 1 // 1, 2 // 1]
+        @test ordinary.slopelengths == [1, 19, 1]
+        @test supersingular.slopes == [1 // 1]
+        @test supersingular.slopelengths == [21]
+        @test ordinary == DeRham.newton_polygon(DeRham.zeta_coefficients(f5), 5)
+        @test supersingular == DeRham.newton_polygon(DeRham.zeta_coefficients(f7), 7)
+
+        R5h2, (u, v, w, z) = polynomial_ring(GF(5), ["u", "v", "w", "z"])
+        f_h2 = 2 * u^4 + v^4 + w^4 + z^4 + u^2 * v^2
+        height_two = DeRham.newton_polygon(f_h2)
+        @test height_two.slopes == [1 // 2, 1 // 1, 3 // 2]
+        @test height_two.slopelengths == [2, 17, 2]
+    end
+
+    @testset "extension-field fallback" begin
+        F9, = finite_field(3, 2, "a")
+        R9, (x1, x2, x3, x4) = polynomial_ring(F9, ["x1", "x2", "x3", "x4"])
+        f9 = x1^4 + x2^4 + x3^4 + x4^4
+
+        polygon = DeRham.newton_polygon(f9)
+        @test polygon.slopes == [1 // 1]
+        @test polygon.slopelengths == [21]
+    end
 end
