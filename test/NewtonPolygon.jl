@@ -70,4 +70,13 @@
         @test height_two.slopes == [1 // 2, 1 // 1, 3 // 2]
         @test height_two.slopelengths == [2, 17, 2]
     end
+
+    @testset "extension-field fallback" begin
+        F9, = finite_field(3, 2, "a")
+        R9, (x1, x2, x3, x4) = polynomial_ring(F9, ["x1", "x2", "x3", "x4"])
+        f9 = x1^4 + x2^4 + x3^4 + x4^4
+
+        @test DeRham.newton_polygon(f9) ==
+              DeRham.newton_polygon(DeRham.zeta_coefficients(f9), 3)
+    end
 end
