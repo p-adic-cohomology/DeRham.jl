@@ -95,6 +95,10 @@ exactly as you would a local example; there is no separate syntax.
 
 `Pkg.test` passes `test_args` straight through to `ARGS`. Exactly one
 selector may be given; a bare `Pkg.test()` defaults to `--workflow=ci`.
+An invocation with only a `--name=` or `--tag=` selector runs the selected E2E
+record(s) without running the conventional testsets, E2E harness tests, or
+quality gates. Bare `Pkg.test()` and `--workflow=` invocations still run those
+tests and gates.
 
 ```julia
 Pkg.test("DeRham")                                    # --workflow=ci (default)
