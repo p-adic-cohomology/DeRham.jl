@@ -251,6 +251,206 @@ using Test
         @test exec.EXPECTED_SOURCE == :lpoly
     end
 
+    @testset "derived invariant executors" begin
+        function variety(kind, dimension, vars, monomials, coefficients)
+            return Dict{String,Any}(
+                "coeff_domain" => Dict("kind" => "integer"),
+                "dim" => dimension,
+                "non_middle_factors" => Dict(
+                    "kind" => "projective_lefschetz",
+                    "middle_factor_content" => "primitive",
+                ),
+                "model" => Dict(
+                    "kind" => kind,
+                    "vars" => vars,
+                    "monomials" => monomials,
+                    "coeffs" => coefficients,
+                ),
+            )
+        end
+        function example_case(id, v, p, coeffs_desc)
+            return E2E.ExampleCase(
+                id,
+                "synthetic.json",
+                v,
+                [Dict("p" => p, "Lpoly" => Dict("coeffs_asc" => reverse(coeffs_desc)))],
+                "",
+            )
+        end
+        function record(type; params = Dict{String,Any}())
+            return E2E.ExecutionRecord(
+                "record_$(type)",
+                type,
+                String[],
+                0.1,
+                "synthetic",
+                nothing,
+                params,
+                "synthetic.toml",
+            )
+        end
+
+        curve = example_case(
+            "curve",
+            variety(
+                "plane_curve",
+                1,
+                ["x1", "x2", "x3"],
+                [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+                [1, 1, 1],
+            ),
+            7,
+            BigInt[7, 1, 1],
+        )
+        curve_input_record = E2E.ExecutionRecord(
+            "curve_input",
+            "newton_polygon",
+            String[],
+            0.1,
+            "curve",
+            nothing,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+        curve_F = E2E.Common.build_input(curve, curve_input_record)
+        newton = E2E.NewtonPolygonExecutor
+        expected_newton = newton.expected(curve, curve_input_record)
+        actual_newton = newton.normalize(newton.execute(curve_F, Dict{String,Any}()))
+        @test newton.compare(expected_newton, actual_newton)
+        @test !newton.compare(expected_newton, E2E.DeRham.SlopesPolygon([0, 2]))
+        @test newton.INVARIANT_NAME == "newton_polygon"
+        @test newton.EXPECTED_SOURCE == :lpoly
+        @test isnothing(newton.validate_parameters("newton", Dict{String,Any}()))
+
+        point_counts = E2E.PointCountsExecutor
+        point_params = Dict{String,Any}("k" => 2)
+        point_record = record("point_counts"; params = point_params)
+        point_expected = point_counts.expected(curve, point_record)
+        point_actual = point_counts.normalize(point_counts.execute(curve_F, point_params))
+        @test point_counts.compare(point_expected, point_actual)
+        @test point_expected == BigInt[9, 63]
+        @test isnothing(point_counts.validate_parameters("counts", point_params))
+        @test_throws r"requires parameter 'k'" point_counts.validate_parameters(
+            "counts",
+            Dict{String,Any}(),
+        )
+        @test_throws r"positive integer" point_counts.validate_parameters(
+            "counts",
+            Dict{String,Any}("k" => 0),
+        )
+        @test_throws r"unknown parameter" point_counts.validate_parameters(
+            "counts",
+            Dict{String,Any}("k" => 2, "other" => 1),
+        )
+        unsupported_curve = deepcopy(curve)
+        unsupported_curve.variety["model"]["kind"] = "hyperelliptic"
+        @test_throws r"does not support model.kind" newton.expected(
+            unsupported_curve,
+            curve_input_record,
+        )
+        @test_throws r"does not support model.kind" point_counts.expected(
+            unsupported_curve,
+            point_record,
+        )
+
+        cubic_surface = example_case(
+            "cubic_surface",
+            variety(
+                "projective_hypersurface",
+                2,
+                ["x1", "x2", "x3", "x4"],
+                [[3, 0, 0, 0], [0, 3, 0, 0], [0, 0, 3, 0], [0, 0, 0, 3]],
+                [1, 1, 1, 1],
+            ),
+            11,
+            BigInt[-1771561, 0, 43923, 0, -363, 0, 1],
+        )
+        bound = E2E.PicardRankBoundExecutor
+        bound_record = record("picard_rank_bound")
+        @test bound.expected(cubic_surface, bound_record) == 7
+        @test bound.EXPECTED_SOURCE == :lpoly
+        @test isnothing(bound.validate_parameters("bound", Dict{String,Any}()))
+        @test_throws r"requires dimension 2" bound.expected(curve, bound_record)
+        malformed_surface = deepcopy(cubic_surface)
+        malformed_surface.variety["model"]["kind"] = "plane_curve"
+        @test_throws r"requires model.kind .*projective_hypersurface" bound.expected(
+            malformed_surface,
+            bound_record,
+        )
+
+        k3_desc = vcat(BigInt[-7^21], zeros(BigInt, 20), BigInt[1])
+        k3 = example_case(
+            "k3",
+            variety(
+                "projective_hypersurface",
+                2,
+                ["x1", "x2", "x3", "x4"],
+                [[4, 0, 0, 0], [0, 4, 0, 0], [0, 0, 4, 0], [0, 0, 0, 4]],
+                [1, 1, 1, 1],
+            ),
+            7,
+            k3_desc,
+        )
+        height = E2E.ArtinMazurHeightExecutor
+        geo = E2E.K3GeometricPicardRankExecutor
+        rank = E2E.K3PicardRankExecutor
+        realization = E2E.K3PicardRealizationDegreeExecutor
+        @test height.expected(k3, record("artin_mazur_height")) == Inf
+        @test geo.expected(k3, record("k3_geometric_picard_rank")) == 22
+        rank_params = Dict{String,Any}("k" => 2)
+        @test rank.expected(k3, record("k3_picard_rank"; params = rank_params)) == 2
+        @test isnothing(rank.validate_parameters("rank", rank_params))
+        @test_throws r"requires parameter 'k'" rank.validate_parameters(
+            "rank",
+            Dict{String,Any}(),
+        )
+        @test_throws r"positive integer" rank.validate_parameters(
+            "rank",
+            Dict{String,Any}("k" => 0),
+        )
+        @test realization.expected(k3, record("k3_picard_realization_degree")) == 21
+        @test_throws r"homogeneous degree-4" geo.expected(
+            cubic_surface,
+            record("k3_geometric_picard_rank"),
+        )
+        @test_throws r"homogeneous degree-4" height.expected(
+            cubic_surface,
+            record("artin_mazur_height"),
+        )
+        @test_throws r"homogeneous degree-4" rank.expected(
+            cubic_surface,
+            record("k3_picard_rank"; params = rank_params),
+        )
+        @test_throws r"homogeneous degree-4" realization.expected(
+            cubic_surface,
+            record("k3_picard_realization_degree"),
+        )
+        malformed_k3 = deepcopy(k3)
+        malformed_k3.variety["model"]["kind"] = "plane_curve"
+        @test_throws r"requires model.kind .*projective_hypersurface" geo.expected(
+            malformed_k3,
+            record("k3_geometric_picard_rank"),
+        )
+        for executor in (newton, bound, geo, realization, height)
+            @test_throws r"unknown parameter" executor.validate_parameters(
+                "unsupported",
+                Dict{String,Any}("not_a_parameter" => 1),
+            )
+        end
+        @test_throws r"unknown parameter" point_counts.validate_parameters(
+            "unsupported",
+            Dict{String,Any}("k" => 2, "not_a_parameter" => 1),
+        )
+        @test_throws r"unknown parameter" rank.validate_parameters(
+            "unsupported",
+            Dict{String,Any}("k" => 2, "not_a_parameter" => 1),
+        )
+        @test all(
+            executor.EXPECTED_SOURCE == :lpoly for
+            executor in (bound, geo, rank, realization, height)
+        )
+    end
+
     @testset "catalogue validation aggregates errors" begin
         cfg = E2E.CatalogueConfig(
             5.0,

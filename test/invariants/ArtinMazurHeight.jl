@@ -91,7 +91,10 @@
         f9 = x1^4 + x2^4 + x3^4 + x4^4
         full_coeffs_f9 = DeRham.zeta_coefficients(f9)
         @test DeRham.artin_mazur_height(f9) == DeRham.artin_mazur_height(full_coeffs_f9, 3)
+    end
 
+    @testset "non-smooth returns false" begin
+        R5b, (y1, y2, y3, y4) = polynomial_ring(GF(5), ["x1", "x2", "x3", "x4"])
         f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
         @test DeRham.artin_mazur_height(f_nonsmooth) == false
     end

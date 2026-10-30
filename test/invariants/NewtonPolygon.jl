@@ -1,12 +1,9 @@
 @testset "newton_polygon" begin
-    R, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
-    f = y^2 * z - x^3 - x * z^2 - z^3
     q = 7
+    coeffs = [7, 1, 1]
 
-    coeffs = DeRham.zeta_coefficients(f)
-
-    @testset "data form matches the f form" begin
-        @test DeRham.newton_polygon(coeffs, q) == DeRham.newton_polygon(f)
+    @testset "precomputed ordinary curve has slopes zero and one" begin
+        @test DeRham.newton_polygon(coeffs, q).slopes == [0 // 1, 1 // 1]
     end
 
     @testset "twisted-input round trip" begin

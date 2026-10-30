@@ -62,6 +62,48 @@ function stored_lpoly_descending(example::ExampleCase, record::ExecutionRecord)
     return reverse(coeffs_asc)
 end
 
+function validate_geometry(
+    example::ExampleCase,
+    invariant::AbstractString;
+    model_kind = nothing,
+    dimension = nothing,
+    variable_count = nothing,
+    degree = nothing,
+)
+    variety = example.variety
+    model = variety["model"]
+    kind = get(model, "kind", nothing)
+    kind in ("plane_curve", "projective_hypersurface") || error(
+        "example $(repr(example.id)): $(invariant) does not support model.kind $(repr(kind))",
+    )
+    if dimension !== nothing && get(variety, "dim", nothing) != dimension
+        error(
+            "example $(repr(example.id)): $(invariant) requires dimension $(dimension), got $(repr(get(variety, "dim", nothing)))",
+        )
+    end
+    model_kind !== nothing &&
+        kind != model_kind &&
+        error(
+            "example $(repr(example.id)): $(invariant) requires model.kind $(repr(model_kind)), got $(repr(kind))",
+        )
+    variables = get(model, "vars", nothing)
+    if variable_count !== nothing &&
+       (!(variables isa AbstractVector) || length(variables) != variable_count)
+        error(
+            "example $(repr(example.id)): $(invariant) requires $(variable_count) variables",
+        )
+    end
+    if degree !== nothing
+        monomials = get(model, "monomials", nothing)
+        monomials isa AbstractVector ||
+            error("example $(repr(example.id)): $(invariant) requires monomial model data")
+        all(mono -> sum(Int, mono) == degree, monomials) || error(
+            "example $(repr(example.id)): $(invariant) requires a homogeneous degree-$(degree) polynomial",
+        )
+    end
+    return nothing
+end
+
 function _multivariable_poly(monomials, coeffs, R)
     length(monomials) == length(coeffs) ||
         error("monomials and coefficients must have the same length")
