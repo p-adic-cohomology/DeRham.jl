@@ -79,15 +79,45 @@ using Test
         )
     end
 
+    @testset "runtime summary" begin
+        @test !E2E.runtime_drift(10.0, 5.0)
+        @test !E2E.runtime_drift(10.0, 20.0)
+        @test E2E.runtime_drift(10.0, 4.9)
+        @test E2E.runtime_drift(10.0, 20.1)
+        @test E2E.runtime_drift(0.0, 0.1)
+        @test !E2E.runtime_drift(
+            E2E.CaseOutcome("skip", false, true, "gpu required", 10.0, 0.0),
+        )
+
+        io = IOBuffer()
+        E2E.print_runtime_summary(
+            [
+                E2E.CaseOutcome("slow", true, false, nothing, 1.0, 2.1),
+                E2E.CaseOutcome("gpu_case", false, true, "gpu required", 1.0, 0.0),
+            ],
+            io,
+        )
+        summary = String(take!(io))
+        @test occursin("declared (s)", summary)
+        @test occursin("measured (s)", summary)
+        @test occursin("slow", summary) && occursin("DRIFT", summary)
+        @test occursin("gpu_case", summary) && occursin("SKIP", summary)
+    end
+
     @testset "zeta_coefficients executor validation" begin
         exec = E2E.ZetaCoefficientsExecutor
 
-        good_variety(kind = "plane_curve", vars = ["x1", "x2", "x3"]) = Dict{String,Any}(
+        good_variety(
+            kind = "plane_curve",
+            vars = ["x1", "x2", "x3"];
+            dim = 1,
+            middle_factor_content = "full",
+        ) = Dict{String,Any}(
             "coeff_domain" => Dict("kind" => "integer"),
-            "dim" => 1,
+            "dim" => dim,
             "non_middle_factors" => Dict(
                 "kind" => "projective_lefschetz",
-                "middle_factor_content" => "full",
+                "middle_factor_content" => middle_factor_content,
             ),
             "model" => Dict(
                 "kind" => kind,
@@ -115,7 +145,39 @@ using Test
             good_variety(),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
-        @test exec.expected_descending(ex, record()) == BigInt[7, 1, 1]
+        @test exec.expected(ex, record()) == BigInt[7, 1, 1]
+        primitive_curve = example(
+            good_variety(; middle_factor_content = "primitive"),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+        )
+        @test exec.expected(primitive_curve, record()) == BigInt[7, 1, 1]
+
+        full_threefold = example(
+            good_variety(
+                "projective_hypersurface",
+                ["x1", "x2", "x3", "x4", "x5"];
+                dim = 3,
+            ),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+        )
+        @test exec.expected(full_threefold, record()) == BigInt[7, 1, 1]
+
+        primitive_surface = example(
+            good_variety(
+                "projective_hypersurface",
+                ["x1", "x2", "x3", "x4"];
+                dim = 2,
+                middle_factor_content = "primitive",
+            ),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 0, 0, 0, 0, 0, 7]))],
+        )
+        @test length(exec.expected(primitive_surface, record())) == 7
+
+        full_surface = example(
+            good_variety("projective_hypersurface", ["x1", "x2", "x3", "x4"]; dim = 2),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 0, 0, 0, 0, 0, 7]))],
+        )
+        @test_throws r"primitive middle factor" exec.expected(full_surface, record())
 
         # reversed (descending) coeffs_asc is caught as the specific
         # orientation mistake, not a generic error.
@@ -123,25 +185,25 @@ using Test
             good_variety(),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [7, 1, 1]))],
         )
-        @test_throws r"orientation mistake" exec.expected_descending(bad, record())
+        @test_throws r"orientation mistake" exec.expected(bad, record())
 
         # unsupported model kind / coeff domain / non_middle_factors convention.
         unsupported_kind = example(
             good_variety("hyperelliptic"),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
-        @test_throws ErrorException exec.expected_descending(unsupported_kind, record())
+        @test_throws ErrorException exec.expected(unsupported_kind, record())
 
         v = good_variety()
         v["coeff_domain"] = Dict("kind" => "number_field")
         unsupported_domain =
             example(v, [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))])
-        @test_throws ErrorException exec.expected_descending(unsupported_domain, record())
+        @test_throws ErrorException exec.expected(unsupported_domain, record())
 
         v2 = good_variety()
         v2["non_middle_factors"] = Dict("kind" => "explicit")
         unsupported_nmf = example(v2, [Dict("p" => 7, "l_factors" => Dict())])
-        @test_throws ErrorException exec.expected_descending(unsupported_nmf, record())
+        @test_throws ErrorException exec.expected(unsupported_nmf, record())
 
         # multi-result example requires an explicit p on the record.
         multi = example(
@@ -151,8 +213,8 @@ using Test
                 Dict("p" => 11, "Lpoly" => Dict("coeffs_asc" => [1, 0, 11])),
             ],
         )
-        @test_throws ErrorException exec.expected_descending(multi, record())
-        @test exec.expected_descending(multi, record(; p = 11)) == BigInt[11, 0, 1]
+        @test_throws ErrorException exec.expected(multi, record())
+        @test exec.expected(multi, record(; p = 11)) == BigInt[11, 0, 1]
 
         # parameter validation.
         @test isnothing(
@@ -171,8 +233,9 @@ using Test
         )
 
         # capability requirement derivation.
-        @test :gpu in exec.required_capabilities(record(; params = Dict("use_gpu" => true)))
-        @test isempty(exec.required_capabilities(record()))
+        @test :gpu in
+              E2E.Common.required_capabilities(record(; params = Dict("use_gpu" => true)))
+        @test isempty(E2E.Common.required_capabilities(record()))
         gpu_tagged = E2E.ExecutionRecord(
             "rec2",
             "zeta_coefficients",
@@ -183,7 +246,9 @@ using Test
             Dict{String,Any}(),
             "synthetic.toml",
         )
-        @test :gpu in exec.required_capabilities(gpu_tagged)
+        @test :gpu in E2E.Common.required_capabilities(gpu_tagged)
+        @test exec.INVARIANT_NAME == "zeta_coefficients"
+        @test exec.EXPECTED_SOURCE == :lpoly
     end
 
     @testset "catalogue validation aggregates errors" begin
@@ -285,6 +350,64 @@ using Test
 
         expected = E2E.validate_catalogue(catalogue, [records[1]], cfg)
         @test expected["r_ok"] == BigInt[7, 1, 1]
+
+        validate_notes(notes) = begin
+            ex = E2E.ExampleCase(
+                "notes",
+                "notes.json",
+                deepcopy(variety),
+                [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+                notes,
+            )
+            note_record = E2E.ExecutionRecord(
+                "r_notes",
+                "zeta_coefficients",
+                String[],
+                0.1,
+                "notes",
+                nothing,
+                Dict{String,Any}(),
+                "notes.toml",
+            )
+            E2E.validate_catalogue(
+                E2E.ExampleCatalogue(Dict("notes" => ex)),
+                [note_record],
+                cfg,
+            )
+        end
+
+        valid_notes = "prose\nderham-invariants: {\"7\":{\"a_number\":0}}\n"
+        parsed_notes = E2E.Common.parse_notes_invariants(valid_notes)
+        @test parsed_notes == Dict("7" => Dict("a_number" => 0))
+        @test E2E.Common.notes_invariant_value(
+            E2E.ExampleCase(
+                "notes",
+                "notes.json",
+                deepcopy(variety),
+                [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+                valid_notes,
+            ),
+            7,
+            "a_number",
+        ) == 0
+        @test_throws r"malformed derham-invariants tag" validate_notes(
+            "derham-invariants: {broken}",
+        )
+        @test_throws r"malformed derham-invariants tag" validate_notes(
+            "derham-invariants {\"7\":{}}",
+        )
+        @test_throws r"only one tag line is allowed" validate_notes(
+            "derham-invariants: {}\nderham-invariants: {}",
+        )
+        @test_throws r"prime 11 with no result in the case" validate_notes(
+            "derham-invariants: {\"11\":{\"a_number\":1}}",
+        )
+        @test_throws r"unregistered invariant" validate_notes(
+            "derham-invariants: {\"7\":{\"not_registered\":1}}",
+        )
+        @test_throws r"derived from Lpoly" validate_notes(
+            "derham-invariants: {\"7\":{\"zeta_coefficients\":[7,1,1]}}",
+        )
     end
 
     @testset "loader — example documents" begin

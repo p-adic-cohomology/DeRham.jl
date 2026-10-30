@@ -19,12 +19,6 @@ include("Precision.jl")
         testT()
     end
 
-    @testset "Hodge polygon" begin
-        test_hodge_polygon_values()
-        test_hodge_polygon_examples()
-        test_hodge_polygon_data_form_matches_f_form()
-    end
-
     @testset "Precision information" begin
         test_user_relative_precision_bypasses_default_table()
         test_max_auto_precision_without_default_table()
@@ -32,14 +26,15 @@ include("Precision.jl")
 
 end
 
-include("TateTwist.jl")
-include("PointCounts.jl")
-include("NewtonPolygon.jl")
-include("HasseWitt.jl")
-include("PicardRank.jl")
-include("ArtinMazurHeight.jl")
-include("ArtinInvariant.jl")
-include("Jacobian.jl")
+include("invariants/HodgePolygon.jl")
+include("invariants/TateTwist.jl")
+include("invariants/PointCounts.jl")
+include("invariants/NewtonPolygon.jl")
+include("invariants/HasseWitt.jl")
+include("invariants/PicardRank.jl")
+include("invariants/ArtinMazurHeight.jl")
+include("invariants/ArtinInvariant.jl")
+include("invariants/Jacobian.jl")
 
 # Declarative E2E catalogue (test/e2e/) — see test/e2e/README.md. Bare
 # Pkg.test() runs conventional tests above plus the ci E2E workflow;

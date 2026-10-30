@@ -1,9 +1,3 @@
-# Run.jl — executes the selected records serially (no concurrency), against
-# the already-validated expected values, and reports aggregate estimated
-# runtime plus each case's expected and actual runtime. Runtime metadata is
-# workflow guidance only: no timing sweep, drift warning, or performance
-# assertion is derived from it.
-
 struct CaseOutcome
     name::String
     passed::Bool
@@ -11,6 +5,39 @@ struct CaseOutcome
     skip_reason::Union{Nothing,String}
     expected_runtime::Float64
     actual_runtime::Float64
+end
+
+function runtime_drift(expected::Real, actual::Real)
+    expected == 0 && return actual > 0
+    return actual > 2 * expected || actual < expected / 2
+end
+
+runtime_drift(outcome::CaseOutcome) =
+    !outcome.skipped && runtime_drift(outcome.expected_runtime, outcome.actual_runtime)
+
+function print_runtime_summary(outcomes::AbstractVector{CaseOutcome}, io::IO = stdout)
+    println(io, "[e2e] runtime summary")
+    @printf(io, "%-52s %12s %12s %s\n", "record", "declared (s)", "measured (s)", "flag",)
+    for outcome in outcomes
+        flag = if outcome.skipped
+            "SKIP"
+        elseif !outcome.passed
+            "FAIL"
+        elseif runtime_drift(outcome)
+            "DRIFT"
+        else
+            ""
+        end
+        @printf(
+            io,
+            "%-52s %12.3f %12.3f %s\n",
+            outcome.name,
+            outcome.expected_runtime,
+            outcome.actual_runtime,
+            flag,
+        )
+    end
+    return nothing
 end
 
 function run_selected(
@@ -28,9 +55,8 @@ function run_selected(
 
     outcomes = CaseOutcome[]
     for record in records
-        executor = EXECUTOR_REGISTRY[record.type]
-        caps = executor.required_capabilities(record)
-        unavailable = [c for c in caps if !executor.capability_available(c)]
+        caps = Common.required_capabilities(record)
+        unavailable = [c for c in caps if !Common.capability_available(c)]
 
         if !isempty(unavailable)
             reason = "requires unavailable capabilities: $(sort(collect(unavailable)))"
@@ -47,7 +73,8 @@ function run_selected(
         end
 
         example = catalogue.examples[record.example]
-        F = executor.build_input(example, record)
+        executor = EXECUTOR_REGISTRY[record.type]
+        F = Common.build_input(example, record)
         actual_runtime = @elapsed raw = executor.execute(F, record.parameters)
         actual = executor.normalize(raw)
         passed = executor.compare(expected[record.name], actual)
@@ -68,9 +95,13 @@ function run_selected(
             ),
         )
     end
+    print_runtime_summary(outcomes)
     return outcomes
 end
 
+"""
+Runs the selected E2E records and prints the runtime summary table.
+"""
 function run_e2e(e2e_root::AbstractString, args::AbstractVector{<:AbstractString})
     config = load_config(joinpath(e2e_root, "config.toml"))
     catalogue = load_example_catalogue(e2e_root)
