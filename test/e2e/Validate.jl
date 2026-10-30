@@ -28,6 +28,41 @@ function validate_catalogue(
     errors = String[]
     expected = Dict{String,Any}()
 
+    for example in values(catalogue.examples)
+        loc = "$(example.source_path) (example $(repr(example.id)))"
+        local notes_values
+        try
+            notes_values = Common.parse_notes_invariants(example.notes)
+        catch e
+            push!(errors, "$(loc): $(sprint(showerror, e))")
+            continue
+        end
+        result_primes = Set(Common._to_bigint(result["p"]) for result in example.results)
+        for (prime_string, invariant_values) in notes_values
+            prime = parse(BigInt, prime_string)
+            if !(prime in result_primes)
+                push!(
+                    errors,
+                    "$(loc): derham-invariants notes tag has prime $(prime_string) with no result in the case",
+                )
+            end
+            for invariant in keys(invariant_values)
+                executor = get(INVARIANT_REGISTRY, invariant, nothing)
+                if executor === nothing
+                    push!(
+                        errors,
+                        "$(loc): derham-invariants notes tag names unregistered invariant $(repr(invariant))",
+                    )
+                elseif getproperty(executor, :EXPECTED_SOURCE) == :lpoly
+                    push!(
+                        errors,
+                        "$(loc): invariant $(repr(invariant)) is derived from Lpoly and must not have a derham-invariants notes value",
+                    )
+                end
+            end
+        end
+    end
+
     for record in records
         loc = "$(record.source_path) (record $(repr(record.name)))"
 
@@ -67,7 +102,7 @@ function validate_catalogue(
         end
 
         try
-            expected[record.name] = executor.expected_descending(example, record)
+            expected[record.name] = executor.expected(example, record)
         catch e
             push!(errors, "$(loc): $(sprint(showerror, e))")
         end

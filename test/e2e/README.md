@@ -44,13 +44,14 @@ execution semantics) containing one or more grouped cases in the
 ```
 
 The `zeta_coefficients` executor supports `model.kind` of `plane_curve` (3
-variables) or `projective_hypersurface` (>= 2 variables), `coeff_domain.kind
-== "integer"`, and `non_middle_factors = {kind: "projective_lefschetz",
-middle_factor_content: "full"}`. `Lpoly.coeffs_asc` is **ascending** (constant
-term first); DeRham's own `zeta_coefficients` return value is **descending**
-(leading coefficient first) — the executor reverses one to compare against
-the other, and rejects an accidentally-reversed `coeffs_asc` (its first entry
-must be `1`).
+variables) or `projective_hypersurface` (>= 2 variables), and
+`coeff_domain.kind == "integer"`. DeRham returns the **primitive** middle
+factor. Set `middle_factor_content` to `"primitive"` for surfaces. Odd-
+dimensional hypersurfaces may use `"primitive"` or `"full"` because those
+factors coincide. `Lpoly.coeffs_asc` is **ascending** (constant term first);
+DeRham's own `zeta_coefficients` return value is **descending** (leading
+coefficient first) — the executor reverses the stored coefficients and rejects
+an accidentally-reversed `coeffs_asc` (its first entry must be `1`).
 
 Example ids must be nonempty and globally unique across every local file and
 the pinned artifact.
@@ -71,8 +72,9 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 ```
 
 - `name` must be nonempty and globally unique across every record file.
-- `runtime` is an approximate, bucket-oriented estimate in seconds — not a
-  measured average — used only for `--workflow=` membership.
+- `runtime` is the measured warm execution time in seconds, used only for
+  `--workflow=` membership. Use Julia 1.13.2; update affected records in the
+  same change when an implementation change affects their speed.
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
 - `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
@@ -107,3 +109,48 @@ Pkg.test("DeRham"; test_args = ["--tag=bigint"])
 `--name=` and `--tag=` ignore runtime thresholds; a `--tag=` selection (like
 a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
+
+
+## Adding an executor
+
+Add one module under `test/e2e/executors/` and register it with one `include`
+and one entry in `EXECUTOR_REGISTRY` in `E2E.jl`. Keep the module's functions
+focused on one invariant:
+
+- `validate_parameters(name, parameters)` rejects unsupported record
+  parameters before execution.
+- `expected(example, record)` returns the expected value in the form that
+  executor compares.
+- `execute(input, parameters)` computes the invariant from the example's
+  defining polynomial.
+- `normalize(raw)` and `compare(expected, actual)` make result representation
+  and equality explicit.
+- `INVARIANT_NAME` identifies the invariant for notes-tag validation.
+- `EXPECTED_SOURCE` is `:lpoly` when `expected` derives its value from the
+  stored `Lpoly`, or `:notes` when it reads a value from the notes tag.
+
+`Common.jl` supplies prime/result resolution, polynomial construction,
+parameter conversion, capability checks, notes-tag parsing, and the stored
+descending-order `Lpoly` accessor with its orientation check. Use these shared
+helpers instead of duplicating catalogue behavior.
+
+Derive expected values from the stored `Lpoly` whenever that polynomial
+determines the invariant, applying DeRham's data-form function. Do not store a
+second expected value for a derivable invariant. Put only values not determined
+by `Lpoly` in the optional notes line:
+
+    derham-invariants: {"5": {"a_number": 1, "artin_invariant": 2}}
+
+The JSON object is keyed by prime strings, then invariant names. Free prose may
+appear on other notes lines. Catalogue validation rejects malformed tags,
+primes without a case result, unregistered invariant names, and values for
+invariants derived from `Lpoly`. Do not add provenance fields or new example
+file kinds.
+
+Keep short tests on precomputed data in `test/invariants/`. Put longer
+examples computed from the defining polynomial in E2E records, with the warm
+measured runtime. Run `Pkg.test(test_args=["--name=<record>"])` for each record
+added or changed, plus the prescribed workflow test tier. The end-of-run
+runtime table flags cases whose measured time is more than twice or less than
+half their declared runtime; this is informational and does not change a test
+result.
