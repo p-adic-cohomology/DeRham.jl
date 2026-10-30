@@ -19,7 +19,7 @@ GPUFiniteFieldMatrices = {url = "https://github.com/UCSD-computational-number-th
 
 [compat]
 BitIntegers = "0.3.7"
-CUDA = "5.7.3"
+CUDA = "5.7.3, 6"
 Combinatorics = "1.1.0"
 GPUFiniteFieldMatrices = "0.3.0"
 LFUDACache = "0.1.1"
