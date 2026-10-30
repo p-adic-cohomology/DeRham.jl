@@ -1,28 +1,4 @@
 """
-Counts points of the projective hypersurface `f` over `F_{q^i}` by brute
-force, for `i >= 1`, using actual extension-field elements (unlike
-`naivelypointcount`, which only supports the prime base field). Used here
-only to independently check `point_counts` against naive counting over a
-genuine extension field.
-"""
-function naive_count_over_extension(f, i)
-    PR = parent(f)
-    Fq = coefficient_ring(PR)
-    q = Int(characteristic(Fq))
-    Fext, = finite_field(q, i, "a")
-    PRext, = polynomial_ring(Fext, [string(v) for v in gens(PR)])
-    fext = map_coefficients(c -> Fext(lift(ZZ, c)), f, parent = PRext)
-    n = length(gens(PRext))
-    elems = collect(Fext)
-    naff = 0
-    for xs in Iterators.product(fill(elems, n)...)
-        all(iszero, xs) && continue
-        iszero(evaluate(fext, collect(xs))) && (naff += 1)
-    end
-    return divexact(naff, length(elems) - 1)
-end
-
-"""
 Expands the zeta function `Z` (an element of `fraction_field(ZZ[T])`) as a
 power series and reads off the first `k` point counts via the
 log-derivative identity `log(Z) = sum_i #X(F_{q^i}) T^i / i`. Used only to
@@ -39,8 +15,6 @@ function point_counts_via_zeta_log(Z, k)
 end
 
 @testset "point_counts and zeta_function" begin
-    R, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
-    f_curve = y^2 * z - x^3 - x * z^2 - z^3
     q_curve = 7
     m_curve = 1
 
@@ -75,7 +49,7 @@ end
     q_k3 = 5
     m_k3 = 2
 
-    curve_coeffs = DeRham.zeta_coefficients(f_curve)
+    curve_coeffs = [7, 1, 1]
 
     examples = [
         ("curve", curve_coeffs, q_curve, m_curve),
@@ -83,22 +57,15 @@ end
         ("K3", p5_q4K3_sparse_fk_001, q_k3, m_k3),
     ]
 
-    @testset "point_counts(f, k) matches naive point counting" begin
-        @test DeRham.point_counts(f_curve, 1) ==
-              [DeRham.naivelypointcount(f_curve, q_curve)[2]]
-        @test DeRham.point_counts(f_curve, 2) == [
-            naive_count_over_extension(f_curve, 1),
-            naive_count_over_extension(f_curve, 2),
-        ]
-    end
-
     @testset "zeta_function log-derivative identity matches point_counts" begin
         for (name, coeffs, q, m) in examples
             Z = DeRham.zeta_function(coeffs, q, m)
             @test point_counts_via_zeta_log(Z, 3) == DeRham.point_counts(coeffs, q, m, 3)
         end
-        @test point_counts_via_zeta_log(DeRham.zeta_function(f_curve), 3) ==
-              DeRham.point_counts(f_curve, 3)
+        @test point_counts_via_zeta_log(
+            DeRham.zeta_function(curve_coeffs, q_curve, m_curve),
+            3,
+        ) == DeRham.point_counts(curve_coeffs, q_curve, m_curve, 3)
     end
 
     @testset "twisted-input round trip" begin

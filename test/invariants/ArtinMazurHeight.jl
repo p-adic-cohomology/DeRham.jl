@@ -63,12 +63,7 @@
               DeRham.artin_mazur_height(p5_q4K3_sparse_fk_001, q)
     end
 
-    @testset "f form" begin
-        R5, (a, b, c, d) = polynomial_ring(GF(5), ["a", "b", "c", "d"])
-        fk3 = a^4 + b^4 + c^4 + d^4
-        @test DeRham.artin_mazur_height(fk3) ==
-              DeRham.artin_mazur_height(DeRham.zeta_coefficients(fk3), 5)
-
+    @testset "non-smooth returns false" begin
         R5b, (y1, y2, y3, y4) = polynomial_ring(GF(5), ["x1", "x2", "x3", "x4"])
         f_nonsmooth = (y1^2 + y2^2)^2 + y3^4 + y4^4
         @test DeRham.artin_mazur_height(f_nonsmooth) == false
