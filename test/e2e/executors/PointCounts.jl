@@ -4,7 +4,6 @@ import ..DeRham
 import ..ExampleCase
 import ..ExecutionRecord
 import ..Common
-import ..ZetaCoefficientsExecutor
 
 const INVARIANT_NAME = "point_counts"
 const EXPECTED_SOURCE = :lpoly
@@ -24,7 +23,7 @@ end
 
 function validate_parameters(name::AbstractString, params::AbstractDict)
     extension_degree(name, params)
-    ZetaCoefficientsExecutor.validate_parameters(name, zeta_parameters(params))
+    Common.validate_common_parameters(name, zeta_parameters(params))
     return nothing
 end
 
