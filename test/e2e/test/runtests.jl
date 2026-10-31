@@ -16,6 +16,7 @@ using Test
         @test E2E.test_entrypoint_route(["--name=foo"]) == :record_only
         @test E2E.test_entrypoint_route(["--tag=gpu"]) == :record_only
         @test E2E.test_entrypoint_route(["--workflow=ci"]) == :full_suite
+        @test E2E.test_entrypoint_route(String[]) == :full_suite
 
         @test E2E.parse_selection(String[]) == E2E.Selection(:workflow, :ci)
         @test E2E.parse_selection(["--workflow=presubmit"]) ==
@@ -258,6 +259,29 @@ using Test
         @test :gpu in E2E.Common.required_capabilities(gpu_tagged)
         @test exec.INVARIANT_NAME == "zeta_coefficients"
         @test exec.EXPECTED_SOURCE == :lpoly
+    end
+
+    @testset "shared executor parameter validation" begin
+        validate = E2E.Common.validate_common_parameters
+        @test isnothing(
+            validate("shared", Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2])),
+        )
+        @test_throws r"unknown parameter" validate(
+            "shared",
+            Dict{String,Any}("not_a_parameter" => 1),
+        )
+        @test_throws r"unknown algorithm" validate(
+            "shared",
+            Dict{String,Any}("algorithm" => "not_an_algorithm"),
+        )
+        @test_throws r"termorder must be a string" validate(
+            "shared",
+            Dict{String,Any}("termorder" => 1),
+        )
+        @test_throws r"S must be an array" validate(
+            "shared",
+            Dict{String,Any}("S" => 1),
+        )
     end
 
     @testset "derived invariant executors" begin
@@ -646,6 +670,35 @@ using Test
         @test occursin("bad_result", malformed_joined)
         @test occursin("valid prime values", malformed_joined)
         @test occursin("r_missing_ref", malformed_joined)
+
+        for (id, p) in (("bad_boolean_prime", true), ("bad_composite_prime", 9))
+            invalid_prime_example = E2E.ExampleCase(
+                id,
+                "bad.json",
+                deepcopy(variety),
+                [Dict("p" => p, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+                "",
+            )
+            invalid_prime_catalogue = E2E.ExampleCatalogue(
+                Dict("ok" => good_example, id => invalid_prime_example),
+            )
+            invalid_prime_error = nothing
+            try
+                E2E.validate_catalogue(invalid_prime_catalogue, records[2:end], cfg)
+                error("expected CatalogueValidationError")
+            catch e
+                invalid_prime_error = e
+            end
+            @test invalid_prime_error isa E2E.CatalogueValidationError
+            invalid_prime_joined = join(invalid_prime_error.errors, "\n")
+            @test occursin("valid prime values", invalid_prime_joined)
+            if p isa Bool
+                @test occursin("non-boolean integer", invalid_prime_joined)
+            else
+                @test occursin("p=9 must be prime", invalid_prime_joined)
+            end
+            @test occursin("r_missing_ref", invalid_prime_joined)
+        end
 
         expected = E2E.validate_catalogue(catalogue, [records[1]], cfg)
         @test expected["r_ok"] == BigInt[7, 1, 1]

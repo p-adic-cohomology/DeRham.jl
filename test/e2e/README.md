@@ -82,8 +82,32 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
   `gpu`, `multithreading`, `uint`, `bigint`, `karatsuba`). A `gpu` tag (or
   `parameters.use_gpu = true`) marks the record as requiring a functional
   CUDA device.
-- `parameters` are passed straight through as keyword arguments to
-  `DeRham.zeta_coefficients`.
+- For `Lpoly`-derived records, common computation options are passed through as
+  keyword arguments to the selected DeRham invariant. `point_counts` and
+  `k3_picard_rank` also require a positive integer `k`; the notes-based
+  `a_number` and `artin_invariant` executors accept no parameters.
+
+### Supported record types
+
+| `type` | Expected value and input | Record-specific parameters |
+| --- | --- | --- |
+| `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
+| `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
+| `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |
+| `picard_rank_bound` | Stored `Lpoly`; projective surface | None required |
+| `k3_geometric_picard_rank` | Stored `Lpoly`; quartic K3 surface | None required |
+| `k3_picard_rank` | Stored `Lpoly`; quartic K3 surface | `k`: positive extension degree |
+| `k3_picard_realization_degree` | Stored `Lpoly`; quartic K3 surface | None required |
+| `artin_mazur_height` | Stored `Lpoly`; quartic K3 surface | None required |
+| `a_number` | `derham-invariants` notes value; plane curve | None |
+| `artin_invariant` | `derham-invariants` notes value; supersingular quartic K3 over an odd prime | None; note value must be in `1:10` |
+
+All `Lpoly`-derived record types accept the shared DeRham computation options
+recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
+`algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
+`always_use_bigints`, `use_gpu`, and `use_threads`. `algorithm` accepts
+`default`, `depthfirst`, `varbyvar`, or `pchunk`; `S` must be an array and
+`termorder` must be a string.
 
 ## Reference an example from the pinned artifact
 

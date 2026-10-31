@@ -12,40 +12,8 @@ const SUPPORTED_MODEL_KINDS = Set(["plane_curve", "projective_hypersurface"])
 const INVARIANT_NAME = "zeta_coefficients"
 const EXPECTED_SOURCE = :lpoly
 
-const KNOWN_PARAMETERS = Set([
-    "S",
-    "verbose",
-    "changef",
-    "givefrobmat",
-    "algorithm",
-    "termorder",
-    "vars_reversed",
-    "fastevaluation",
-    "always_use_bigints",
-    "use_gpu",
-    "use_threads",
-])
-const KNOWN_ALGORITHMS = Set(["default", "depthfirst", "varbyvar", "pchunk"])
-
-function validate_parameters(name::AbstractString, params::AbstractDict)
-    for k in keys(params)
-        k in KNOWN_PARAMETERS ||
-            error("execution record $(repr(name)): unknown parameter $(repr(k))")
-    end
-    if haskey(params, "algorithm")
-        params["algorithm"] isa AbstractString && params["algorithm"] in KNOWN_ALGORITHMS ||
-            error(
-                "execution record $(repr(name)): unknown algorithm $(repr(get(params, "algorithm", nothing)))",
-            )
-    end
-    if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
-        error("execution record $(repr(name)): termorder must be a string")
-    end
-    if haskey(params, "S") && !(params["S"] isa AbstractVector)
-        error("execution record $(repr(name)): S must be an array of integers")
-    end
-    return nothing
-end
+validate_parameters(name::AbstractString, params::AbstractDict) =
+    Common.validate_common_parameters(name, params)
 
 function expected(example::ExampleCase, record::ExecutionRecord)
     variety = example.variety

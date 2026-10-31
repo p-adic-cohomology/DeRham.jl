@@ -4,13 +4,12 @@ import ..DeRham
 import ..ExampleCase
 import ..ExecutionRecord
 import ..Common
-import ..ZetaCoefficientsExecutor
 
 const INVARIANT_NAME = "artin_mazur_height"
 const EXPECTED_SOURCE = :lpoly
 
 validate_parameters(name::AbstractString, params::AbstractDict) =
-    ZetaCoefficientsExecutor.validate_parameters(name, params)
+    Common.validate_common_parameters(name, params)
 
 function expected(example::ExampleCase, record::ExecutionRecord)
     Common.validate_geometry(

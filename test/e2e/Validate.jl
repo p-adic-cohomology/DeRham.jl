@@ -38,7 +38,7 @@ function validate_catalogue(
             continue
         end
         result_primes = try
-            Set(Common._to_bigint(result["p"]) for result in example.results)
+            Set(Common.result_prime(result) for result in example.results)
         catch e
             push!(
                 errors,

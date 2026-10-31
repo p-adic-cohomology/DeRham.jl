@@ -13,6 +13,52 @@ import ..ExecutionRecord
 _to_bigint(c::Integer) = BigInt(c)
 _to_bigint(c::AbstractString) = parse(BigInt, c)
 
+const COMMON_PARAMETERS = Set([
+    "S",
+    "verbose",
+    "changef",
+    "givefrobmat",
+    "algorithm",
+    "termorder",
+    "vars_reversed",
+    "fastevaluation",
+    "always_use_bigints",
+    "use_gpu",
+    "use_threads",
+])
+const COMMON_ALGORITHMS = Set(["default", "depthfirst", "varbyvar", "pchunk"])
+
+function validate_common_parameters(name::AbstractString, params::AbstractDict)
+    for key in keys(params)
+        key in COMMON_PARAMETERS ||
+            error("execution record $(repr(name)): unknown parameter $(repr(key))")
+    end
+    if haskey(params, "algorithm")
+        params["algorithm"] isa AbstractString && params["algorithm"] in COMMON_ALGORITHMS ||
+            error(
+                "execution record $(repr(name)): unknown algorithm $(repr(get(params, "algorithm", nothing)))",
+            )
+    end
+    if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
+        error("execution record $(repr(name)): termorder must be a string")
+    end
+    if haskey(params, "S") && !(params["S"] isa AbstractVector)
+        error("execution record $(repr(name)): S must be an array of integers")
+    end
+    return nothing
+end
+
+function result_prime(result)
+    result isa AbstractDict || error("result entry must be an object")
+    haskey(result, "p") || error("result entry is missing prime key 'p'")
+    raw_prime = result["p"]
+    (raw_prime isa Integer || raw_prime isa AbstractString) && !(raw_prime isa Bool) ||
+        error("result p must be a non-boolean integer or decimal string")
+    p = _to_bigint(raw_prime)
+    p > 1 && DeRham.is_prime(p) || error("result p=$(p) must be prime")
+    return p
+end
+
 function _find_result(example::ExampleCase, p::Integer)
     matches = [r for r in example.results if _to_bigint(r["p"]) == BigInt(p)]
     isempty(matches) && error("example $(repr(example.id)) has no result for p=$(p)")
