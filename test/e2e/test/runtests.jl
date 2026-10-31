@@ -101,7 +101,8 @@ using Test
             ci_config,
             E2E.Selection(:workflow, :full),
         )
-        @test isempty(slowest_zenodo_ci.records)
+        @test [record.name for record in slowest_zenodo_ci.records] ==
+              ["zenodo_p7_slowest"]
         @test [record.name for record in slowest_zenodo_full.records] ==
               ["zenodo_p7_slowest"]
 
