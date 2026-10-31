@@ -52,4 +52,4 @@ end
 
 compare(expected::Integer, actual::Integer) = expected == actual
 
-end # module ANumberExecutor
+end

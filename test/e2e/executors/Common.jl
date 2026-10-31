@@ -6,6 +6,7 @@ module Common
 using CUDA: CUDA
 using JSON
 using Oscar
+import ..DeRham
 import ..ExampleCase
 import ..ExecutionRecord
 
@@ -183,7 +184,12 @@ function parse_notes_invariants(notes::AbstractString)
         values = Dict{String,Dict{String,Any}}()
         for (prime_string, raw_values) in raw_tag
             prime = tryparse(BigInt, prime_string)
-            (prime !== nothing && prime > 1 && string(prime) == prime_string) || error(
+            (
+                prime !== nothing &&
+                prime > 1 &&
+                string(prime) == prime_string &&
+                DeRham.is_prime(prime)
+            ) || error(
                 "malformed derham-invariants tag on notes line $(line_number): prime key $(repr(prime_string)) must be a canonical prime string",
             )
             raw_values isa AbstractDict || error(

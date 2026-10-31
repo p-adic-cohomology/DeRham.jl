@@ -652,6 +652,9 @@ using Test
         valid_notes = "prose\nderham-invariants: {\"7\":{\"a_number\":0}}\n"
         parsed_notes = E2E.Common.parse_notes_invariants(valid_notes)
         @test parsed_notes == Dict("7" => Dict("a_number" => 0))
+        @test_throws r"canonical prime string" E2E.Common.parse_notes_invariants(
+            "derham-invariants: {\"9\":{\"a_number\":1}}",
+        )
         @test E2E.Common.notes_invariant_value(
             E2E.ExampleCase(
                 "notes",
