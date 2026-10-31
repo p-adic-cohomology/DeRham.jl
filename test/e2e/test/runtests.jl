@@ -18,6 +18,30 @@ using Test
         @test E2E.test_entrypoint_route(["--workflow=ci"]) == :full_suite
         @test E2E.test_entrypoint_route(String[]) == :full_suite
 
+        for args in (["--name=foo"], ["--tag=gpu"])
+            record_calls = Vector{String}[]
+            full_suite_calls = Ref(0)
+            E2E.dispatch_test_entrypoint(
+                args,
+                selected_args -> push!(record_calls, collect(selected_args)),
+                () -> (full_suite_calls[] += 1),
+            )
+            @test record_calls == [args]
+            @test full_suite_calls[] == 0
+        end
+
+        for args in (["--workflow=ci"], String[])
+            record_calls = Vector{String}[]
+            full_suite_calls = Ref(0)
+            E2E.dispatch_test_entrypoint(
+                args,
+                selected_args -> push!(record_calls, collect(selected_args)),
+                () -> (full_suite_calls[] += 1),
+            )
+            @test isempty(record_calls)
+            @test full_suite_calls[] == 1
+        end
+
         @test E2E.parse_selection(String[]) == E2E.Selection(:workflow, :ci)
         @test E2E.parse_selection(["--workflow=presubmit"]) ==
               E2E.Selection(:workflow, :presubmit)
@@ -96,22 +120,59 @@ using Test
         @test E2E.runtime_drift(10.0, 20.1)
         @test E2E.runtime_drift(0.0, 0.1)
         @test !E2E.runtime_drift(
-            E2E.CaseOutcome("skip", false, true, "gpu required", 10.0, 0.0),
+            E2E.CaseOutcome(
+                "skip",
+                false,
+                true,
+                "gpu required",
+                10.0,
+                0.0,
+                0.0,
+            ),
         )
 
         io = IOBuffer()
         E2E.print_runtime_summary(
             [
-                E2E.CaseOutcome("slow", true, false, nothing, 1.0, 2.1),
-                E2E.CaseOutcome("gpu_case", false, true, "gpu required", 1.0, 0.0),
+                E2E.CaseOutcome("slow", true, false, nothing, 1.0, 0.8, 2.1),
+                E2E.CaseOutcome(
+                    "gpu_case",
+                    false,
+                    true,
+                    "gpu required",
+                    1.0,
+                    0.0,
+                    0.0,
+                ),
             ],
             io,
         )
         summary = String(take!(io))
         @test occursin("declared (s)", summary)
+        @test occursin("first call (s)", summary)
         @test occursin("measured (s)", summary)
         @test occursin("slow", summary) && occursin("DRIFT", summary)
         @test occursin("gpu_case", summary) && occursin("SKIP", summary)
+    end
+
+    @testset "two-run case checking" begin
+        calls = Ref(0)
+        executor = (
+            execute = (input, parameters) -> begin
+                calls[] += 1
+                calls[]
+            end,
+            normalize = identity,
+            compare = (expected, actual) -> expected == actual,
+        )
+        result = E2E.evaluate_case(executor, nothing, Dict{String,Any}(), 1)
+        @test calls[] == 2
+        @test result.first_passed
+        @test !result.actual_passed
+        @test !result.consistent
+        @test !result.passed
+        @test result.first_result == 1
+        @test result.actual_result == 2
     end
 
     @testset "zeta_coefficients executor validation" begin
@@ -278,10 +339,13 @@ using Test
             "shared",
             Dict{String,Any}("termorder" => 1),
         )
-        @test_throws r"S must be an array" validate(
-            "shared",
-            Dict{String,Any}("S" => 1),
-        )
+        for invalid_s in (["x"], [1.5], [true], 1)
+            @test_throws r"S must be an array of integers" validate(
+                "shared",
+                Dict{String,Any}("S" => invalid_s),
+            )
+        end
+        @test isnothing(validate("shared", Dict{String,Any}("S" => [1, 2])))
     end
 
     @testset "derived invariant executors" begin

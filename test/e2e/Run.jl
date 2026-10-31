@@ -4,6 +4,7 @@ struct CaseOutcome
     skipped::Bool
     skip_reason::Union{Nothing,String}
     expected_runtime::Float64
+    first_runtime::Float64
     actual_runtime::Float64
 end
 
@@ -17,7 +18,15 @@ runtime_drift(outcome::CaseOutcome) =
 
 function print_runtime_summary(outcomes::AbstractVector{CaseOutcome}, io::IO = stdout)
     println(io, "[e2e] runtime summary")
-    @printf(io, "%-52s %12s %12s %s\n", "record", "declared (s)", "measured (s)", "flag",)
+    @printf(
+        io,
+        "%-52s %12s %12s %12s %s\n",
+        "record",
+        "declared (s)",
+        "first call (s)",
+        "measured (s)",
+        "flag",
+    )
     for outcome in outcomes
         flag = if outcome.skipped
             "SKIP"
@@ -30,14 +39,37 @@ function print_runtime_summary(outcomes::AbstractVector{CaseOutcome}, io::IO = s
         end
         @printf(
             io,
-            "%-52s %12.3f %12.3f %s\n",
+            "%-52s %12.3f %12.3f %12.3f %s\n",
             outcome.name,
             outcome.expected_runtime,
+            outcome.first_runtime,
             outcome.actual_runtime,
             flag,
         )
     end
     return nothing
+end
+
+function evaluate_case(executor, input, parameters::AbstractDict, expected_value)
+    first_runtime = @elapsed first_raw = executor.execute(input, parameters)
+    first_result = executor.normalize(first_raw)
+    first_passed = executor.compare(expected_value, first_result)
+
+    actual_runtime = @elapsed raw = executor.execute(input, parameters)
+    actual_result = executor.normalize(raw)
+    actual_passed = executor.compare(expected_value, actual_result)
+    consistent = executor.compare(first_result, actual_result)
+
+    return (
+        passed = first_passed && actual_passed && consistent,
+        first_passed = first_passed,
+        actual_passed = actual_passed,
+        consistent = consistent,
+        first_result = first_result,
+        actual_result = actual_result,
+        first_runtime = first_runtime,
+        actual_runtime = actual_runtime,
+    )
 end
 
 function run_selected(
@@ -64,7 +96,15 @@ function run_selected(
                 println("[e2e] SKIP $(record.name): $(reason)")
                 push!(
                     outcomes,
-                    CaseOutcome(record.name, false, true, reason, record.runtime, 0.0),
+                    CaseOutcome(
+                        record.name,
+                        false,
+                        true,
+                        reason,
+                        record.runtime,
+                        0.0,
+                        0.0,
+                    ),
                 )
                 continue
             else
@@ -75,24 +115,24 @@ function run_selected(
         example = catalogue.examples[record.example]
         executor = EXECUTOR_REGISTRY[record.type]
         F = Common.build_input(example, record)
-        executor.execute(F, record.parameters)
-        actual_runtime = @elapsed raw = executor.execute(F, record.parameters)
-        actual = executor.normalize(raw)
-        passed = executor.compare(expected[record.name], actual)
-        status = passed ? "PASS" : "FAIL"
-        println(
-            "[e2e] $(status) $(record.name)  expected_runtime=$(record.runtime)s actual_runtime=$(round(actual_runtime, digits = 3))s",
-        )
-        @test passed
+        result = evaluate_case(executor, F, record.parameters, expected[record.name])
+        status = result.passed ? "PASS" : "FAIL"
+        line = "[e2e] $(status) $(record.name)  " *
+               "expected_runtime=$(record.runtime)s " *
+               "first_runtime=$(round(result.first_runtime, digits = 3))s " *
+               "actual_runtime=$(round(result.actual_runtime, digits = 3))s"
+        println(line)
+        @test result.passed
         push!(
             outcomes,
             CaseOutcome(
                 record.name,
-                passed,
+                result.passed,
                 false,
                 nothing,
                 record.runtime,
-                actual_runtime,
+                result.first_runtime,
+                result.actual_runtime,
             ),
         )
     end

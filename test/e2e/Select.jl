@@ -19,6 +19,17 @@ end
 test_entrypoint_route(args::AbstractVector{<:AbstractString}) =
     record_selector_only(args) ? :record_only : :full_suite
 
+function dispatch_test_entrypoint(
+    args::AbstractVector{<:AbstractString},
+    run_records,
+    run_full_suite,
+)
+    if test_entrypoint_route(args) == :record_only
+        return run_records(args)
+    end
+    return run_full_suite()
+end
+
 function parse_selection(args::AbstractVector{<:AbstractString})
     modes = Selection[]
     for arg in args

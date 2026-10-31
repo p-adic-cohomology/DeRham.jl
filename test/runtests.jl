@@ -8,13 +8,9 @@ using CUDA
 include("e2e/E2E.jl")
 using .E2E
 
-const E2E_TEST_ENTRYPOINT_ROUTE = E2E.test_entrypoint_route(ARGS)
-
-if E2E_TEST_ENTRYPOINT_ROUTE == :record_only
-    E2E.run!(ARGS)
-else
-    include("FirstEllipticCurveExample.jl")
-    include("Precision.jl")
+function run_de_rham_full_test_suite!()
+    include(joinpath(@__DIR__, "FirstEllipticCurveExample.jl"))
+    include(joinpath(@__DIR__, "Precision.jl"))
 
     @testset "DeRham.jl" begin
 
@@ -33,21 +29,23 @@ else
 
     end
 
-    include("invariants/HodgePolygon.jl")
-    include("invariants/TateTwist.jl")
-    include("invariants/PointCounts.jl")
-    include("invariants/NewtonPolygon.jl")
-    include("invariants/HasseWitt.jl")
-    include("invariants/PicardRank.jl")
-    include("invariants/ArtinMazurHeight.jl")
-    include("invariants/ArtinInvariant.jl")
-    include("invariants/Jacobian.jl")
+    include(joinpath(@__DIR__, "invariants/HodgePolygon.jl"))
+    include(joinpath(@__DIR__, "invariants/TateTwist.jl"))
+    include(joinpath(@__DIR__, "invariants/PointCounts.jl"))
+    include(joinpath(@__DIR__, "invariants/NewtonPolygon.jl"))
+    include(joinpath(@__DIR__, "invariants/HasseWitt.jl"))
+    include(joinpath(@__DIR__, "invariants/PicardRank.jl"))
+    include(joinpath(@__DIR__, "invariants/ArtinMazurHeight.jl"))
+    include(joinpath(@__DIR__, "invariants/ArtinInvariant.jl"))
+    include(joinpath(@__DIR__, "invariants/Jacobian.jl"))
 
-    include("e2e/test/runtests.jl")
+    include(joinpath(@__DIR__, "e2e/test/runtests.jl"))
 
     @testset "E2E" begin
         E2E.run!(ARGS)
     end
 
-    include("quality_gates.jl")
+    include(joinpath(@__DIR__, "quality_gates.jl"))
 end
+
+E2E.dispatch_test_entrypoint(ARGS, E2E.run!, run_de_rham_full_test_suite!)

@@ -42,8 +42,14 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
     if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
         error("execution record $(repr(name)): termorder must be a string")
     end
-    if haskey(params, "S") && !(params["S"] isa AbstractVector)
-        error("execution record $(repr(name)): S must be an array of integers")
+    if haskey(params, "S")
+        values = params["S"]
+        valid_s =
+            values isa AbstractVector &&
+            all(value -> value isa Integer && !(value isa Bool), values)
+        if !valid_s
+            error("execution record $(repr(name)): S must be an array of integers")
+        end
     end
     return nothing
 end
