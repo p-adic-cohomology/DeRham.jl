@@ -1,25 +1,4 @@
 @testset "artin_invariant" begin
-    @testset "polynomial method" begin
-        p = 3
-        _, (x, y, z, w) = polynomial_ring(GF(p), ["x", "y", "z", "w"])
-
-        sigma_two = x^4 + y^3 * z + y * z^3 + x * y^2 * w + w^4
-        @test DeRham.artin_invariant(sigma_two) == 2
-
-        sigma_ten =
-            x^4 +
-            x^3 * y +
-            x * y^3 +
-            x^2 * y * z +
-            y^3 * z +
-            x^3 * w +
-            y^2 * z * w +
-            z^3 * w +
-            x * y * w^2 +
-            x * w^3
-        @test DeRham.artin_invariant(sigma_ten) == 10
-    end
-
     @testset "matrix method" begin
         p = 3
         _, (x, y, z, w) = polynomial_ring(GF(p), ["x", "y", "z", "w"])

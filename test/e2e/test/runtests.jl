@@ -683,6 +683,76 @@ using Test
         )
     end
 
+    @testset "artin_invariant notes executor" begin
+        executor = E2E.ArtinInvariantExecutor
+        @test executor.INVARIANT_NAME == "artin_invariant"
+        @test executor.EXPECTED_SOURCE == :notes
+        @test E2E.INVARIANT_REGISTRY["artin_invariant"] === executor
+        @test isnothing(
+            executor.validate_parameters("artin_invariant_notes", Dict{String,Any}()),
+        )
+        @test_throws r"artin_invariant accepts no parameters" executor.validate_parameters(
+            "artin_invariant_notes",
+            Dict{String,Any}("S" => [0, 1, 2]),
+        )
+
+        examples_path = joinpath(
+            @__DIR__,
+            "..",
+            "examples",
+            "zenodo",
+            "zenodo_22784396_quartic_k3.json",
+        )
+        cases = E2E._read_example_document(examples_path)
+        parse_case(id) = E2E._parse_example_case(
+            only(filter(case -> case["id"] == id, cases)),
+            examples_path,
+            1,
+        )
+        with_notes(example, notes) = E2E.ExampleCase(
+            example.id,
+            example.source_path,
+            example.variety,
+            example.results,
+            notes,
+        )
+        sigma_case = parse_case("zenodo_22784396_p5_r6")
+        ordinary_case = parse_case("zenodo_22784396_p5_r172")
+        function artin_record(example; p = nothing, params = Dict{String,Any}())
+            return E2E.ExecutionRecord(
+                "artin_invariant_$(example.id)",
+                "artin_invariant",
+                String[],
+                0.1,
+                example.id,
+                p,
+                params,
+                "synthetic.toml",
+            )
+        end
+
+        record = artin_record(sigma_case)
+        @test executor.expected(sigma_case, record) == 9
+        @test executor.compare(9, executor.normalize(9))
+        @test_throws r"requires an odd prime field" executor.expected(
+            sigma_case,
+            artin_record(sigma_case; p = 2),
+        )
+        @test_throws r"requires a supersingular quartic K3" executor.expected(
+            ordinary_case,
+            artin_record(ordinary_case; p = 5),
+        )
+
+        missing_tag =
+            with_notes(sigma_case, "Zenodo 22784396 quartic K3 without its invariant note")
+        @test_throws r"no derham-invariants values" executor.expected(missing_tag, record)
+        malformed_tag = with_notes(sigma_case, "derham-invariants: {broken}")
+        @test_throws r"malformed derham-invariants tag" executor.expected(
+            malformed_tag,
+            record,
+        )
+    end
+
     @testset "loader — example documents" begin
         good_variety = Dict{String,Any}(
             "coeff_domain" => Dict("kind" => "integer"),

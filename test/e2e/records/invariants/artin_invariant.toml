@@ -1,0 +1,531 @@
+[[test]]
+name = "artin_invariant_original_sigma_two_p3"
+type = "artin_invariant"
+tags = []
+runtime = 1.4173
+example = "artin_invariant_original_sigma_two_p3"
+p = 3
+parameters = {}
+
+[[test]]
+name = "artin_invariant_original_sigma_ten_p3"
+type = "artin_invariant"
+tags = []
+runtime = 2.9653
+example = "artin_invariant_original_sigma_ten_p3"
+p = 3
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r6"
+type = "artin_invariant"
+tags = []
+runtime = 1.8218
+example = "zenodo_22784396_p5_r6"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r18"
+type = "artin_invariant"
+tags = []
+runtime = 1.5400
+example = "zenodo_22784396_p5_r18"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r22"
+type = "artin_invariant"
+tags = []
+runtime = 1.5371
+example = "zenodo_22784396_p5_r22"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r23"
+type = "artin_invariant"
+tags = []
+runtime = 1.6603
+example = "zenodo_22784396_p5_r23"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r32"
+type = "artin_invariant"
+tags = []
+runtime = 1.3873
+example = "zenodo_22784396_p5_r32"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r36"
+type = "artin_invariant"
+tags = []
+runtime = 1.4851
+example = "zenodo_22784396_p5_r36"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r56"
+type = "artin_invariant"
+tags = []
+runtime = 1.5957
+example = "zenodo_22784396_p5_r56"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r76"
+type = "artin_invariant"
+tags = []
+runtime = 1.4362
+example = "zenodo_22784396_p5_r76"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r82"
+type = "artin_invariant"
+tags = []
+runtime = 1.4130
+example = "zenodo_22784396_p5_r82"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r90"
+type = "artin_invariant"
+tags = []
+runtime = 1.9974
+example = "zenodo_22784396_p5_r90"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r94"
+type = "artin_invariant"
+tags = []
+runtime = 2.7385
+example = "zenodo_22784396_p5_r94"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r97"
+type = "artin_invariant"
+tags = []
+runtime = 2.4000
+example = "zenodo_22784396_p5_r97"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r102"
+type = "artin_invariant"
+tags = []
+runtime = 2.9124
+example = "zenodo_22784396_p5_r102"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r103"
+type = "artin_invariant"
+tags = []
+runtime = 2.1960
+example = "zenodo_22784396_p5_r103"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r111"
+type = "artin_invariant"
+tags = []
+runtime = 1.8649
+example = "zenodo_22784396_p5_r111"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r116"
+type = "artin_invariant"
+tags = []
+runtime = 1.9536
+example = "zenodo_22784396_p5_r116"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r127"
+type = "artin_invariant"
+tags = []
+runtime = 1.9200
+example = "zenodo_22784396_p5_r127"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r130"
+type = "artin_invariant"
+tags = []
+runtime = 1.8100
+example = "zenodo_22784396_p5_r130"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r132"
+type = "artin_invariant"
+tags = []
+runtime = 1.6594
+example = "zenodo_22784396_p5_r132"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r135"
+type = "artin_invariant"
+tags = []
+runtime = 2.1921
+example = "zenodo_22784396_p5_r135"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r140"
+type = "artin_invariant"
+tags = []
+runtime = 1.8597
+example = "zenodo_22784396_p5_r140"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r144"
+type = "artin_invariant"
+tags = []
+runtime = 1.5092
+example = "zenodo_22784396_p5_r144"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r174"
+type = "artin_invariant"
+tags = []
+runtime = 1.8573
+example = "zenodo_22784396_p5_r174"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r183"
+type = "artin_invariant"
+tags = []
+runtime = 1.8321
+example = "zenodo_22784396_p5_r183"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r202"
+type = "artin_invariant"
+tags = []
+runtime = 2.1584
+example = "zenodo_22784396_p5_r202"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r211"
+type = "artin_invariant"
+tags = []
+runtime = 2.5186
+example = "zenodo_22784396_p5_r211"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r241"
+type = "artin_invariant"
+tags = []
+runtime = 2.1760
+example = "zenodo_22784396_p5_r241"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r243"
+type = "artin_invariant"
+tags = []
+runtime = 2.3502
+example = "zenodo_22784396_p5_r243"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r246"
+type = "artin_invariant"
+tags = []
+runtime = 1.9040
+example = "zenodo_22784396_p5_r246"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r258"
+type = "artin_invariant"
+tags = []
+runtime = 1.5633
+example = "zenodo_22784396_p5_r258"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r262"
+type = "artin_invariant"
+tags = []
+runtime = 1.4459
+example = "zenodo_22784396_p5_r262"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r263"
+type = "artin_invariant"
+tags = []
+runtime = 1.7250
+example = "zenodo_22784396_p5_r263"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r268"
+type = "artin_invariant"
+tags = []
+runtime = 1.5171
+example = "zenodo_22784396_p5_r268"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r278"
+type = "artin_invariant"
+tags = []
+runtime = 1.4920
+example = "zenodo_22784396_p5_r278"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r286"
+type = "artin_invariant"
+tags = []
+runtime = 1.4798
+example = "zenodo_22784396_p5_r286"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r287"
+type = "artin_invariant"
+tags = []
+runtime = 1.7213
+example = "zenodo_22784396_p5_r287"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r295"
+type = "artin_invariant"
+tags = []
+runtime = 1.6499
+example = "zenodo_22784396_p5_r295"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r301"
+type = "artin_invariant"
+tags = []
+runtime = 1.4657
+example = "zenodo_22784396_p5_r301"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r304"
+type = "artin_invariant"
+tags = []
+runtime = 1.6620
+example = "zenodo_22784396_p5_r304"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r306"
+type = "artin_invariant"
+tags = []
+runtime = 1.6232
+example = "zenodo_22784396_p5_r306"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r307"
+type = "artin_invariant"
+tags = []
+runtime = 1.7682
+example = "zenodo_22784396_p5_r307"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r317"
+type = "artin_invariant"
+tags = []
+runtime = 2.1396
+example = "zenodo_22784396_p5_r317"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r325"
+type = "artin_invariant"
+tags = []
+runtime = 2.2091
+example = "zenodo_22784396_p5_r325"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r326"
+type = "artin_invariant"
+tags = []
+runtime = 2.5430
+example = "zenodo_22784396_p5_r326"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r337"
+type = "artin_invariant"
+tags = []
+runtime = 2.0442
+example = "zenodo_22784396_p5_r337"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p5_r349"
+type = "artin_invariant"
+tags = []
+runtime = 2.0363
+example = "zenodo_22784396_p5_r349"
+p = 5
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r558"
+type = "artin_invariant"
+tags = []
+runtime = 2.3037
+example = "zenodo_22784396_p7_r558"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r561"
+type = "artin_invariant"
+tags = []
+runtime = 2.0834
+example = "zenodo_22784396_p7_r561"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r596"
+type = "artin_invariant"
+tags = []
+runtime = 1.8710
+example = "zenodo_22784396_p7_r596"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r683"
+type = "artin_invariant"
+tags = []
+runtime = 1.8578
+example = "zenodo_22784396_p7_r683"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r758"
+type = "artin_invariant"
+tags = []
+runtime = 1.8556
+example = "zenodo_22784396_p7_r758"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r783"
+type = "artin_invariant"
+tags = []
+runtime = 1.7440
+example = "zenodo_22784396_p7_r783"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r821"
+type = "artin_invariant"
+tags = []
+runtime = 2.0369
+example = "zenodo_22784396_p7_r821"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r836"
+type = "artin_invariant"
+tags = []
+runtime = 2.0050
+example = "zenodo_22784396_p7_r836"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r857"
+type = "artin_invariant"
+tags = []
+runtime = 1.8214
+example = "zenodo_22784396_p7_r857"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r921"
+type = "artin_invariant"
+tags = []
+runtime = 2.4797
+example = "zenodo_22784396_p7_r921"
+p = 7
+parameters = {}
+
+[[test]]
+name = "zenodo_artin_invariant_p7_r928"
+type = "artin_invariant"
+tags = []
+runtime = 2.7295
+example = "zenodo_22784396_p7_r928"
+p = 7
+parameters = {}
+

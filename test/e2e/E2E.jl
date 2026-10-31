@@ -24,6 +24,7 @@ include("executors/K3PicardRank.jl")
 include("executors/K3PicardRealizationDegree.jl")
 include("executors/ArtinMazurHeight.jl")
 include("executors/ANumber.jl")
+include("executors/ArtinInvariant.jl")
 
 const EXECUTOR_REGISTRY = Dict{String,Module}(
     "zeta_coefficients" => ZetaCoefficientsExecutor,
@@ -35,6 +36,7 @@ const EXECUTOR_REGISTRY = Dict{String,Module}(
     "k3_picard_realization_degree" => K3PicardRealizationDegreeExecutor,
     "artin_mazur_height" => ArtinMazurHeightExecutor,
     "a_number" => ANumberExecutor,
+    "artin_invariant" => ArtinInvariantExecutor,
 )
 const INVARIANT_REGISTRY = let registry = Dict{String,Module}()
     for executor in values(EXECUTOR_REGISTRY)
