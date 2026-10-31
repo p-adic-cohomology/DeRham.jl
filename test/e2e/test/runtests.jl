@@ -8,6 +8,15 @@ using Test
 
 @testset "E2E harness" begin
     @testset "selection" begin
+        @test !E2E.record_selector_only(String[])
+        @test E2E.record_selector_only(["--name=foo"])
+        @test E2E.record_selector_only(["--tag=gpu"])
+        @test !E2E.record_selector_only(["--workflow=ci"])
+        @test !E2E.record_selector_only(["--bogus=1"])
+        @test E2E.test_entrypoint_route(["--name=foo"]) == :record_only
+        @test E2E.test_entrypoint_route(["--tag=gpu"]) == :record_only
+        @test E2E.test_entrypoint_route(["--workflow=ci"]) == :full_suite
+
         @test E2E.parse_selection(String[]) == E2E.Selection(:workflow, :ci)
         @test E2E.parse_selection(["--workflow=presubmit"]) ==
               E2E.Selection(:workflow, :presubmit)
@@ -344,14 +353,8 @@ using Test
         )
         unsupported_curve = deepcopy(curve)
         unsupported_curve.variety["model"]["kind"] = "hyperelliptic"
-        @test_throws r"does not support model.kind" newton.expected(
-            unsupported_curve,
-            curve_input_record,
-        )
-        @test_throws r"does not support model.kind" point_counts.expected(
-            unsupported_curve,
-            point_record,
-        )
+        @test newton.expected(unsupported_curve, curve_input_record) == expected_newton
+        @test point_counts.expected(unsupported_curve, point_record) == point_expected
 
         cubic_surface = example_case(
             "cubic_surface",
@@ -620,6 +623,29 @@ using Test
         @test occursin("r_bad_tag", joined)
         @test occursin("r_bad_type", joined)
         @test occursin("r_bad_runtime", joined)
+
+        malformed_result = E2E.ExampleCase(
+            "bad_result",
+            "bad.json",
+            deepcopy(variety),
+            [Dict("Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+            "",
+        )
+        malformed_catalogue = E2E.ExampleCatalogue(
+            Dict("ok" => good_example, "bad_result" => malformed_result),
+        )
+        malformed_error = nothing
+        try
+            E2E.validate_catalogue(malformed_catalogue, records[2:end], cfg)
+            error("expected CatalogueValidationError")
+        catch e
+            malformed_error = e
+        end
+        @test malformed_error isa E2E.CatalogueValidationError
+        malformed_joined = join(malformed_error.errors, "\n")
+        @test occursin("bad_result", malformed_joined)
+        @test occursin("valid prime values", malformed_joined)
+        @test occursin("r_missing_ref", malformed_joined)
 
         expected = E2E.validate_catalogue(catalogue, [records[1]], cfg)
         @test expected["r_ok"] == BigInt[7, 1, 1]

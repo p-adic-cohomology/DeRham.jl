@@ -37,7 +37,15 @@ function validate_catalogue(
             push!(errors, "$(loc): $(sprint(showerror, e))")
             continue
         end
-        result_primes = Set(Common._to_bigint(result["p"]) for result in example.results)
+        result_primes = try
+            Set(Common._to_bigint(result["p"]) for result in example.results)
+        catch e
+            push!(
+                errors,
+                "$(loc): result entries must have valid prime values: $(sprint(showerror, e))",
+            )
+            continue
+        end
         for (prime_string, invariant_values) in notes_values
             prime = parse(BigInt, prime_string)
             if !(prime in result_primes)

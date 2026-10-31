@@ -13,7 +13,7 @@ validate_parameters(name::AbstractString, params::AbstractDict) =
     ZetaCoefficientsExecutor.validate_parameters(name, params)
 
 function expected(example::ExampleCase, record::ExecutionRecord)
-    coeffs = ZetaCoefficientsExecutor.expected(example, record)
+    coeffs = Common.stored_lpoly_descending(example, record)
     p = Common.resolve_prime(example, record)
     return DeRham.newton_polygon(coeffs, p)
 end

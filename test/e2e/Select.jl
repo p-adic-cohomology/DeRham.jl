@@ -11,6 +11,14 @@ struct Selection
     value::Any
 end
 
+function record_selector_only(args::AbstractVector{<:AbstractString})
+    return !isempty(args) &&
+           all(arg -> startswith(arg, "--name=") || startswith(arg, "--tag="), args)
+end
+
+test_entrypoint_route(args::AbstractVector{<:AbstractString}) =
+    record_selector_only(args) ? :record_only : :full_suite
+
 function parse_selection(args::AbstractVector{<:AbstractString})
     modes = Selection[]
     for arg in args

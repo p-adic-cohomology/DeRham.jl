@@ -29,7 +29,7 @@ function validate_parameters(name::AbstractString, params::AbstractDict)
 end
 
 function expected(example::ExampleCase, record::ExecutionRecord)
-    coeffs = ZetaCoefficientsExecutor.expected(example, record)
+    coeffs = Common.stored_lpoly_descending(example, record)
     p = Common.resolve_prime(example, record)
     m = Int(example.variety["dim"])
     k = extension_degree(record.name, record.parameters)

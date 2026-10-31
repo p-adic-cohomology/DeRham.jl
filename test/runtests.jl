@@ -1,7 +1,3 @@
-const E2E_RECORD_SELECTOR_ONLY =
-    !isempty(ARGS) &&
-    all(arg -> startswith(arg, "--name=") || startswith(arg, "--tag="), ARGS)
-
 using Test
 using Oscar
 
@@ -12,7 +8,9 @@ using CUDA
 include("e2e/E2E.jl")
 using .E2E
 
-if E2E_RECORD_SELECTOR_ONLY
+const E2E_TEST_ENTRYPOINT_ROUTE = E2E.test_entrypoint_route(ARGS)
+
+if E2E_TEST_ENTRYPOINT_ROUTE == :record_only
     E2E.run!(ARGS)
 else
     include("FirstEllipticCurveExample.jl")

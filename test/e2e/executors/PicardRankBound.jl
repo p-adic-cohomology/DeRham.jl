@@ -20,7 +20,7 @@ function expected(example::ExampleCase, record::ExecutionRecord)
         dimension = 2,
         variable_count = 4,
     )
-    coeffs = ZetaCoefficientsExecutor.expected(example, record)
+    coeffs = Common.stored_lpoly_descending(example, record)
     p = Common.resolve_prime(example, record)
     return DeRham.picard_rank_bound(coeffs, p)
 end

@@ -37,7 +37,7 @@ function expected(example::ExampleCase, record::ExecutionRecord)
         variable_count = 4,
         degree = 4,
     )
-    coeffs = ZetaCoefficientsExecutor.expected(example, record)
+    coeffs = Common.stored_lpoly_descending(example, record)
     p = Common.resolve_prime(example, record)
     k = extension_degree(record.name, record.parameters)
     return DeRham.k3_picard_rank(coeffs, p, k)
