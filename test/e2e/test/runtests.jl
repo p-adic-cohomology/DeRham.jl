@@ -89,6 +89,22 @@ using Test
         @test full_names == Set(["fast", "mid", "slow", "gpuslow"])
         @test presubmit.broad && ci.broad && full.broad
 
+        ci_config = E2E.load_config(joinpath(@__DIR__, "..", "config.toml"))
+        slowest_zenodo_ci_record = mk("zenodo_p7_slowest", 69.074)
+        slowest_zenodo_ci = E2E.select_records(
+            [slowest_zenodo_ci_record],
+            ci_config,
+            E2E.Selection(:workflow, :ci),
+        )
+        slowest_zenodo_full = E2E.select_records(
+            [slowest_zenodo_ci_record],
+            ci_config,
+            E2E.Selection(:workflow, :full),
+        )
+        @test isempty(slowest_zenodo_ci.records)
+        @test [record.name for record in slowest_zenodo_full.records] ==
+              ["zenodo_p7_slowest"]
+
         name_sel = E2E.select_records(recs, cfg, E2E.Selection(:name, "slow"))
         @test length(name_sel.records) == 1 && name_sel.records[1].name == "slow"
         @test !name_sel.broad
