@@ -233,6 +233,14 @@ using Test
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
         @test exec.expected(ex, record()) == BigInt[7, 1, 1]
+        bool_lpoly = example(
+            good_variety(),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => Any[1, true, 7]))],
+        )
+        @test_throws r"boolean values are not valid integer coefficients" exec.expected(
+            bool_lpoly,
+            record(),
+        )
         primitive_curve = example(
             good_variety(; middle_factor_content = "primitive"),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],

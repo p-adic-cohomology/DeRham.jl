@@ -11,6 +11,7 @@
         FM = DeRham.frobenius_matrix_with_precision(f, r_m, basis = basis)
 
         @test DeRham.hasse_witt_matrix(FM, h) == DeRham.hasse_witt_matrix(f)
+        @test DeRham.a_number(FM, h) == DeRham.a_number(f)
     end
 
     @testset "pinned regression values (the curve is ordinary: a_7 = 3, coprime to 7)" begin
