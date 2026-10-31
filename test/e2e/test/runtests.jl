@@ -345,6 +345,28 @@ using Test
                 Dict{String,Any}("S" => invalid_s),
             )
         end
+        @test isnothing(validate("shared", Dict{String,Any}("verbose" => 3)))
+        for invalid_verbose in ("3", true, 1.5)
+            @test_throws r"verbose must be an integer" validate(
+                "shared",
+                Dict{String,Any}("verbose" => invalid_verbose),
+            )
+        end
+        for parameter in (
+            "changef",
+            "givefrobmat",
+            "vars_reversed",
+            "fastevaluation",
+            "always_use_bigints",
+            "use_gpu",
+            "use_threads",
+        )
+            @test isnothing(validate("shared", Dict{String,Any}(parameter => true)))
+            @test_throws r"must be a boolean" validate(
+                "shared",
+                Dict{String,Any}(parameter => "true"),
+            )
+        end
         @test isnothing(validate("shared", Dict{String,Any}("S" => [1, 2])))
     end
 
@@ -607,6 +629,14 @@ using Test
         )
         @test_throws r"malformed derham-invariants tag" executor.expected(
             example("derham-invariants: {broken}"),
+            record,
+        )
+        @test_throws r"must be an integer" executor.expected(
+            example("derham-invariants: {\"7\":{\"a_number\":true}}"),
+            record,
+        )
+        @test_throws r"must be nonnegative" executor.expected(
+            example("derham-invariants: {\"7\":{\"a_number\":-1}}"),
             record,
         )
 
@@ -895,6 +925,20 @@ using Test
         malformed_tag = with_notes(sigma_case, "derham-invariants: {broken}")
         @test_throws r"malformed derham-invariants tag" executor.expected(
             malformed_tag,
+            record,
+        )
+        @test_throws r"must be in 1:10" executor.expected(
+            with_notes(
+                sigma_case,
+                "derham-invariants: {\"5\":{\"artin_invariant\":0}}",
+            ),
+            record,
+        )
+        @test_throws r"must be in 1:10" executor.expected(
+            with_notes(
+                sigma_case,
+                "derham-invariants: {\"5\":{\"artin_invariant\":11}}",
+            ),
             record,
         )
     end

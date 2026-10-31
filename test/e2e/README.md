@@ -139,11 +139,12 @@ Pkg.test("DeRham"; test_args = ["--tag=bigint"])
 a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
 
-Each selected record runs twice: a warm-up execution followed by a timed
-execution. The harness normalizes both results, checks each against the
-expected value, and requires the two results to match. The `[e2e]` case line
-reports `first_runtime` and `actual_runtime`; the runtime summary compares the
-declared warm runtime with the timed second execution.
+Each selected record that is not skipped for an unavailable capability runs
+twice: a warm-up execution followed by a timed execution. The harness
+normalizes both results, checks each against the expected value, and requires
+the two results to match. The `[e2e]` case line reports `first_runtime` and
+`actual_runtime`; the runtime summary compares the declared warm runtime with
+the timed second execution.
 
 
 ## Adding an executor

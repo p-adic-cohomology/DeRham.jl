@@ -27,6 +27,15 @@ const COMMON_PARAMETERS = Set([
     "use_threads",
 ])
 const COMMON_ALGORITHMS = Set(["default", "depthfirst", "varbyvar", "pchunk"])
+const COMMON_BOOLEAN_PARAMETERS = Set([
+    "changef",
+    "givefrobmat",
+    "vars_reversed",
+    "fastevaluation",
+    "always_use_bigints",
+    "use_gpu",
+    "use_threads",
+])
 
 function validate_common_parameters(name::AbstractString, params::AbstractDict)
     for key in keys(params)
@@ -41,6 +50,16 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
     end
     if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
         error("execution record $(repr(name)): termorder must be a string")
+    end
+    if haskey(params, "verbose")
+        value = params["verbose"]
+        value isa Integer && !(value isa Bool) ||
+            error("execution record $(repr(name)): verbose must be an integer")
+    end
+    for key in COMMON_BOOLEAN_PARAMETERS
+        if haskey(params, key) && !(params[key] isa Bool)
+            error("execution record $(repr(name)): parameter $(repr(key)) must be a boolean")
+        end
     end
     if haskey(params, "S")
         values = params["S"]
