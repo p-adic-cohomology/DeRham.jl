@@ -451,6 +451,79 @@ using Test
         )
     end
 
+    @testset "a_number notes executor" begin
+        executor = E2E.ANumberExecutor
+        @test executor.INVARIANT_NAME == "a_number"
+        @test executor.EXPECTED_SOURCE == :notes
+        @test E2E.INVARIANT_REGISTRY["a_number"] === executor
+        @test isnothing(executor.validate_parameters("a_number_notes", Dict{String,Any}()))
+        @test_throws r"unknown parameter" executor.validate_parameters(
+            "a_number_notes",
+            Dict{String,Any}("verbose" => 1),
+        )
+
+        variety = Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => 1,
+            "non_middle_factors" => Dict(
+                "kind" => "projective_lefschetz",
+                "middle_factor_content" => "full",
+            ),
+            "model" => Dict(
+                "kind" => "plane_curve",
+                "vars" => ["x1", "x2", "x3"],
+                "monomials" => [[0, 2, 1], [3, 0, 0], [1, 0, 2], [0, 0, 3]],
+                "coeffs" => [1, -1, -1, -1],
+            ),
+        )
+        function example(notes)
+            return E2E.ExampleCase(
+                "a_number_curve",
+                "synthetic.json",
+                deepcopy(variety),
+                [Dict("p" => 7)],
+                notes,
+            )
+        end
+        record = E2E.ExecutionRecord(
+            "a_number_notes",
+            "a_number",
+            String[],
+            0.1,
+            "a_number_curve",
+            7,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+
+        valid = example("derham-invariants: {\"7\":{\"a_number\":0}}")
+        @test executor.expected(valid, record) == 0
+        cfg = E2E.CatalogueConfig(
+            5.0,
+            90.0,
+            Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+        )
+        expected = E2E.validate_catalogue(
+            E2E.ExampleCatalogue(Dict(valid.id => valid)),
+            [record],
+            cfg,
+        )
+        @test expected[record.name] == 0
+
+        @test_throws r"notes have no derham-invariants values" executor.expected(
+            example("smooth plane curve"),
+            record,
+        )
+        @test_throws r"malformed derham-invariants tag" executor.expected(
+            example("derham-invariants: {broken}"),
+            record,
+        )
+
+        curve = E2E.Common.build_input(valid, record)
+        actual = executor.normalize(executor.execute(curve, record.parameters))
+        @test executor.compare(expected[record.name], actual)
+    end
+
     @testset "catalogue validation aggregates errors" begin
         cfg = E2E.CatalogueConfig(
             5.0,
