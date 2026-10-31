@@ -1,0 +1,125 @@
+[[test]]
+name = "a_number_p3_d4_a0_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2833
+example = "a_number_p3_d4_a0_random_first"
+p = 3
+parameters = {}
+
+[[test]]
+name = "a_number_p3_d4_a2_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2156
+example = "a_number_p3_d4_a2_random_first"
+p = 3
+parameters = {}
+
+[[test]]
+name = "a_number_p3_d4_a3_fermat"
+type = "a_number"
+tags = []
+runtime = 0.4243
+example = "a_number_p3_d4_a3_fermat"
+p = 3
+parameters = {}
+
+[[test]]
+name = "a_number_p3_d5_a1_random_first"
+type = "a_number"
+tags = []
+runtime = 0.4078
+example = "a_number_p3_d5_a1_random_first"
+p = 3
+parameters = {}
+
+[[test]]
+name = "a_number_p3_d5_a3_fermat"
+type = "a_number"
+tags = []
+runtime = 0.3897
+example = "a_number_p3_d5_a3_fermat"
+p = 3
+parameters = {}
+
+[[test]]
+name = "a_number_p5_d4_a0_fermat"
+type = "a_number"
+tags = []
+runtime = 0.4873
+example = "a_number_p5_d4_a0_fermat"
+p = 5
+parameters = {}
+
+[[test]]
+name = "a_number_p5_d4_a1_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2645
+example = "a_number_p5_d4_a1_random_first"
+p = 5
+parameters = {}
+
+[[test]]
+name = "a_number_p5_d4_a2_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2729
+example = "a_number_p5_d4_a2_random_first"
+p = 5
+parameters = {}
+
+[[test]]
+name = "a_number_p7_d4_a0_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2465
+example = "a_number_p7_d4_a0_random_first"
+p = 7
+parameters = {}
+
+[[test]]
+name = "a_number_p7_d4_a2_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2383
+example = "a_number_p7_d4_a2_random_first"
+p = 7
+parameters = {}
+
+[[test]]
+name = "a_number_p7_d4_a3_fermat"
+type = "a_number"
+tags = []
+runtime = 0.2432
+example = "a_number_p7_d4_a3_fermat"
+p = 7
+parameters = {}
+
+[[test]]
+name = "a_number_p7_d5_a0_random_first"
+type = "a_number"
+tags = []
+runtime = 0.2331
+example = "a_number_p7_d5_a0_random_first"
+p = 7
+parameters = {}
+
+[[test]]
+name = "a_number_p7_d5_a2_random_first"
+type = "a_number"
+tags = []
+runtime = 0.3368
+example = "a_number_p7_d5_a2_random_first"
+p = 7
+parameters = {}
+
+[[test]]
+name = "a_number_p7_d5_a3_fermat"
+type = "a_number"
+tags = []
+runtime = 0.2207
+example = "a_number_p7_d5_a3_fermat"
+p = 7
+parameters = {}
