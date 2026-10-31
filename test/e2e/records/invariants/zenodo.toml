@@ -1,0 +1,543 @@
+[[test]]
+name = "zenodo_artin_mazur_height_p3_h7"
+type = "artin_mazur_height"
+tags = []
+runtime = 467.424
+example = "zenodo_22784396_p3_r1999"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p3_h7"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 467.424
+example = "zenodo_22784396_p3_r1999"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p3_h7"
+type = "picard_rank_bound"
+tags = []
+runtime = 467.424
+example = "zenodo_22784396_p3_r1999"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p3_h8"
+type = "artin_mazur_height"
+tags = []
+runtime = 476.193
+example = "zenodo_22784396_p3_r3994"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p3_h8"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 476.193
+example = "zenodo_22784396_p3_r3994"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p3_h8"
+type = "picard_rank_bound"
+tags = []
+runtime = 476.193
+example = "zenodo_22784396_p3_r3994"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p3_h9"
+type = "artin_mazur_height"
+tags = []
+runtime = 492.913
+example = "zenodo_22784396_p3_r1763"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p3_h9"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 492.913
+example = "zenodo_22784396_p3_r1763"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p3_h9"
+type = "picard_rank_bound"
+tags = []
+runtime = 492.913
+example = "zenodo_22784396_p3_r1763"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p3_h10"
+type = "artin_mazur_height"
+tags = []
+runtime = 411.568
+example = "zenodo_22784396_p3_r2307"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p3_h10"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 411.568
+example = "zenodo_22784396_p3_r2307"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p3_h10"
+type = "picard_rank_bound"
+tags = []
+runtime = 411.568
+example = "zenodo_22784396_p3_r2307"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p3_ss"
+type = "artin_mazur_height"
+tags = []
+runtime = 366.543
+example = "zenodo_22784396_p3_r4001"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p3_ss"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 366.543
+example = "zenodo_22784396_p3_r4001"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p3_ss"
+type = "picard_rank_bound"
+tags = []
+runtime = 366.543
+example = "zenodo_22784396_p3_r4001"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p5_h8"
+type = "artin_mazur_height"
+tags = []
+runtime = 130.653
+example = "zenodo_22784396_p5_r172"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p5_h8"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 130.653
+example = "zenodo_22784396_p5_r172"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p5_h8"
+type = "picard_rank_bound"
+tags = []
+runtime = 130.653
+example = "zenodo_22784396_p5_r172"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p5_h9"
+type = "artin_mazur_height"
+tags = []
+runtime = 128.509
+example = "zenodo_22784396_p5_r2"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p5_h9"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 128.509
+example = "zenodo_22784396_p5_r2"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p5_h9"
+type = "picard_rank_bound"
+tags = []
+runtime = 128.509
+example = "zenodo_22784396_p5_r2"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p5_h10"
+type = "artin_mazur_height"
+tags = []
+runtime = 106.332
+example = "zenodo_22784396_p5_r353"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p5_h10"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 106.332
+example = "zenodo_22784396_p5_r353"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p5_h10"
+type = "picard_rank_bound"
+tags = []
+runtime = 106.332
+example = "zenodo_22784396_p5_r353"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p5_ss"
+type = "artin_mazur_height"
+tags = []
+runtime = 104.582
+example = "zenodo_22784396_p5_r76"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p5_ss"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 104.582
+example = "zenodo_22784396_p5_r76"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p5_ss"
+type = "picard_rank_bound"
+tags = []
+runtime = 104.582
+example = "zenodo_22784396_p5_r76"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p7_h7"
+type = "artin_mazur_height"
+tags = []
+runtime = 81.234
+example = "zenodo_22784396_p7_r920"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p7_h7"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 81.234
+example = "zenodo_22784396_p7_r920"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p7_h7"
+type = "picard_rank_bound"
+tags = []
+runtime = 81.234
+example = "zenodo_22784396_p7_r920"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p7_h8"
+type = "artin_mazur_height"
+tags = []
+runtime = 69.074
+example = "zenodo_22784396_p7_r473"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p7_h8"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 69.074
+example = "zenodo_22784396_p7_r473"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p7_h8"
+type = "picard_rank_bound"
+tags = []
+runtime = 69.074
+example = "zenodo_22784396_p7_r473"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p7_h9"
+type = "artin_mazur_height"
+tags = []
+runtime = 80.743
+example = "zenodo_22784396_p7_r501"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p7_h9"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 80.743
+example = "zenodo_22784396_p7_r501"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p7_h9"
+type = "picard_rank_bound"
+tags = []
+runtime = 80.743
+example = "zenodo_22784396_p7_r501"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p7_h10"
+type = "artin_mazur_height"
+tags = []
+runtime = 90.956
+example = "zenodo_22784396_p7_r917"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p7_h10"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 90.956
+example = "zenodo_22784396_p7_r917"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p7_h10"
+type = "picard_rank_bound"
+tags = []
+runtime = 90.956
+example = "zenodo_22784396_p7_r917"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p7_ss"
+type = "artin_mazur_height"
+tags = []
+runtime = 83.076
+example = "zenodo_22784396_p7_r921"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p7_ss"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 83.076
+example = "zenodo_22784396_p7_r921"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p7_ss"
+type = "picard_rank_bound"
+tags = []
+runtime = 83.076
+example = "zenodo_22784396_p7_r921"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p11_h3"
+type = "artin_mazur_height"
+tags = []
+runtime = 117.875
+example = "zenodo_22784396_p11_r244"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p11_h3"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 117.875
+example = "zenodo_22784396_p11_r244"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p11_h3"
+type = "picard_rank_bound"
+tags = []
+runtime = 117.875
+example = "zenodo_22784396_p11_r244"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p11_h4"
+type = "artin_mazur_height"
+tags = []
+runtime = 112.353
+example = "zenodo_22784396_p11_r835"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p11_h4"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 112.353
+example = "zenodo_22784396_p11_r835"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p11_h4"
+type = "picard_rank_bound"
+tags = []
+runtime = 112.353
+example = "zenodo_22784396_p11_r835"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p11_h5"
+type = "artin_mazur_height"
+tags = []
+runtime = 112.347
+example = "zenodo_22784396_p11_r800"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p11_h5"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 112.347
+example = "zenodo_22784396_p11_r800"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p11_h5"
+type = "picard_rank_bound"
+tags = []
+runtime = 112.347
+example = "zenodo_22784396_p11_r800"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p11_h6"
+type = "artin_mazur_height"
+tags = []
+runtime = 117.875
+example = "zenodo_22784396_p11_r836"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p11_h6"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 117.875
+example = "zenodo_22784396_p11_r836"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p11_h6"
+type = "picard_rank_bound"
+tags = []
+runtime = 117.875
+example = "zenodo_22784396_p11_r836"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p13_h3"
+type = "artin_mazur_height"
+tags = []
+runtime = 113.312
+example = "zenodo_22784396_p13_r959"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p13_h3"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 113.312
+example = "zenodo_22784396_p13_r959"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p13_h3"
+type = "picard_rank_bound"
+tags = []
+runtime = 113.312
+example = "zenodo_22784396_p13_r959"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p13_h4"
+type = "artin_mazur_height"
+tags = []
+runtime = 118.508
+example = "zenodo_22784396_p13_r3"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p13_h4"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 118.508
+example = "zenodo_22784396_p13_r3"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p13_h4"
+type = "picard_rank_bound"
+tags = []
+runtime = 118.508
+example = "zenodo_22784396_p13_r3"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_artin_mazur_height_p13_h5"
+type = "artin_mazur_height"
+tags = []
+runtime = 91.275
+example = "zenodo_22784396_p13_r795"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_k3_geometric_picard_rank_p13_h5"
+type = "k3_geometric_picard_rank"
+tags = []
+runtime = 91.275
+example = "zenodo_22784396_p13_r795"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_picard_rank_bound_p13_h5"
+type = "picard_rank_bound"
+tags = []
+runtime = 91.275
+example = "zenodo_22784396_p13_r795"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_zeta_coefficients_p3"
+type = "zeta_coefficients"
+tags = []
+runtime = 366.543
+example = "zenodo_22784396_p3_r4001"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_zeta_coefficients_p5"
+type = "zeta_coefficients"
+tags = []
+runtime = 104.582
+example = "zenodo_22784396_p5_r76"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_zeta_coefficients_p7"
+type = "zeta_coefficients"
+tags = []
+runtime = 69.074
+example = "zenodo_22784396_p7_r473"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_zeta_coefficients_p11"
+type = "zeta_coefficients"
+tags = []
+runtime = 112.347
+example = "zenodo_22784396_p11_r800"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+
+[[test]]
+name = "zenodo_zeta_coefficients_p13"
+type = "zeta_coefficients"
+tags = []
+runtime = 91.275
+example = "zenodo_22784396_p13_r795"
+parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
