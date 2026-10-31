@@ -45,9 +45,6 @@ else
     include("invariants/ArtinInvariant.jl")
     include("invariants/Jacobian.jl")
 
-    # A --name= or --tag=-only invocation runs just matching E2E records.
-    # Bare Pkg.test() and --workflow= runs still execute conventional tests,
-    # E2E harness tests, and quality gates.
     include("e2e/test/runtests.jl")
 
     @testset "E2E" begin
