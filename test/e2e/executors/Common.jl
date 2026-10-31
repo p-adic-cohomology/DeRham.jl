@@ -10,6 +10,7 @@ import ..DeRham
 import ..ExampleCase
 import ..ExecutionRecord
 
+_to_bigint(c::Bool) = error("boolean values are not valid integer coefficients")
 _to_bigint(c::Integer) = BigInt(c)
 _to_bigint(c::AbstractString) = parse(BigInt, c)
 
