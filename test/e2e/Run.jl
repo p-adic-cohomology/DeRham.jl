@@ -75,6 +75,7 @@ function run_selected(
         example = catalogue.examples[record.example]
         executor = EXECUTOR_REGISTRY[record.type]
         F = Common.build_input(example, record)
+        executor.execute(F, record.parameters)
         actual_runtime = @elapsed raw = executor.execute(F, record.parameters)
         actual = executor.normalize(raw)
         passed = executor.compare(expected[record.name], actual)

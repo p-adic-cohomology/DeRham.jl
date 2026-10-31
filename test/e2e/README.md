@@ -1,10 +1,11 @@
 # E2E test catalogue
 
-A declarative, metadata-driven system for DeRham's end-to-end
-`zeta_coefficients` tests. Example data (the mathematical variety plus its
-known-correct zeta function) is separate from execution records (which
-example to run, with which parameters, tagged and timed). `Pkg.test()` runs
-it as part of the conventional test suite; see `test/runtests.jl`.
+A declarative, metadata-driven catalogue for DeRham's end-to-end
+zeta-coefficient and invariant tests. Example data (the mathematical variety
+plus stored `Lpoly` results and optional invariant notes) is separate from
+execution records (which invariant executor to run, with which parameters,
+tags, and runtime). `Pkg.test()` runs the catalogue as part of the conventional
+test suite; see `test/runtests.jl`.
 
 ## Add local JSON example data
 
