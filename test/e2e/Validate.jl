@@ -28,7 +28,7 @@ const PRIMING_CODE_PATH_DEFAULTS = (
 )
 
 function _canonical_priming_option(key::String, value)
-    if key in ("algorithm", "termorder") && value !== nothing
+    if key in ("algorithm", "termorder") && value isa AbstractString
         return String(value)
     end
     return value

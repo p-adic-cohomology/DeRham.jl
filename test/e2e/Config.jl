@@ -29,8 +29,10 @@ function load_config(path::AbstractString)
     allowed_tags = Set{String}(String.(raw["tags"]["allowed"]))
 
     haskey(raw, "priming") || error("$(path): missing [priming] table")
-    haskey(raw["priming"], "records") || error("$(path): priming.records is required")
-    raw_priming_records = raw["priming"]["records"]
+    priming = raw["priming"]
+    priming isa AbstractDict || error("$(path): [priming] must be a table")
+    haskey(priming, "records") || error("$(path): priming.records is required")
+    raw_priming_records = priming["records"]
     raw_priming_records isa AbstractVector ||
         error("$(path): priming.records must be an array of record names")
     all(name -> name isa AbstractString, raw_priming_records) ||
