@@ -73,6 +73,7 @@ function _capture_case_step(stage::AbstractString, f::Function)
     try
         return (value = f(), error_message = nothing)
     catch exception
+        exception isa InterruptException && rethrow()
         return (
             value = nothing,
             error_message = "$(stage): $(sprint(showerror, exception))",
@@ -90,6 +91,7 @@ function _timed_execute(executor, input, parameters::AbstractDict, stage::Abstra
             runtime = (time_ns() - started_at) / 1.0e9,
         )
     catch exception
+        exception isa InterruptException && rethrow()
         runtime = (time_ns() - started_at) / 1.0e9
         return (
             value = nothing,
@@ -153,8 +155,10 @@ function run_selected(
     selected::NamedTuple,
     expected::Dict{String,Any};
     priming_records::Vector{ExecutionRecord} = ExecutionRecord[],
+    capability_available::Function = Common.capability_available,
 )
     primed_names = Set(record.name for record in priming_records)
+    selected_names = Set(record.name for record in selected.records)
     records = vcat(
         priming_records,
         filter(record -> !(record.name in primed_names), selected.records),
@@ -169,11 +173,12 @@ function run_selected(
     outcomes = CaseOutcome[]
     for record in records
         caps = Common.required_capabilities(record)
-        unavailable = [c for c in caps if !Common.capability_available(c)]
+        unavailable = [c for c in caps if !capability_available(c)]
 
         if !isempty(unavailable)
             reason = "requires unavailable capabilities: $(sort(collect(unavailable)))"
-            if selected.broad || record.name in primed_names
+            if selected.broad ||
+               (record.name in primed_names && !(record.name in selected_names))
                 println("[e2e] SKIP $(record.name): $(reason)")
                 push!(
                     outcomes,

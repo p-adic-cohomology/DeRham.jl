@@ -21,6 +21,7 @@ module StubE2EExecutor
     function compare(expected, actual)
         compare_calls[] += 1
         expected == :compare_throw && error("stub comparison failure")
+        expected == :compare_nonboolean && return nothing
         return expected == actual
     end
 end
@@ -257,8 +258,16 @@ end
             Dict{String,Any}("behavior" => behavior),
             "synthetic.toml",
         )
-        records = [record("record_error", "throw"), record("record_pass", "pass")]
-        expected = Dict{String,Any}("record_error" => 7, "record_pass" => 7)
+        records = [
+            record("record_error", "throw"),
+            record("record_nonboolean", "pass"),
+            record("record_pass", "pass"),
+        ]
+        expected = Dict{String,Any}(
+            "record_error" => 7,
+            "record_nonboolean" => :compare_nonboolean,
+            "record_pass" => 7,
+        )
         selected = (records = records, broad = false)
         original_executor = E2E.EXECUTOR_REGISTRY["zeta_coefficients"]
         E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = StubE2EExecutor
@@ -279,16 +288,20 @@ end
             E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = original_executor
         end
 
-        @test count(result -> result isa Test.Fail, isolated_testset.results) == 1
-        isolated_failure = only(filter(result -> result isa Test.Fail, isolated_testset.results))
-        @test occursin("record_error", sprint(show, isolated_failure))
-        @test occursin("stub executor failure", sprint(show, isolated_failure))
-        @test length(outcomes[]) == 2
+        isolated_failures = filter(result -> result isa Test.Fail, isolated_testset.results)
+        @test length(isolated_failures) == 2
+        @test occursin("record_error", sprint(show, isolated_failures[1]))
+        @test occursin("stub executor failure", sprint(show, isolated_failures[1]))
+        @test occursin("record_nonboolean", sprint(show, isolated_failures[2]))
+        @test occursin("comparison returned Nothing; expected Bool", sprint(show, isolated_failures[2]))
+        @test length(outcomes[]) == 3
         @test outcomes[][1].error_message !== nothing
         @test occursin("stub executor failure", outcomes[][1].error_message)
-        @test outcomes[][2].passed
-        @test outcomes[][2].error_message === nothing
-        @test StubE2EExecutor.execute_calls[] == 2
+        @test occursin("comparison returned Nothing; expected Bool", outcomes[][2].error_message)
+        @test outcomes[][3].passed
+        @test outcomes[][3].error_message === nothing
+        @test StubE2EExecutor.execute_calls[] == 3
+        @test StubE2EExecutor.compare_calls[] == 2
 
         normalization_error = E2E.evaluate_case(
             StubE2EExecutor,
@@ -306,6 +319,34 @@ end
         @test occursin("stub normalization failure", normalization_error.error_message)
         @test comparison_error.errored
         @test occursin("stub comparison failure", comparison_error.error_message)
+
+        interrupting_executor = (
+            execute = (input, parameters) -> throw(InterruptException()),
+            normalize = identity,
+            compare = (expected, actual) -> true,
+        )
+        @test_throws InterruptException E2E.evaluate_case(
+            interrupting_executor,
+            nothing,
+            Dict{String,Any}(),
+            7,
+        )
+        @test_throws InterruptException E2E.evaluate_case(
+            (execute = (input, parameters) -> 7,
+             normalize = raw -> throw(InterruptException()),
+             compare = (expected, actual) -> true),
+            nothing,
+            Dict{String,Any}(),
+            7,
+        )
+        @test_throws InterruptException E2E.evaluate_case(
+            (execute = (input, parameters) -> 7,
+             normalize = identity,
+             compare = (expected, actual) -> throw(InterruptException())),
+            nothing,
+            Dict{String,Any}(),
+            7,
+        )
     end
 
     @testset "priming set and configuration coverage" begin
@@ -316,13 +357,14 @@ end
         @test E2E.should_run_priming(E2E.Selection(:tag, "gpu"))
 
         example = E2E.ExampleCase("stub", "synthetic.json", Dict("dim" => 1), Any[], "")
-        catalogue = E2E.ExampleCatalogue(Dict("stub" => example))
-        record(name, runtime, parameters) = E2E.ExecutionRecord(
+        example_dim2 = E2E.ExampleCase("stub_dim2", "synthetic.json", Dict("dim" => 2), Any[], "")
+        catalogue = E2E.ExampleCatalogue(Dict("stub" => example, "stub_dim2" => example_dim2))
+        record(name, runtime, parameters; type = "zeta_coefficients", example = "stub") = E2E.ExecutionRecord(
             name,
-            "zeta_coefficients",
+            type,
             String[],
             runtime,
-            "stub",
+            example,
             nothing,
             parameters,
             "synthetic.toml",
@@ -351,8 +393,71 @@ end
 
         @test E2E.priming_configuration_key(primed, example) ==
               E2E.priming_configuration_key(same_configuration, example)
+        empty_options = record("empty_options", 0.2, Dict{String,Any}())
+        explicit_defaults = record(
+            "explicit_defaults",
+            0.2,
+            Dict{String,Any}(
+                "algorithm" => "default",
+                "fastevaluation" => true,
+                "changef" => true,
+                "always_use_bigints" => false,
+                "use_gpu" => false,
+                "use_threads" => false,
+                "termorder" => "invlex",
+                "k" => nothing,
+            ),
+        )
+        @test E2E.priming_configuration_key(empty_options, example) ==
+              E2E.priming_configuration_key(explicit_defaults, example)
         @test E2E.priming_configuration_key(primed, example) !=
               E2E.priming_configuration_key(uncovered, example)
+
+        for (option, value) in (
+            "algorithm" => "pchunk",
+            "fastevaluation" => false,
+            "changef" => false,
+            "always_use_bigints" => true,
+            "use_gpu" => true,
+            "use_threads" => true,
+            "termorder" => "lex",
+            "k" => 1,
+        )
+            changed = record("changed_$(option)", 0.2, Dict{String,Any}(option => value))
+            @test E2E.priming_configuration_key(changed, example) !=
+                  E2E.priming_configuration_key(primed, example)
+            option_errors = E2E.priming_coverage_errors(
+                catalogue,
+                [primed, changed],
+                config,
+            )
+            @test length(option_errors) == 1
+            @test occursin("changed_$(option)", only(option_errors))
+        end
+
+        different_executor = record(
+            "different_executor",
+            0.2,
+            Dict{String,Any}("algorithm" => "depthfirst"),
+            type = "another_executor",
+        )
+        @test E2E.priming_configuration_key(different_executor, example) !=
+              E2E.priming_configuration_key(primed, example)
+        @test length(
+            E2E.priming_coverage_errors(catalogue, [primed, different_executor], config),
+        ) == 1
+
+        different_dimension = record(
+            "different_dimension",
+            0.2,
+            Dict{String,Any}("algorithm" => "depthfirst"),
+            example = "stub_dim2",
+        )
+        @test E2E.priming_configuration_key(different_dimension, example_dim2) !=
+              E2E.priming_configuration_key(primed, example)
+        @test length(
+            E2E.priming_coverage_errors(catalogue, [primed, different_dimension], config),
+        ) == 1
         @test isempty(E2E.priming_record_errors(["primed"], [primed]))
         @test occursin(
             "unknown",
@@ -434,6 +539,33 @@ end
         finally
             E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = original_executor
         end
+
+        gpu_primer = E2E.ExecutionRecord(
+            "gpu_primer",
+            "zeta_coefficients",
+            ["gpu"],
+            0.1,
+            "stub",
+            7,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+        unavailable = _ -> false
+        @test_throws ErrorException E2E.run_selected(
+            e2e_catalogue,
+            (records = [gpu_primer], broad = false),
+            Dict{String,Any}("gpu_primer" => 7);
+            priming_records = [gpu_primer],
+            capability_available = unavailable,
+        )
+        skipped_primer = E2E.run_selected(
+            e2e_catalogue,
+            (records = E2E.ExecutionRecord[], broad = true),
+            Dict{String,Any}("gpu_primer" => 7);
+            priming_records = [gpu_primer],
+            capability_available = unavailable,
+        )
+        @test only(skipped_primer).skipped
     end
 
     @testset "zeta_coefficients executor validation" begin
