@@ -2,5 +2,30 @@
 presubmit_seconds = 5.0
 ci_seconds = 90.0
 
+[priming]
+records = [
+    "s01__dim_1_deg_3_fermat_1",
+    "fast_eval__dim_1_deg_3_fermat_1",
+    "bigints__dim_1_deg_3_fermat_1",
+    "pchunk__dim_1_deg_3_fermat_1",
+    "varbyvar__dim_1_deg_3_fermat_1",
+    "derived_newton_curve_p7",
+    "derived_point_counts_curve_p7_k2",
+    "a_number_p3_d4_a2_random_first",
+    "s012__dim_2_deg_3_fermat_1",
+    "gpu_s012__dim_2_deg_3_fermat_1",
+    "derived_point_counts_cubic_surface_p11_k2",
+    "derived_picard_bound_cubic_surface_p5",
+    "zenodo_artin_invariant_p5_r32",
+    "derived_k3_realization_k3f3_p3",
+    "derived_newton_k3_p5",
+    "derived_artin_mazur_height_k3f3_p3",
+    "derived_k3_geometric_rank_k3f3_p3",
+    "artifact_k3_small_sparse_p5",
+    "derived_k3_picard_rank_p5_k2",
+    "derived_k3_picard_rank_k3f3_p3_k1",
+    "derived_picard_bound_k3_p5",
+]
+
 [tags]
 allowed = ["gpu", "multithreading", "uint", "bigint", "karatsuba"]

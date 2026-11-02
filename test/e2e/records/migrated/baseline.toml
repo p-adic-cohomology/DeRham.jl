@@ -101,7 +101,7 @@ name = "baseline__vanishing_4"
 type = "zeta_coefficients"
 runtime = 150.0
 example = "vanishing_4"
-parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
+parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_1_deg_5_many_5"
