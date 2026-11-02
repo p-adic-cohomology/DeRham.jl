@@ -150,8 +150,9 @@ execution time; the summary remains informational.
 runs those ordinary records before `ci` and `full` workflows and before
 `--name=` or `--tag=` selections. `presubmit` does not run the priming set. Each
 priming result is checked like any other record, and a priming record that is
-also selected runs only once. Priming records that require unavailable
-capabilities are skipped.
+also selected runs only once. A priming-only record that requires an unavailable
+capability is skipped; when explicitly selected by `--name=`, it follows the
+exact-selection rule above and fails if the capability is unavailable.
 
 Keep the complete priming set under five minutes in one fresh Julia 1.13.2
 process. A validation guard requires a priming record for every configuration

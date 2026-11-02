@@ -6,6 +6,37 @@
 
 using Test
 
+@testset "priming config validation" begin
+    thresholds = "[thresholds]\npresubmit_seconds = 1.0\nci_seconds = 2.0\n"
+    tags = "\n[tags]\nallowed = []\n"
+    valid_prefix = thresholds * tags
+    cases = [
+        (valid_prefix, "missing [priming] table"),
+        ("priming = \"not-a-table\"\n" * valid_prefix, "[priming] must be a table"),
+        (valid_prefix * "\n[priming]\n", "priming.records is required"),
+        (valid_prefix * "\n[priming]\nrecords = \"record\"\n", "must be an array"),
+        (valid_prefix * "\n[priming]\nrecords = [1]\n", "must contain only strings"),
+        (valid_prefix * "\n[priming]\nrecords = [\"\"]\n", "must not contain empty names"),
+        (valid_prefix * "\n[priming]\nrecords = [\"record\", \"record\"]\n", "must not contain duplicate names"),
+    ]
+    mktempdir() do directory
+        config_path = joinpath(directory, "config.toml")
+        for (contents, expected_message) in cases
+            write(config_path, contents)
+            failure = try
+                E2E.load_config(config_path)
+                nothing
+            catch exception
+                exception
+            end
+            @test failure isa ErrorException
+            if failure isa ErrorException
+                @test occursin(expected_message, sprint(showerror, failure))
+            end
+        end
+    end
+end
+
 module StubE2EExecutor
     const execute_calls = Ref(0)
     const compare_calls = Ref(0)
@@ -494,6 +525,38 @@ end
         end
         @test invalid_priming_error isa E2E.CatalogueValidationError
         @test occursin("unknown_priming_record", sprint(showerror, invalid_priming_error))
+
+        source_record = first(filter(record -> record.type == "zeta_coefficients", actual_records))
+        invalid_parameters = copy(source_record.parameters)
+        invalid_parameters["algorithm"] = 1
+        invalid_algorithm_record = E2E.ExecutionRecord(
+            "invalid_algorithm",
+            source_record.type,
+            source_record.tags,
+            source_record.runtime,
+            source_record.example,
+            source_record.p,
+            invalid_parameters,
+            source_record.source_path,
+        )
+        invalid_algorithm_config = E2E.CatalogueConfig(
+            actual_config.presubmit_seconds,
+            actual_config.ci_seconds,
+            actual_config.allowed_tags,
+            ["invalid_algorithm"],
+        )
+        invalid_algorithm_error = try
+            E2E.validate_catalogue(
+                actual_catalogue,
+                [invalid_algorithm_record],
+                invalid_algorithm_config,
+            )
+            nothing
+        catch exception
+            exception
+        end
+        @test invalid_algorithm_error isa E2E.CatalogueValidationError
+        @test occursin("algorithm", sprint(showerror, invalid_algorithm_error))
 
         variety = Dict{String,Any}(
             "coeff_domain" => Dict("kind" => "integer"),
