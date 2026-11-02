@@ -16,6 +16,87 @@ function Base.showerror(io::IO, e::CatalogueValidationError)
     end
 end
 
+const PRIMING_CODE_PATH_DEFAULTS = (
+    "algorithm" => "default",
+    "fastevaluation" => true,
+    "changef" => true,
+    "always_use_bigints" => false,
+    "use_gpu" => false,
+    "use_threads" => false,
+    "termorder" => "invlex",
+    "k" => nothing,
+)
+
+function _canonical_priming_option(key::String, value)
+    if key in ("algorithm", "termorder") && value !== nothing
+        return String(value)
+    end
+    return value
+end
+
+function priming_configuration_key(record::ExecutionRecord, example::ExampleCase)
+    options = Tuple(
+        key => _canonical_priming_option(
+            key,
+            get(record.parameters, key, default),
+        ) for (key, default) in PRIMING_CODE_PATH_DEFAULTS
+    )
+    return (record.type, Int(example.variety["dim"]), options)
+end
+
+function _priming_configuration_label(key)
+    executor, dimension, options = key
+    option_text = join(["$(name)=$(repr(value))" for (name, value) in options], ", ")
+    return "(executor=$(executor), dimension=$(dimension), options={$(option_text)})"
+end
+
+function priming_record_errors(names::Vector{String}, records::Vector{ExecutionRecord})
+    available = Set(record.name for record in records)
+    unknown = sort!(unique([name for name in names if !(name in available)]))
+    isempty(unknown) && return String[]
+    return [
+        "test/e2e/config.toml: priming.records contains unknown record(s): $(join(repr.(unknown), ", "))",
+    ]
+end
+
+function priming_coverage_errors(
+    catalogue::ExampleCatalogue,
+    records::Vector{ExecutionRecord},
+    config::CatalogueConfig,
+)
+    records_by_name = Dict(record.name => record for record in records)
+    primed_configurations = Set{Any}()
+    for name in config.priming_records
+        record = get(records_by_name, name, nothing)
+        record === nothing && continue
+        example = get(catalogue.examples, record.example, nothing)
+        example === nothing && continue
+        push!(primed_configurations, priming_configuration_key(record, example))
+    end
+
+    configurations = Dict{Any,Vector{ExecutionRecord}}()
+    for record in records
+        example = get(catalogue.examples, record.example, nothing)
+        example === nothing && continue
+        key = priming_configuration_key(record, example)
+        push!(get!(configurations, key, ExecutionRecord[]), record)
+    end
+
+    errors = String[]
+    for key in sort!(collect(keys(configurations)); by = repr)
+        cheapest = first(sort(configurations[key]; by = record -> (record.runtime, record.name)))
+        cheapest.runtime < config.ci_seconds || continue
+        key in primed_configurations && continue
+        push!(
+            errors,
+            "$(_priming_configuration_label(key)): cheapest record $(repr(cheapest.name)) " *
+            "has runtime $(cheapest.runtime)s (< ci_seconds=$(config.ci_seconds)); " *
+            "add a priming record to test/e2e/config.toml",
+        )
+    end
+    return errors
+end
+
 # Validates `catalogue` + `records` against `config` and the executor
 # registry. Returns a Dict{String,Any} mapping each execution record's name
 # to its resolved expected value (computed once here, reused at run time),
@@ -115,6 +196,9 @@ function validate_catalogue(
             push!(errors, "$(loc): $(sprint(showerror, e))")
         end
     end
+
+    append!(errors, priming_record_errors(config.priming_records, records))
+    append!(errors, priming_coverage_errors(catalogue, records, config))
 
     isempty(errors) || throw(CatalogueValidationError(errors))
     return expected

@@ -73,7 +73,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 ```
 
 - `name` must be nonempty and globally unique across every record file.
-- `runtime` is the measured warm execution time in seconds, used only for
+- `runtime` is the measured execution time in seconds, used only for
   `--workflow=` membership. Use Julia 1.13.2; update affected records in the
   same change when an implementation change affects their speed.
 - `example` must match an example `id`. If that example has more than one
@@ -140,11 +140,32 @@ a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
 
 Each selected record that is not skipped for an unavailable capability runs
-twice: a warm-up execution followed by a timed execution. The harness
-normalizes both results, checks each against the expected value, and requires
-the two results to match. The `[e2e]` case line reports `first_runtime` and
-`actual_runtime`; the runtime summary compares the declared warm runtime with
-the timed second execution.
+once, timed. The harness normalizes the result and compares it with the
+expected value. The `[e2e]` case line and runtime summary report that measured
+execution time; the summary remains informational.
+
+## Prime compiled code paths
+
+`config.toml` lists the fixed priming set under `[priming].records`. The harness
+runs those ordinary records before `ci` and `full` workflows and before
+`--name=` or `--tag=` selections. `presubmit` does not run the priming set. Each
+priming result is checked like any other record, and a priming record that is
+also selected runs only once. Priming records that require unavailable
+capabilities are skipped.
+
+Keep the complete priming set under five minutes in one fresh Julia 1.13.2
+process. A validation guard requires a priming record for every configuration
+whose cheapest catalogue record has `runtime < ci_seconds`; configurations
+whose records all meet or exceed that threshold are exempt. A configuration
+uses executor type, variety dimension, and the code-path options `algorithm`,
+`fastevaluation`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
+`termorder`, and `k`. `S` is record data and does not split configurations.
+
+When adding a record, check whether it creates a configuration that needs
+priming. Add the shortest suitable existing record for that configuration to
+`config.toml` before running it by name, then confirm the measured priming total
+stays below five minutes. The guard reports the uncovered configuration and
+asks for a priming entry when one is missing.
 
 
 ## Adding an executor
@@ -184,7 +205,7 @@ invariants derived from `Lpoly`. Do not add provenance fields or new example
 file kinds.
 
 Keep short tests on precomputed data in `test/invariants/`. Put longer
-examples computed from the defining polynomial in E2E records, with the warm
+examples computed from the defining polynomial in E2E records, with an accurate
 measured runtime. Run `Pkg.test(test_args=["--name=<record>"])` for each record
 added or changed, plus the prescribed workflow test tier. The end-of-run
 runtime table flags cases whose measured time is more than twice or less than

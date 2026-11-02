@@ -6,6 +6,25 @@
 
 using Test
 
+module StubE2EExecutor
+    const execute_calls = Ref(0)
+    const compare_calls = Ref(0)
+
+    function execute(input, parameters::AbstractDict)
+        execute_calls[] += 1
+        get(parameters, "behavior", "pass") == "throw" && error("stub executor failure")
+        get(parameters, "behavior", "pass") == "normalize" && return :normalize_throw
+        return 7
+    end
+
+    normalize(raw) = raw == :normalize_throw ? error("stub normalization failure") : raw
+    function compare(expected, actual)
+        compare_calls[] += 1
+        expected == :compare_throw && error("stub comparison failure")
+        return expected == actual
+    end
+end
+
 @testset "E2E harness" begin
     @testset "selection" begin
         @test !E2E.record_selector_only(String[])
@@ -58,6 +77,7 @@ using Test
             5.0,
             90.0,
             Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            String[],
         )
         mk(name, runtime; tags = String[]) = E2E.ExecutionRecord(
             name,
@@ -144,14 +164,13 @@ using Test
                 "gpu required",
                 10.0,
                 0.0,
-                0.0,
             ),
         )
 
         io = IOBuffer()
         E2E.print_runtime_summary(
             [
-                E2E.CaseOutcome("slow", true, false, nothing, 1.0, 0.8, 2.1),
+                E2E.CaseOutcome("slow", true, false, nothing, 1.0, 2.1),
                 E2E.CaseOutcome(
                     "gpu_case",
                     false,
@@ -159,6 +178,14 @@ using Test
                     "gpu required",
                     1.0,
                     0.0,
+                ),
+                E2E.CaseOutcome(
+                    "errored",
+                    false,
+                    false,
+                    nothing,
+                    "execution: stub executor failure",
+                    1.0,
                     0.0,
                 ),
             ],
@@ -166,30 +193,247 @@ using Test
         )
         summary = String(take!(io))
         @test occursin("declared (s)", summary)
-        @test occursin("first call (s)", summary)
         @test occursin("measured (s)", summary)
         @test occursin("slow", summary) && occursin("DRIFT", summary)
         @test occursin("gpu_case", summary) && occursin("SKIP", summary)
+        @test occursin("errored", summary) && occursin("ERROR", summary)
     end
 
-    @testset "two-run case checking" begin
+    @testset "single-run case checking" begin
         calls = Ref(0)
+        comparisons = Ref(0)
         executor = (
             execute = (input, parameters) -> begin
                 calls[] += 1
                 calls[]
             end,
             normalize = identity,
-            compare = (expected, actual) -> expected == actual,
+            compare = (expected, actual) -> begin
+                comparisons[] += 1
+                expected == actual
+            end,
         )
         result = E2E.evaluate_case(executor, nothing, Dict{String,Any}(), 1)
-        @test calls[] == 2
-        @test result.first_passed
-        @test !result.actual_passed
-        @test !result.consistent
-        @test !result.passed
-        @test result.first_result == 1
-        @test result.actual_result == 2
+        @test calls[] == 1
+        @test comparisons[] == 1
+        @test result.passed
+        @test result.result == 1
+        @test result.actual_runtime >= 0
+
+        mismatch = E2E.evaluate_case(
+            (execute = (input, parameters) -> 7, normalize = identity, compare = ==),
+            nothing,
+            Dict{String,Any}(),
+            6,
+        )
+        @test !mismatch.passed
+        @test !mismatch.errored
+    end
+
+    @testset "record errors do not stop later records" begin
+        variety = Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => 1,
+            "non_middle_factors" => Dict(
+                "kind" => "projective_lefschetz",
+                "middle_factor_content" => "full",
+            ),
+            "model" => Dict(
+                "kind" => "plane_curve",
+                "vars" => ["x1", "x2", "x3"],
+                "monomials" => [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+                "coeffs" => [1, 1, 1],
+            ),
+        )
+        example = E2E.ExampleCase("stub", "synthetic.json", variety, Any[], "")
+        catalogue = E2E.ExampleCatalogue(Dict("stub" => example))
+        record(name, behavior) = E2E.ExecutionRecord(
+            name,
+            "zeta_coefficients",
+            String[],
+            0.1,
+            "stub",
+            7,
+            Dict{String,Any}("behavior" => behavior),
+            "synthetic.toml",
+        )
+        records = [record("record_error", "throw"), record("record_pass", "pass")]
+        expected = Dict{String,Any}("record_error" => 7, "record_pass" => 7)
+        selected = (records = records, broad = false)
+        original_executor = E2E.EXECUTOR_REGISTRY["zeta_coefficients"]
+        E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = StubE2EExecutor
+        StubE2EExecutor.execute_calls[] = 0
+        StubE2EExecutor.compare_calls[] = 0
+        outcomes = Ref{Any}(nothing)
+        isolated_testset = Test.DefaultTestSet(
+            "isolated E2E record errors";
+            verbose = false,
+            showtiming = false,
+            failfast = false,
+        )
+        try
+            Test.@with_testset isolated_testset begin
+                outcomes[] = E2E.run_selected(catalogue, selected, expected)
+            end
+        finally
+            E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = original_executor
+        end
+
+        @test count(result -> result isa Test.Fail, isolated_testset.results) == 1
+        isolated_failure = only(filter(result -> result isa Test.Fail, isolated_testset.results))
+        @test occursin("record_error", sprint(show, isolated_failure))
+        @test occursin("stub executor failure", sprint(show, isolated_failure))
+        @test length(outcomes[]) == 2
+        @test outcomes[][1].error_message !== nothing
+        @test occursin("stub executor failure", outcomes[][1].error_message)
+        @test outcomes[][2].passed
+        @test outcomes[][2].error_message === nothing
+        @test StubE2EExecutor.execute_calls[] == 2
+
+        normalization_error = E2E.evaluate_case(
+            StubE2EExecutor,
+            nothing,
+            Dict{String,Any}("behavior" => "normalize"),
+            7,
+        )
+        comparison_error = E2E.evaluate_case(
+            StubE2EExecutor,
+            nothing,
+            Dict{String,Any}(),
+            :compare_throw,
+        )
+        @test normalization_error.errored
+        @test occursin("stub normalization failure", normalization_error.error_message)
+        @test comparison_error.errored
+        @test occursin("stub comparison failure", comparison_error.error_message)
+    end
+
+    @testset "priming set and configuration coverage" begin
+        @test !E2E.should_run_priming(E2E.Selection(:workflow, :presubmit))
+        @test E2E.should_run_priming(E2E.Selection(:workflow, :ci))
+        @test E2E.should_run_priming(E2E.Selection(:workflow, :full))
+        @test E2E.should_run_priming(E2E.Selection(:name, "record"))
+        @test E2E.should_run_priming(E2E.Selection(:tag, "gpu"))
+
+        example = E2E.ExampleCase("stub", "synthetic.json", Dict("dim" => 1), Any[], "")
+        catalogue = E2E.ExampleCatalogue(Dict("stub" => example))
+        record(name, runtime, parameters) = E2E.ExecutionRecord(
+            name,
+            "zeta_coefficients",
+            String[],
+            runtime,
+            "stub",
+            nothing,
+            parameters,
+            "synthetic.toml",
+        )
+        primed = record(
+            "primed",
+            0.1,
+            Dict{String,Any}("algorithm" => "depthfirst", "S" => [0, 1]),
+        )
+        same_configuration = record(
+            "same_configuration",
+            0.2,
+            Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2]),
+        )
+        uncovered = record(
+            "uncovered",
+            0.2,
+            Dict{String,Any}("algorithm" => "pchunk"),
+        )
+        threshold_boundary = record(
+            "threshold_boundary",
+            0.25,
+            Dict{String,Any}("algorithm" => "varbyvar"),
+        )
+        config = E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed"])
+
+        @test E2E.priming_configuration_key(primed, example) ==
+              E2E.priming_configuration_key(same_configuration, example)
+        @test E2E.priming_configuration_key(primed, example) !=
+              E2E.priming_configuration_key(uncovered, example)
+        @test isempty(E2E.priming_record_errors(["primed"], [primed]))
+        @test occursin(
+            "unknown",
+            only(E2E.priming_record_errors(["missing"], [primed])),
+        )
+
+        coverage_errors = E2E.priming_coverage_errors(
+            catalogue,
+            [primed, same_configuration, uncovered, threshold_boundary],
+            config,
+        )
+        @test length(coverage_errors) == 1
+        @test occursin("uncovered", only(coverage_errors))
+        @test occursin("add a priming record", only(coverage_errors))
+
+        e2e_root = dirname(@__DIR__)
+        actual_config = E2E.load_config(joinpath(e2e_root, "config.toml"))
+        actual_catalogue = E2E.load_example_catalogue(e2e_root)
+        actual_records = E2E.load_execution_records(e2e_root)
+        @test !isempty(actual_config.priming_records)
+        @test isempty(E2E.priming_record_errors(actual_config.priming_records, actual_records))
+        @test isempty(E2E.priming_coverage_errors(actual_catalogue, actual_records, actual_config))
+        invalid_priming_config = E2E.CatalogueConfig(
+            actual_config.presubmit_seconds,
+            actual_config.ci_seconds,
+            actual_config.allowed_tags,
+            ["unknown_priming_record"],
+        )
+        invalid_priming_error = try
+            E2E.validate_catalogue(actual_catalogue, actual_records, invalid_priming_config)
+            nothing
+        catch error
+            error
+        end
+        @test invalid_priming_error isa E2E.CatalogueValidationError
+        @test occursin("unknown_priming_record", sprint(showerror, invalid_priming_error))
+
+        variety = Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => 1,
+            "non_middle_factors" => Dict(
+                "kind" => "projective_lefschetz",
+                "middle_factor_content" => "full",
+            ),
+            "model" => Dict(
+                "kind" => "plane_curve",
+                "vars" => ["x1", "x2", "x3"],
+                "monomials" => [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+                "coeffs" => [1, 1, 1],
+            ),
+        )
+        e2e_example = E2E.ExampleCase("stub", "synthetic.json", variety, Any[], "")
+        e2e_catalogue = E2E.ExampleCatalogue(Dict("stub" => e2e_example))
+        execution_record(name) = E2E.ExecutionRecord(
+            name,
+            "zeta_coefficients",
+            String[],
+            0.1,
+            "stub",
+            7,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+        primer = execution_record("primer")
+        selected_record = execution_record("selected")
+        original_executor = E2E.EXECUTOR_REGISTRY["zeta_coefficients"]
+        E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = StubE2EExecutor
+        StubE2EExecutor.execute_calls[] = 0
+        try
+            outcomes = E2E.run_selected(
+                e2e_catalogue,
+                (records = [primer, selected_record], broad = false),
+                Dict{String,Any}("primer" => 7, "selected" => 7);
+                priming_records = [primer],
+            )
+            @test [outcome.name for outcome in outcomes] == ["primer", "selected"]
+            @test all(outcome.passed for outcome in outcomes)
+            @test StubE2EExecutor.execute_calls[] == 2
+        finally
+            E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = original_executor
+        end
     end
 
     @testset "zeta_coefficients executor validation" begin
@@ -640,6 +884,7 @@ using Test
             5.0,
             90.0,
             Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            ["a_number_notes"],
         )
         expected = E2E.validate_catalogue(
             E2E.ExampleCatalogue(Dict(valid.id => valid)),
@@ -675,6 +920,7 @@ using Test
             5.0,
             90.0,
             Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            ["r_ok", "r_bad_type"],
         )
         variety = Dict{String,Any}(
             "coeff_domain" => Dict("kind" => "integer"),
@@ -752,6 +998,13 @@ using Test
             ),
         ]
 
+        bad_records_cfg = E2E.CatalogueConfig(
+            5.0,
+            90.0,
+            Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            ["r_bad_type", "r_bad_tag"],
+        )
+
         err = nothing
         try
             E2E.validate_catalogue(catalogue, records, cfg)
@@ -779,7 +1032,7 @@ using Test
         )
         malformed_error = nothing
         try
-            E2E.validate_catalogue(malformed_catalogue, records[2:end], cfg)
+            E2E.validate_catalogue(malformed_catalogue, records[2:end], bad_records_cfg)
             error("expected CatalogueValidationError")
         catch e
             malformed_error = e
@@ -803,7 +1056,7 @@ using Test
             )
             invalid_prime_error = nothing
             try
-                E2E.validate_catalogue(invalid_prime_catalogue, records[2:end], cfg)
+                E2E.validate_catalogue(invalid_prime_catalogue, records[2:end], bad_records_cfg)
                 error("expected CatalogueValidationError")
             catch e
                 invalid_prime_error = e
@@ -819,7 +1072,13 @@ using Test
             @test occursin("r_missing_ref", invalid_prime_joined)
         end
 
-        expected = E2E.validate_catalogue(catalogue, [records[1]], cfg)
+        expected_cfg = E2E.CatalogueConfig(
+            cfg.presubmit_seconds,
+            cfg.ci_seconds,
+            cfg.allowed_tags,
+            ["r_ok"],
+        )
+        expected = E2E.validate_catalogue(catalogue, [records[1]], expected_cfg)
         @test expected["r_ok"] == BigInt[7, 1, 1]
 
         validate_notes(notes) = begin
@@ -840,10 +1099,16 @@ using Test
                 Dict{String,Any}(),
                 "notes.toml",
             )
+            notes_cfg = E2E.CatalogueConfig(
+                cfg.presubmit_seconds,
+                cfg.ci_seconds,
+                cfg.allowed_tags,
+                ["r_notes"],
+            )
             E2E.validate_catalogue(
                 E2E.ExampleCatalogue(Dict("notes" => ex)),
                 [note_record],
-                cfg,
+                notes_cfg,
             )
         end
 
