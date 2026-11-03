@@ -130,7 +130,7 @@ among l=1:6.
 """
 function test_akr_lattice_bound()
     for (p, k) in ((3, 5), (3, 10), (11, 7))
-        power = big(p)^k
+        power = p^k
         @test DeRham._ibm_floor_log(p, power) == k
         @test DeRham._ibm_floor_log(p, power - 1) == k - 1
     end
@@ -138,9 +138,9 @@ function test_akr_lattice_bound()
     @test DeRham.ibm_derham_bound(3, 244, 2) == 9
     for (p, n) in ((2, 1), (2, 4), (3, 2), (5, 5), (101, 3))
         for exponent = 0:4
-            power = BigInt(p)^exponent
+            power = p^exponent
             for i = 1:n, offset = -1:1
-                m = max(BigInt(1), power + i + offset)
+                m = max(1, power + i + offset)
                 @test DeRham.ibm_derham_bound(p, m, n) == _reference_ibm_f0(p, m, n)
             end
         end
@@ -204,15 +204,6 @@ function test_akr_lattice_bound()
     @test (2 * (n2_m + n2_tail_start))^2 <= 2^(n2_tail_start + n2_tail_maximum)
     @test (n2_m + n2_tail_start + 1)^2 < 2 * (n2_m + n2_tail_start)^2
     @test DeRham.ibm_constant(2, n2_m, n2_tail_bounds, 2) == n2_tail_maximum
-
-    too_large = BigInt(typemax(Int)) + 1
-    @test_throws OverflowError DeRham.ibm_derham_bound(2, 1, too_large)
-    @test_throws OverflowError DeRham.ibm_crank_bound(2, too_large, 1)
-    @test_throws OverflowError DeRham.ibm_crank_bound(2, 2, too_large)
-    @test_throws OverflowError DeRham.ibm_lattice_correction(
-        2,
-        2 * (BigInt(typemax(Int)) + 1),
-    )
 
     regression_cases = [
         (2, 3, 6),
