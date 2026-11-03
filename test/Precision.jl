@@ -358,7 +358,7 @@ function test_certified_series_precision()
     @test_throws ArgumentError DeRham.calculate_series_precision(3, 2, [1, -1])
 
     cached_request = [2, 3]
-    cached_key = (BigInt(3), BigInt(2), BigInt(4), (BigInt(2), BigInt(3)))
+    cached_key = (3, 2, 4, (2, 3))
     lock(DeRham._series_precision_table_cache_lock) do
         pop!(DeRham._series_precision_table_cache, cached_key, nothing)
     end

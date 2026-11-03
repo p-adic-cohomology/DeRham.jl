@@ -138,7 +138,7 @@ function reduce_order_n_to_basis(
         final_val = (n-1) - val_ff
     else
         final_val = final_scale
-        val_ff = BigInt(n - 1) - BigInt(final_val)
+        val_ff = n - 1 - final_val
     end
     ff_invertible = ff / p^val_ff
 
@@ -173,15 +173,9 @@ function _frobenius_column_scale_exponents(n, p, N_m, Basis)
         if N == 0
             push!(scale_exponents, 0)
         else
-            factorial_argument = BigInt(p) * (BigInt(e) + BigInt(N) - 1) - 1
+            factorial_argument = p * (e + N - 1) - 1
             factorial_valuation = _ibm_vp_factorial(factorial_argument, p)
-            push!(
-                scale_exponents,
-                _ibm_checked_int(
-                    BigInt(n - 1) - factorial_valuation,
-                    "final scaling exponent",
-                ),
-            )
+            push!(scale_exponents, n - 1 - factorial_valuation)
         end
     end
     scale_exponents

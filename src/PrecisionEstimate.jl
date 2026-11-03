@@ -197,7 +197,7 @@ function _ibm_crank_bound_h(p::Int, n::Int, K::Int; fixed_point::Bool = false)
         end
 
         first_backfill = pm - p + 1
-        for k in first_backfill:pm
+        for k = first_backfill:pm
             backfilled = min(bounds[k], updated)
             if backfilled < bounds[k]
                 bounds[k] = backfilled
@@ -315,11 +315,7 @@ end
 Validates the integer requests used by the certified selector in “Certified
 series precision: proof of the fixed algorithm.”
 """
-function _validate_series_precision_request(
-    p::Integer,
-    n::Integer,
-    r_m::AbstractVector{<:Integer},
-)
+function _validate_series_precision_request(p::Int, n::Int, r_m::AbstractVector{Int})
     p >= 2 || throw(ArgumentError("p must be at least 2"))
     n >= 1 || throw(ArgumentError("n must be positive"))
     length(r_m) == n || throw(ArgumentError("r_m must have length n"))
@@ -336,33 +332,20 @@ end
 Finds the least all-tail cutoff from the integer certificate in “Certified
 series precision: proof of the fixed algorithm.”
 """
-function _ibm_certified_tail_cutoff(
-    p::Integer,
-    n::Integer,
-    m::Integer,
-    r::Integer,
-    correction::Integer,
-)
-    n_int = _ibm_checked_int(n, "n")
-    p_big = BigInt(p)
-    n_big = BigInt(n)
-    m_big = BigInt(m)
-    r_big = BigInt(r)
-    correction_big = BigInt(correction)
-
-    lower = max(BigInt(0), 2 * n_big + 1 - m_big, r_big + correction_big - m_big + 1)
-    upper = max(16 * n_big^2, 2 * (r_big + correction_big + 1), m_big) - m_big
+function _ibm_certified_tail_cutoff(p::Int, n::Int, m::Int, r::Int, correction::Int)
+    lower = max(0, 2 * n + 1 - m, r + correction - m + 1)
+    upper = max(16 * n^2, 2 * (r + correction + 1), m) - m
 
     certified =
         cutoff -> begin
-            exponent = m_big - 1 + cutoff - r_big - correction_big
-            pole_order = m_big + cutoff
-            exponent >= 0 && (p_big * pole_order - 1)^n_int <= p_big^exponent
+            exponent = BigInt(m) - 1 + cutoff - r - correction
+            exponent >= 0 &&
+                (BigInt(p) * (BigInt(m) + cutoff) - 1)^n <= BigInt(p)^exponent
         end
 
     lower <= upper || error("certified tail cutoff upper bound is inconsistent")
     while lower < upper
-        midpoint = div(lower + upper, 2)
+        midpoint = lower + div(upper - lower, 2)
         if certified(midpoint)
             upper = midpoint
         else
@@ -379,36 +362,33 @@ Returns retained-term counts whose omitted Frobenius tails meet every requested
 relative precision. The all-tail certificate and its proof are given in
 “Certified series precision: proof of the fixed algorithm.”
 """
-function calculate_series_precision(p::Integer, n::Integer, r_m::AbstractVector{<:Integer})
+function calculate_series_precision(p::Int, n::Int, r_m::AbstractVector{Int})
     _validate_series_precision_request(p, n, r_m)
-    n_int = _ibm_checked_int(n, "n")
     correction = ibm_lattice_correction(p, n)
-    cutoffs = [_ibm_certified_tail_cutoff(p, n, m, r_m[m], correction) for m = 1:n_int]
+    cutoffs = [_ibm_certified_tail_cutoff(p, n, m, r_m[m], correction) for m = 1:n]
 
-    maximum_pole_order = BigInt(1)
-    p_big = BigInt(p)
-    for m = 1:n_int
+    maximum_pole_order = 1
+    for m = 1:n
         cutoff = cutoffs[m]
         if cutoff > 0
-            maximum_pole_order = max(maximum_pole_order, p_big * (BigInt(m) + cutoff - 1))
+            pole_order = Int(BigInt(p) * (BigInt(m) + cutoff - 1))
+            maximum_pole_order = max(maximum_pole_order, pole_order)
         end
     end
-    bound_length = _ibm_checked_int(maximum_pole_order, "series bound range")
-    bounds = ibm_crank_bound(p, n, bound_length; fixed_point = true)
+    bounds = ibm_crank_bound(p, n, maximum_pole_order; fixed_point = true)
 
-    selected = Vector{Int}(undef, n_int)
-    for m = 1:n_int
-        last_failure = BigInt(-1)
+    selected = Vector{Int}(undef, n)
+    for m = 1:n
+        last_failure = -1
         cutoff = cutoffs[m]
-        for index = BigInt(0):(cutoff-1)
-            pole_index = _ibm_checked_int(p_big * (BigInt(m) + index), "bound index")
-            margin = BigInt(m - 1) + index - bounds[pole_index]
+        for index = 0:(cutoff-1)
+            pole_index = p * (m + index)
+            margin = m - 1 + index - bounds[pole_index]
             if margin < r_m[m]
                 last_failure = index
             end
         end
-        certified_count = max(last_failure + 1, BigInt(n_int - m + 1))
-        selected[m] = _ibm_checked_int(certified_count, "series precision")
+        selected[m] = max(last_failure + 1, n - m + 1)
     end
     selected
 end
@@ -425,7 +405,7 @@ retaining the table as a lower bound. The selector certificate is given in
 “Certified series precision: proof of the fixed algorithm.”
 """
 function _cached_table_series_precision(p, n, d, r_m, table)
-    key = (BigInt(p), BigInt(n), BigInt(d), Tuple(BigInt(request) for request in r_m))
+    key = (p, n, d, Tuple(r_m))
     cached = lock(_series_precision_table_cache_lock) do
         get(_series_precision_table_cache, key, nothing)
     end
