@@ -444,7 +444,7 @@ function cuMod(A::zzModMatrix)
     M = Int(m)
 
     float_A = float_entries(A)
-    CuModMatrix(float_A, M, elem_type = Float64)
+    CuModMatrix{Float64}(float_A, M)
 end
 
 function KaratsubaMat(A::zzModMatrix, A_temp = nothing)
@@ -461,14 +461,14 @@ end
 
 function Karatsuba_copyto!(A_gpu::KaratsubaMatrix, A::Matrix{Float64}, A_temp = nothing)
 
-    temp = CuModMatrix(A, A_gpu.N1*A_gpu.N2, elem_type = Float64)
+    temp = CuModMatrix{Float64}(A, A_gpu.N1*A_gpu.N2)
 
     GPUFiniteFieldMatrices.divide_elements!(A_gpu.data2, temp, A_gpu.N1)
-    GPUFiniteFieldMatrices.mod_elements!(A_gpu.data2, A_gpu.N2)
+    GPUFiniteFieldMatrices.mod_elements!(A_gpu.data2; modulus_override = A_gpu.N2)
 
     LinearAlgebra.mul!(A_gpu.data1, A_gpu.data2, Int(A_gpu.N1))
-    GPUFiniteFieldMatrices.sub!(A_gpu.data1, temp, A_gpu.data1; mod_N = A_gpu.N1)
-    GPUFiniteFieldMatrices.mod_elements!(A_gpu.data1, A_gpu.N1)
+    GPUFiniteFieldMatrices.sub!(A_gpu.data1, temp, A_gpu.data1; modulus_override = A_gpu.N1)
+    GPUFiniteFieldMatrices.mod_elements!(A_gpu.data1; modulus_override = A_gpu.N1)
 
     A_gpu
 end
@@ -839,7 +839,7 @@ function select_Ruv_PEP(n, d, S, params, compute, lazy, oscar_matspace, cache)
                     println("Moving an Ruv to the GPU (first time creation!)")
                     CUDA.@time KaratsubaMatrix.(
                         Float64,
-                        CuModMatrix.(matrices, N1*N2, elem_type = Float64),
+                        CuModMatrix{Float64}.(matrices, N1*N2),
                         N1,
                         N2,
                         N1*N2,
@@ -861,7 +861,7 @@ function select_Ruv_PEP(n, d, S, params, compute, lazy, oscar_matspace, cache)
             create_gpu =
                 matrices -> KaratsubaMatrix.(
                     Float64,
-                    CuModMatrix.(matrices, N1*N2, elem_type = Float64),
+                    CuModMatrix{Float64}.(matrices, N1*N2),
                     N1,
                     N2,
                     N1*N2,
@@ -915,7 +915,7 @@ function select_Ruv_PEP(n, d, S, params, compute, lazy, oscar_matspace, cache)
             create_gpu =
                 matrices -> begin
                     println("Moving an Ruv to the GPU (first time creation!)")
-                    CUDA.@time CuModMatrix.(matrices, M, elem_type = Float64)
+                    CUDA.@time CuModMatrix{Float64}.(matrices, M)
                 end
 
             convert_gpu =
@@ -929,7 +929,7 @@ function select_Ruv_PEP(n, d, S, params, compute, lazy, oscar_matspace, cache)
                     end
                 end
         else
-            create_gpu = matrices -> CuModMatrix.(matrices, M, elem_type = Float64)
+            create_gpu = matrices -> CuModMatrix{Float64}.(matrices, M)
             convert_gpu = (dest, matrices) -> begin
                 for i = 1:length(dest)
                     copyto!(dest[i], matrices[i])
@@ -1013,7 +1013,7 @@ function pregen_select_Ruv_PEP(n, d, S, params, oscar_matspace)
         create_gpu =
             matrices -> KaratsubaMatrix.(
                 Float64,
-                CuModMatrix.(matrices, N1, elem_type = Float64),
+                CuModMatrix{Float64}.(matrices, N1),
                 N1,
                 N2,
                 N1*N2,
@@ -1047,7 +1047,7 @@ function pregen_select_Ruv_PEP(n, d, S, params, oscar_matspace)
         cpu_Ruv = PregenLazyPEP{Matrix{Float64}}(nothing)
         m = M = Int(modulus(base_ring(oscar_matspace)))
 
-        create_gpu = matrices -> CuModMatrix.(matrices, M, elem_type = Float64)
+        create_gpu = matrices -> CuModMatrix{Float64}.(matrices, M)
         convert_gpu = (dest, matrices) -> begin
             for i = 1:length(dest)
                 copyto!(dest[i], matrices[i])
