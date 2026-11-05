@@ -454,17 +454,29 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             @test occursin("changed_$(option)", only(option_errors))
         end
 
+        k_one = record("k_one", 0.2, Dict{String,Any}("k" => 1))
+        k_two = record("k_two", 0.2, Dict{String,Any}("k" => 2))
+        @test E2E.priming_configuration_key(k_one, example) ==
+              E2E.priming_configuration_key(k_two, example)
+        @test isempty(
+            E2E.priming_coverage_errors(
+                catalogue,
+                [k_one, k_two],
+                E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["k_one"]),
+            ),
+        )
+
         different_executor = record(
             "different_executor",
             0.2,
             Dict{String,Any}("algorithm" => "depthfirst"),
             type = "another_executor",
         )
-        @test E2E.priming_configuration_key(different_executor, example) !=
+        @test E2E.priming_configuration_key(different_executor, example) ==
               E2E.priming_configuration_key(primed, example)
-        @test length(
+        @test isempty(
             E2E.priming_coverage_errors(catalogue, [primed, different_executor], config),
-        ) == 1
+        )
 
         different_dimension = record(
             "different_dimension",

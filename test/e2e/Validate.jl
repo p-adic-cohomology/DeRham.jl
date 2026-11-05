@@ -30,6 +30,9 @@ const PRIMING_CODE_PATH_DEFAULTS = (
 function _canonical_priming_option(key::String, value)
     if key in ("algorithm", "termorder") && value isa AbstractString
         return String(value)
+    elseif key == "k" && value isa Integer
+        # `k` changes the iteration bound; its integer type determines specialization.
+        return typeof(value)
     end
     return value
 end
@@ -39,13 +42,13 @@ function priming_configuration_key(record::ExecutionRecord, example::ExampleCase
         key => _canonical_priming_option(key, get(record.parameters, key, default)) for
         (key, default) in PRIMING_CODE_PATH_DEFAULTS
     )
-    return (record.type, Int(example.variety["dim"]), options)
+    return (Int(example.variety["dim"]), options)
 end
 
 function _priming_configuration_label(key)
-    executor, dimension, options = key
+    dimension, options = key
     option_text = join(["$(name)=$(repr(value))" for (name, value) in options], ", ")
-    return "(executor=$(executor), dimension=$(dimension), options={$(option_text)})"
+    return "(dimension=$(dimension), options={$(option_text)})"
 end
 
 function priming_record_errors(names::Vector{String}, records::Vector{ExecutionRecord})

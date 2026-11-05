@@ -158,9 +158,12 @@ Keep the complete priming set under five minutes in one fresh Julia 1.13.2
 process. A validation guard requires a priming record for every configuration
 whose cheapest catalogue record has `runtime < ci_seconds`; configurations
 whose records all meet or exceed that threshold are exempt. A configuration
-uses executor type, variety dimension, and the code-path options `algorithm`,
-`fastevaluation`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
-`termorder`, and `k`. `S` is record data and does not split configurations.
+uses variety dimension and the code-path options `algorithm`, `fastevaluation`,
+`changef`, `always_use_bigints`, `use_gpu`, `use_threads`, `termorder`, and
+`k`. Executors share the compiled pipeline for a dimension and option set, so
+executor type does not split configurations. Integer `k` values are keyed by
+type, so `k=1` and `k=2` share a configuration while an absent `k` remains
+distinct. `S` is record data and does not split configurations.
 
 When adding a record, check whether it creates a configuration that needs
 priming. Add the shortest suitable existing record for that configuration to
