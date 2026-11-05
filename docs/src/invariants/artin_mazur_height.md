@@ -60,10 +60,8 @@ precision contract of the plain matrix, not a per-column ring or metadata.
 For pole order $m$, let $N_m$ be the certified retained-term count,
 $s_m=m+N_m-1$, and $q_m=2-v_p((p s_m-1)!)$. The computation applies the final
 column scale $p^{q_m}$ before embedding all columns into one matrix over a
-common residue ring. The selector and its all-tail proof are documented in
-the [Frobenius matrix precision proof](@ref sec-certified-series-truncation)
-and proved in `dr-ine1` / `dr-eevm.1`. For the quartic request $[1,1,1]$,
-the certified values for the benchmark characteristics are:
+common residue ring. For the quartic request $[1,1,1]$, the certified values for the
+benchmark characteristics are:
 
 | p | N_1, N_2, N_3 | Algorithm precision M | q_1, q_2, q_3 | Common matrix modulus |
 | ---: | ---: | ---: | ---: | ---: |
