@@ -19,110 +19,201 @@ function frobenius_precision(k, q)
     return r
 end
 
-"""
-    impreciselog(p,a)
+function _ibm_floor_log(p::Int, a::Int)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    a >= 1 || throw(ArgumentError("a must be positive"))
 
-log with any base, via the log rules,
-though I think there should be floating point error.
-"""
-impreciselog(p, a) = log(a) / log(p)
+    value = a
+    exponent = 0
+    while value >= p
+        value = div(value, p)
+        exponent += 1
+    end
+    exponent
+end
 
 """
     ibm_derham_bound(p,m,n)
 
-ibm stands for integral basis multiplier
-
-Calculates the smallest integer t such that
-p^t* ω is in the integral latticee of the cohomology,
-for all ω in the griffiths-dwork basis of cohomology.
-Here, `m` is the pole order,
-and the bound we have depends only on p, m, and n.
-
-This is called ϕ in Costa's thesis, and it is
-called f in Abbott-Kedlaya-Roe.
-This method implements theorem 3.4.6 only of
-Abbott-Kedlaya-Roe.
+Returns the exact integer baseline
+`f₀(m) = sum(floor(log_p(max(1, m-i))) for i in 1:n)` from
+Theorem 3.4.6 of Abbott–Kedlaya–Roe. The integer logarithms are computed
+without floating-point arithmetic. The AKR estimate assumes that `p` is prime.
+The result is computed in `Int`.
 """
-function ibm_derham_bound(p, m, n)
+function ibm_derham_bound(p::Int, m::Int, n::Int)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    m >= 1 || throw(ArgumentError("m must be positive"))
+    n >= 1 || throw(ArgumentError("n must be positive"))
 
-    sum = 0
+    total = 0
+    log_value = _ibm_floor_log(p, max(1, m - 1))
+    threshold = 1
+    for _ = 1:log_value
+        threshold *= p
+    end
     for i = 1:n
-        sum += floor(Int, impreciselog(p, max(1, m-i)))
+        value = max(1, m - i)
+        while value < threshold
+            threshold = div(threshold, p)
+            log_value -= 1
+        end
+        total += log_value
     end
+    total
+end
 
-    sum
-    #floor(Int,(n)*impreciselog(p,m))
+function _ibm_vp_factorial(n::Int, p::Int)
+    n >= 0 || throw(ArgumentError("factorial valuation requires n ≥ 0"))
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+
+    quotient = n
+    result = 0
+    while quotient > 0
+        quotient = div(quotient, p)
+        result += quotient
+    end
+    result
+end
+
+function _ibm_binomial_valuation(n::Int, k::Int, p::Int)
+    0 <= k <= n || throw(ArgumentError("invalid binomial arguments"))
+    _ibm_vp_factorial(n, p) - _ibm_vp_factorial(k, p) - _ibm_vp_factorial(n - k, p)
 end
 
 """
-    ibm_constant(p,m,ibm_bound)
+    ibm_lattice_correction(p, n)
 
-Calcuates the `N` in theorem 3.4.9 of Abbott-Kedlaya-Roe
+Returns the conservative correction from the AKR H-lattice bound to the
+coordinate lattice V bound, `v_p((n-1)!)` when `p < n`, and zero otherwise.
+The AKR correction assumes that `p` is prime.
 """
-function ibm_constant(p, m, ibm_bound)
-    g(m, i) = valuation(binomial(-m, i), p)
-
-    NN(l) = ibm_bound[(m+l)*p] - l - g(m, l)
-
-    l = 1
-    N = NN(1)
-    while 0 < NN(l)
-        N = max(N, NN(l))
-        l += 1
-    end
-    #verbose && println("In AKR notation, f((m+l)p) - l - g(m,l) < 0 at l = $l")
-
-    N
+function ibm_lattice_correction(p::Int, n::Int)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    n >= 1 || throw(ArgumentError("n must be positive"))
+    p >= n && return 0
+    _ibm_vp_factorial(n - 1, p)
 end
 
 """
-This algoritm gives the same
-output as algorithm 3.4.10 of AKR,
-even though it technically isn't the same.
+    ibm_constant(p, m, ibm_bound, n)
 
-Unlike that algorithm, we don't actually append to an array,
-we simply update elements.
+Computes the exact supremum of `A((m+l)p) - l - v_p(binomial(m+l-1,l))`
+over all `l ≥ 1`, where `A` is the stored upper bound and is `f₀` outside the
+stored range. Here `p` is prime. The tail ends only after the all-l certificate
+`(p(m+L)-1)^n ≤ p^(L+S)` holds, with `L ≥ 2`, `m+L ≥ 2n+1`, and `L+S ≥ 0`;
+the certificate bounds every term for `l ≥ L` by the maximum `S` already seen.
+"""
+function ibm_constant(p::Int, m::Int, ibm_bound::AbstractVector{Int}, n::Int)
+    _ibm_constant(p, m, ibm_bound, n, false)
+end
 
 """
-function ibm_crank_bound(p, n, M)
-    nChunks = ceil(Int, M/p)
-    nBounds = nChunks * p
-    bounds = ibm_derham_bound.(p, 1:(nBounds*p^2), n)
+    _ibm_constant(p, m, ibm_bound, n, stored_capped_by_f0)
 
-    for m = 1:nChunks
-        c = 1
-        while true
-            N = ibm_constant(p, m, bounds)
-            if N ≤ n - 1 + bounds[m]
-                if n - 1 + bounds[m] ≤ bounds[p*m]
-                    bounds[p*m] = n - 1 + bounds[m]
-                end
-                break
-            elseif bounds[p*m] ≤ N
-                if bounds[p*m] < N
-                    #println("original bound is better than N!")
-                end
-                break
-            else
-                # go another round!
-                bounds[p*m] = N
-                #println("go another round!")
-            end
-            #println("finished crank number $c")
+Shared implementation of `ibm_constant`. When `stored_capped_by_f0` is `false`,
+the stored terms from the certificate threshold `L` through the end of the
+stored range are also included, so the result is the exact supremum for an
+arbitrary stored vector. When it is `true`, the caller guarantees
+`ibm_bound[k] ≤ f₀(k)` for every stored `k`. Each stored term with `l ≥ L` is
+then at most the corresponding `f₀` term, which the certificate already bounds
+by the returned maximum, so that scan cannot change the result and is omitted.
+`_ibm_crank_bound_h` satisfies the guarantee because its bounds start at `f₀`
+and are only ever replaced by minima.
+The prefix maximum is updated at every `L`, while the expensive tail certificate
+is checked at exponentially spaced checkpoints; intervening candidate terms are
+still included in the maximum.
+"""
+function _ibm_constant(
+    p::Int,
+    m::Int,
+    ibm_bound::AbstractVector{Int},
+    n::Int,
+    stored_capped_by_f0::Bool,
+)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    m >= 1 || throw(ArgumentError("m must be positive"))
+    n >= 1 || throw(ArgumentError("n must be positive"))
+
+    stored_length = length(ibm_bound)
+
+    function bound_at(index::Int)
+        if index <= stored_length
+            return ibm_bound[index]
         end
-
-        # update the elements before
-        for k = ((p*m)-p+1):(p*m)
-            if bounds[m*p] < bounds[k]
-                bounds[k] = bounds[m*p]
-            end
-        end
-
+        ibm_derham_bound(p, index, n)
     end
 
-    #all(bounds .<= ibm_derham_bound.(p,1:nBounds*p^2,n)) || error("assertion failure")
+    function nn(l::Int)
+        index = (m + l) * p
+        g = _ibm_binomial_valuation(m + l - 1, l, p)
+        bound_at(index) - l - g
+    end
 
-    bounds[1:nBounds]
+    best = nn(1)
+    L = 2
+    next_certificate_check = 2
+    while true
+        if BigInt(m) + L >= 2 * BigInt(n) + 1 &&
+           BigInt(L) + best >= 0 &&
+           L >= next_certificate_check &&
+           (BigInt(p) * (BigInt(m) + L) - 1)^n <= BigInt(p)^(BigInt(L) + best)
+            if !stored_capped_by_f0
+                last_stored_l = div(stored_length, p) - m
+                for stored_l = L:last_stored_l
+                    best = max(best, nn(stored_l))
+                end
+            end
+            return best
+        end
+        if BigInt(m) + L >= 2 * BigInt(n) + 1 &&
+           BigInt(L) + best >= 0 &&
+           L >= next_certificate_check
+            next_certificate_check = 2 * L
+        end
+        best = max(best, nn(L))
+        L += 1
+    end
+end
+
+function _ibm_crank_bound_h(p::Int, n::Int, K::Int)
+    p >= 2 || throw(ArgumentError("p must be at least 2"))
+    n >= 1 || throw(ArgumentError("n must be positive"))
+    K >= 1 || throw(ArgumentError("K must be positive"))
+
+    bounds = [ibm_derham_bound(p, k, n) for k = 1:K]
+    m_max = div(K, p)
+
+    for m = 1:m_max
+        pm = p * m
+        N = _ibm_constant(p, m, bounds, n, true)
+        base = n - 1 + bounds[m]
+        updated = min(bounds[pm], max(base, N))
+        bounds[pm] = updated
+
+        first_backfill = pm - p + 1
+        for k = first_backfill:pm
+            bounds[k] = min(bounds[k], updated)
+        end
+    end
+
+    bounds
+end
+
+"""
+    ibm_crank_bound(p, n, K)
+
+Returns a single-pass certified upper bound on the coordinate lattice V for
+pole orders `1:K`, where `K` is the exact stored range. The one-pass H-lattice
+bound is pointwise at most `f₀`; the return values add
+`ibm_lattice_correction(p,n)`. No equality with the fully converged AKR bound
+or minimality is asserted. The AKR bound assumes that `p` is prime. During the
+pass, requests outside `1:K` use exact `f₀` values, rather than padded storage.
+"""
+function ibm_crank_bound(p::Int, n::Int, K::Int)
+    h_bound = _ibm_crank_bound_h(p, n, K)
+    correction = ibm_lattice_correction(p, n)
+    [value + correction for value in h_bound]
 end
 
 """

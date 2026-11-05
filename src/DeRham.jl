@@ -165,6 +165,7 @@ public fermat_hypersurface,
     SlopesPolygon,
     tate_twist,
     tate_untwist,
-    normalized_tate_twist
+    normalized_tate_twist,
+    ibm_lattice_correction
 
 end

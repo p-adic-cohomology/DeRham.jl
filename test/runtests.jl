@@ -30,6 +30,10 @@ include("Precision.jl")
         test_max_auto_precision_without_default_table()
     end
 
+    @testset "AKR lattice bound" begin
+        test_akr_lattice_bound()
+    end
+
 end
 
 include("TateTwist.jl")
