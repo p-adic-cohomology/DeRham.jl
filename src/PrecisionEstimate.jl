@@ -312,8 +312,7 @@ end
 """
     _validate_series_precision_request(p, n, r_m)
 
-Validates the integer requests used by the certified selector in “Certified
-series precision: proof of the fixed algorithm.”
+Validates the integer requests used by the certified selector.
 """
 function _validate_series_precision_request(p::Int, n::Int, r_m::AbstractVector{Int})
     p >= 2 || throw(ArgumentError("p must be at least 2"))
@@ -329,8 +328,7 @@ end
 """
     _ibm_certified_tail_cutoff(p, n, m, r, correction)
 
-Finds the least all-tail cutoff from the integer certificate in “Certified
-series precision: proof of the fixed algorithm.”
+Finds the least all-tail cutoff.
 """
 function _ibm_certified_tail_cutoff(p::Int, n::Int, m::Int, r::Int, correction::Int)
     lower = max(0, 2 * n + 1 - m, r + correction - m + 1)
@@ -359,8 +357,7 @@ end
     calculate_series_precision(p, n, r_m)
 
 Returns retained-term counts whose omitted Frobenius tails meet every requested
-relative precision. The all-tail certificate and its proof are given in
-“Certified series precision: proof of the fixed algorithm.”
+relative precision.
 """
 function calculate_series_precision(p::Int, n::Int, r_m::AbstractVector{Int})
     _validate_series_precision_request(p, n, r_m)
@@ -401,8 +398,7 @@ const _series_precision_table_cache_limit = 64
     _cached_table_series_precision(p, n, d, r_m, table)
 
 Caches the certified selector result for repeated table-backed requests, while
-retaining the table as a lower bound. The selector certificate is given in
-“Certified series precision: proof of the fixed algorithm.”
+retaining the table as a lower bound.
 """
 function _cached_table_series_precision(p, n, d, r_m, table)
     key = (p, n, d, Tuple(r_m))
@@ -429,8 +425,7 @@ end
 """
     series_precision(p, n, d, r_m; use_default_table=true)
 
-Uses the certified selector from “Certified series precision: proof of the fixed
-algorithm,” while retaining any existing table value as a lower bound.
+Retains any existing table value as a lower bound.
 """
 function series_precision(p, n, d, r_m; use_default_table = true)
     use_default_table || return calculate_series_precision(p, n, r_m)

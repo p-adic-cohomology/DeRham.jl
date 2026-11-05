@@ -12,8 +12,7 @@ base-ring modulus.
 
 Returns an ``h \\times h`` matrix over ``\\mathbb{F}_p``. When `FM` comes from
 `frobenius_matrix_with_precision`, its relative precision request should be
-`[1, 0]` or stronger. The matrix-level method assumes this precision contract;
-see the [precision contract](@ref sec-certified-series-truncation).
+`[1, 0]` or stronger. The matrix-level method assumes this precision contract.
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 

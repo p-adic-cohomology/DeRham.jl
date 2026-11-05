@@ -18,7 +18,7 @@ for its cohomology basis and forwarding the remaining keyword arguments to
 rejects the polynomial as non-smooth.
 
 The matrix method requires a 21×21 Frobenius matrix computed with relative
-precision request `[0, 1, 2]` in the chosen pole-order basis. That request
+precision at least `[0, 1, 2]` in the chosen pole-order basis. That request
 provides the precision needed by the columns used in this computation. The
 matrix-level method assumes this contract and does not carry or check precision
 metadata. Its first column must be divisible by ``p²`` in the chosen pole-order

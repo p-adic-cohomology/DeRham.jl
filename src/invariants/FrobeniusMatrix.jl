@@ -7,9 +7,6 @@ Compute the Frobenius matrix for the smooth hypersurface defined by ``f`` to
 the requested relative ``p``-adic precision ``r``. The scalar request is applied
 to every Hodge-filtered piece. The returned matrix meets at least this relative
 precision for each piece; an existing automatic table floor can provide more.
-The finite-tail certificate is documented in the
-[Frobenius matrix precision proof](@ref sec-certified-series-truncation), based
-on the full proof report, “Certified series precision: proof of the fixed algorithm.”
 Unless `basis` is supplied,
 the matrix is expressed in the internal cohomology basis computed by
 `get_basis_of_cohomology(f)`;
@@ -59,17 +56,12 @@ end
 Vector-precision overload of [`frobenius_matrix_with_precision`](@ref).
 `r_m` gives one requested relative ``p``-adic precision for each
 Hodge-filtered piece and must have the length required by the selected basis.
-The returned matrix meets at least these relative precisions, using the
-certificate in the
-[Frobenius matrix precision proof](@ref sec-certified-series-truncation); an
-existing automatic table floor can provide more. An all-zero request returns the Hodge-bound zero matrix; zero
-requests require `p ≥ nvars(parent(f)) - 1`. The matrix is expressed in that
-basis, which defaults to DeRham's internal
+The returned matrix meets at least these relative precisions; an existing
+automatic table floor can provide more. An all-zero request returns the
+Hodge-bound zero matrix; zero requests require `p ≥ nvars(parent(f)) - 1`. The
+matrix is expressed in that basis, which defaults to DeRham's internal
 `get_basis_of_cohomology(f)` basis. Additional keywords are forwarded to
 [`zeta_coefficients`](@ref).
-
-Returns an ordinary Oscar matrix. See the Frobenius matrix documentation for
-the precision contract of its columns.
 
 - `f`: homogeneous polynomial defining the hypersurface.
 - `r_m`: vector of requested relative precisions, one per Hodge-filtered piece.

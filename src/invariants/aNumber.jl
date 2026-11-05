@@ -4,14 +4,10 @@
 For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
 matrix ``H``: ``h - \\operatorname{rank}(H)``.
 
-- `FM`: Frobenius matrix computed with relative precision request `[1, 0]` or stronger.
+- `FM`: Frobenius matrix computed with relative precision request `[1, 0]` or larger.
 - `h`: genus of the curve.
 
 Returns the curve's a-number as an integer.
-
-When `FM` comes from `frobenius_matrix_with_precision`, its relative precision
-request should be `[1, 0]` or stronger. The matrix-level method assumes this
-precision contract; see the [precision contract](@ref sec-certified-series-truncation).
 
 If you already have a Frobenius matrix, pass it with the curve's genus:
 
