@@ -4,7 +4,7 @@
 For a smooth curve, returns the dimension of the kernel of its Hasse-Witt
 matrix ``H``: ``h - \\operatorname{rank}(H)``.
 
-- `FM`: Frobenius matrix computed at relative precision 1.
+- `FM`: Frobenius matrix computed with relative precision request `[1, 0]` or larger.
 - `h`: genus of the curve.
 
 Returns the curve's a-number as an integer.
@@ -20,7 +20,7 @@ julia> DeRham.a_number(FM, 1)
 1
 ```
 """
-function a_number(FM::MatElem, h::Integer)
+function a_number(FM::Union{MatElem,AbstractMatrix}, h::Integer)
     return h - rank(hasse_witt_matrix(FM, h))
 end
 
@@ -68,7 +68,8 @@ function a_number(f::MPolyRingElem; verbose = 0, kwargs...)
     g = hodge_numbers[1]
 
     FM =
-        frobenius_matrix_with_precision(f, r_m, basis = basis, verbose = verbose, kwargs...)
+        frobenius_matrix_with_precision(f, r_m; basis = basis, verbose = verbose, kwargs...)
+    FM === false && return false
 
     a_number(FM, g)
 end

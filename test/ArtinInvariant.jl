@@ -25,17 +25,19 @@
         _, (x, y, z, w) = polynomial_ring(GF(p), ["x", "y", "z", "w"])
         fermat = x^4 + y^4 + z^4 + w^4
         F = DeRham.frobenius_matrix_with_precision(fermat, [0, 1, 2])
-
         @test F !== false
+        @test F isa MatElem
         @test size(F) == (21, 21)
         @test DeRham.artin_invariant(F) == 1
+        F_array = [F[row, column] for row in axes(F, 1), column in axes(F, 2)]
+        @test DeRham.artin_invariant(F_array) == 1
 
         @test_throws AssertionError DeRham.artin_invariant(
-            matrix(base_ring(F), zeros(Int, 20, 21)),
+            matrix(parent(F[1, 1]), zeros(Int, 20, 21)),
         )
 
         F_bad_first_column = deepcopy(F)
-        F_bad_first_column[1, 1] = one(base_ring(F_bad_first_column))
+        F_bad_first_column[1, 1] = one(parent(F_bad_first_column[1, 1]))
         @test_throws AssertionError DeRham.artin_invariant(F_bad_first_column)
 
         R3, _ = residue_ring(ZZ, p)
