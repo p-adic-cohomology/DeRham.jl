@@ -12,7 +12,8 @@ const INVARIANT_NAME = "artin_invariant"
 const EXPECTED_SOURCE = :notes
 
 function validate_parameters(name::AbstractString, params::AbstractDict)
-    isempty(params) || error("execution record $(repr(name)): artin_invariant accepts no parameters")
+    isempty(params) ||
+        error("execution record $(repr(name)): artin_invariant accepts no parameters")
     return nothing
 end
 
@@ -55,7 +56,8 @@ function execute(f, params::AbstractDict)
 end
 
 function normalize(raw)
-    raw isa Integer && !(raw isa Bool) || error("artin_invariant returned a non-integer value")
+    raw isa Integer && !(raw isa Bool) ||
+        error("artin_invariant returned a non-integer value")
     return Int(raw)
 end
 

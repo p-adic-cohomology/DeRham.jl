@@ -17,7 +17,10 @@ using Test
         (valid_prefix * "\n[priming]\nrecords = \"record\"\n", "must be an array"),
         (valid_prefix * "\n[priming]\nrecords = [1]\n", "must contain only strings"),
         (valid_prefix * "\n[priming]\nrecords = [\"\"]\n", "must not contain empty names"),
-        (valid_prefix * "\n[priming]\nrecords = [\"record\", \"record\"]\n", "must not contain duplicate names"),
+        (
+            valid_prefix * "\n[priming]\nrecords = [\"record\", \"record\"]\n",
+            "must not contain duplicate names",
+        ),
     ]
     mktempdir() do directory
         config_path = joinpath(directory, "config.toml")
@@ -38,24 +41,32 @@ using Test
 end
 
 module StubE2EExecutor
-    const execute_calls = Ref(0)
-    const compare_calls = Ref(0)
+const execute_calls = Ref(0)
+const compare_calls = Ref(0)
 
-    function execute(input, parameters::AbstractDict)
-        execute_calls[] += 1
-        get(parameters, "behavior", "pass") == "throw" && error("stub executor failure")
-        get(parameters, "behavior", "pass") == "normalize" && return :normalize_throw
-        return 7
-    end
-
-    normalize(raw) = raw == :normalize_throw ? error("stub normalization failure") : raw
-    function compare(expected, actual)
-        compare_calls[] += 1
-        expected == :compare_throw && error("stub comparison failure")
-        expected == :compare_nonboolean && return nothing
-        return expected == actual
-    end
+function execute(input, parameters::AbstractDict)
+    execute_calls[] += 1
+    get(parameters, "behavior", "pass") == "throw" && error("stub executor failure")
+    get(parameters, "behavior", "pass") == "normalize" && return :normalize_throw
+    return 7
 end
+
+normalize(raw) = raw == :normalize_throw ? error("stub normalization failure") : raw
+function compare(expected, actual)
+    compare_calls[] += 1
+    expected == :compare_throw && error("stub comparison failure")
+    expected == :compare_nonboolean && return nothing
+    return expected == actual
+end
+end
+
+struct IsolatedE2ETestSet <: Test.AbstractTestSet
+    results::Vector{Any}
+end
+
+IsolatedE2ETestSet(::AbstractString; kwargs...) = IsolatedE2ETestSet(Any[])
+Test.record(testset::IsolatedE2ETestSet, result) = push!(testset.results, result)
+Test.finish(testset::IsolatedE2ETestSet) = testset
 
 @testset "E2E harness" begin
     @testset "selection" begin
@@ -153,10 +164,8 @@ end
             ci_config,
             E2E.Selection(:workflow, :full),
         )
-        @test [record.name for record in slowest_zenodo_ci.records] ==
-              ["zenodo_p7_slowest"]
-        @test [record.name for record in slowest_zenodo_full.records] ==
-              ["zenodo_p7_slowest"]
+        @test [record.name for record in slowest_zenodo_ci.records] == ["zenodo_p7_slowest"]
+        @test [record.name for record in slowest_zenodo_full.records] == ["zenodo_p7_slowest"]
 
         name_sel = E2E.select_records(recs, cfg, E2E.Selection(:name, "slow"))
         @test length(name_sel.records) == 1 && name_sel.records[1].name == "slow"
@@ -189,28 +198,14 @@ end
         @test E2E.runtime_drift(10.0, 20.1)
         @test E2E.runtime_drift(0.0, 0.1)
         @test !E2E.runtime_drift(
-            E2E.CaseOutcome(
-                "skip",
-                false,
-                true,
-                "gpu required",
-                10.0,
-                0.0,
-            ),
+            E2E.CaseOutcome("skip", false, true, "gpu required", 10.0, 0.0),
         )
 
         io = IOBuffer()
         E2E.print_runtime_summary(
             [
                 E2E.CaseOutcome("slow", true, false, nothing, 1.0, 2.1),
-                E2E.CaseOutcome(
-                    "gpu_case",
-                    false,
-                    true,
-                    "gpu required",
-                    1.0,
-                    0.0,
-                ),
+                E2E.CaseOutcome("gpu_case", false, true, "gpu required", 1.0, 0.0),
                 E2E.CaseOutcome(
                     "errored",
                     false,
@@ -305,14 +300,8 @@ end
         StubE2EExecutor.execute_calls[] = 0
         StubE2EExecutor.compare_calls[] = 0
         outcomes = Ref{Any}(nothing)
-        isolated_testset = Test.DefaultTestSet(
-            "isolated E2E record errors";
-            verbose = false,
-            showtiming = false,
-            failfast = false,
-        )
-        try
-            Test.@with_testset isolated_testset begin
+        isolated_testset = try
+            Test.@testset IsolatedE2ETestSet "isolated E2E record errors" begin
                 outcomes[] = E2E.run_selected(catalogue, selected, expected)
             end
         finally
@@ -324,11 +313,17 @@ end
         @test occursin("record_error", sprint(show, isolated_failures[1]))
         @test occursin("stub executor failure", sprint(show, isolated_failures[1]))
         @test occursin("record_nonboolean", sprint(show, isolated_failures[2]))
-        @test occursin("comparison returned Nothing; expected Bool", sprint(show, isolated_failures[2]))
+        @test occursin(
+            "comparison returned Nothing; expected Bool",
+            sprint(show, isolated_failures[2]),
+        )
         @test length(outcomes[]) == 3
         @test outcomes[][1].error_message !== nothing
         @test occursin("stub executor failure", outcomes[][1].error_message)
-        @test occursin("comparison returned Nothing; expected Bool", outcomes[][2].error_message)
+        @test occursin(
+            "comparison returned Nothing; expected Bool",
+            outcomes[][2].error_message,
+        )
         @test outcomes[][3].passed
         @test outcomes[][3].error_message === nothing
         @test StubE2EExecutor.execute_calls[] == 3
@@ -340,12 +335,8 @@ end
             Dict{String,Any}("behavior" => "normalize"),
             7,
         )
-        comparison_error = E2E.evaluate_case(
-            StubE2EExecutor,
-            nothing,
-            Dict{String,Any}(),
-            :compare_throw,
-        )
+        comparison_error =
+            E2E.evaluate_case(StubE2EExecutor, nothing, Dict{String,Any}(), :compare_throw)
         @test normalization_error.errored
         @test occursin("stub normalization failure", normalization_error.error_message)
         @test comparison_error.errored
@@ -363,17 +354,21 @@ end
             7,
         )
         @test_throws InterruptException E2E.evaluate_case(
-            (execute = (input, parameters) -> 7,
-             normalize = raw -> throw(InterruptException()),
-             compare = (expected, actual) -> true),
+            (
+                execute = (input, parameters) -> 7,
+                normalize = raw -> throw(InterruptException()),
+                compare = (expected, actual) -> true,
+            ),
             nothing,
             Dict{String,Any}(),
             7,
         )
         @test_throws InterruptException E2E.evaluate_case(
-            (execute = (input, parameters) -> 7,
-             normalize = identity,
-             compare = (expected, actual) -> throw(InterruptException())),
+            (
+                execute = (input, parameters) -> 7,
+                normalize = identity,
+                compare = (expected, actual) -> throw(InterruptException()),
+            ),
             nothing,
             Dict{String,Any}(),
             7,
@@ -388,18 +383,21 @@ end
         @test E2E.should_run_priming(E2E.Selection(:tag, "gpu"))
 
         example = E2E.ExampleCase("stub", "synthetic.json", Dict("dim" => 1), Any[], "")
-        example_dim2 = E2E.ExampleCase("stub_dim2", "synthetic.json", Dict("dim" => 2), Any[], "")
-        catalogue = E2E.ExampleCatalogue(Dict("stub" => example, "stub_dim2" => example_dim2))
-        record(name, runtime, parameters; type = "zeta_coefficients", example = "stub") = E2E.ExecutionRecord(
-            name,
-            type,
-            String[],
-            runtime,
-            example,
-            nothing,
-            parameters,
-            "synthetic.toml",
-        )
+        example_dim2 =
+            E2E.ExampleCase("stub_dim2", "synthetic.json", Dict("dim" => 2), Any[], "")
+        catalogue =
+            E2E.ExampleCatalogue(Dict("stub" => example, "stub_dim2" => example_dim2))
+        record(name, runtime, parameters; type = "zeta_coefficients", example = "stub") =
+            E2E.ExecutionRecord(
+                name,
+                type,
+                String[],
+                runtime,
+                example,
+                nothing,
+                parameters,
+                "synthetic.toml",
+            )
         primed = record(
             "primed",
             0.1,
@@ -410,16 +408,9 @@ end
             0.2,
             Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2]),
         )
-        uncovered = record(
-            "uncovered",
-            0.2,
-            Dict{String,Any}("algorithm" => "pchunk"),
-        )
-        threshold_boundary = record(
-            "threshold_boundary",
-            0.25,
-            Dict{String,Any}("algorithm" => "varbyvar"),
-        )
+        uncovered = record("uncovered", 0.2, Dict{String,Any}("algorithm" => "pchunk"))
+        threshold_boundary =
+            record("threshold_boundary", 0.25, Dict{String,Any}("algorithm" => "varbyvar"))
         config = E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed"])
 
         @test E2E.priming_configuration_key(primed, example) ==
@@ -457,11 +448,8 @@ end
             changed = record("changed_$(option)", 0.2, Dict{String,Any}(option => value))
             @test E2E.priming_configuration_key(changed, example) !=
                   E2E.priming_configuration_key(primed, example)
-            option_errors = E2E.priming_coverage_errors(
-                catalogue,
-                [primed, changed],
-                config,
-            )
+            option_errors =
+                E2E.priming_coverage_errors(catalogue, [primed, changed], config)
             @test length(option_errors) == 1
             @test occursin("changed_$(option)", only(option_errors))
         end
@@ -490,10 +478,7 @@ end
             E2E.priming_coverage_errors(catalogue, [primed, different_dimension], config),
         ) == 1
         @test isempty(E2E.priming_record_errors(["primed"], [primed]))
-        @test occursin(
-            "unknown",
-            only(E2E.priming_record_errors(["missing"], [primed])),
-        )
+        @test occursin("unknown", only(E2E.priming_record_errors(["missing"], [primed])))
 
         coverage_errors = E2E.priming_coverage_errors(
             catalogue,
@@ -509,8 +494,12 @@ end
         actual_catalogue = E2E.load_example_catalogue(e2e_root)
         actual_records = E2E.load_execution_records(e2e_root)
         @test !isempty(actual_config.priming_records)
-        @test isempty(E2E.priming_record_errors(actual_config.priming_records, actual_records))
-        @test isempty(E2E.priming_coverage_errors(actual_catalogue, actual_records, actual_config))
+        @test isempty(
+            E2E.priming_record_errors(actual_config.priming_records, actual_records),
+        )
+        @test isempty(
+            E2E.priming_coverage_errors(actual_catalogue, actual_records, actual_config),
+        )
         invalid_priming_config = E2E.CatalogueConfig(
             actual_config.presubmit_seconds,
             actual_config.ci_seconds,
@@ -526,7 +515,8 @@ end
         @test invalid_priming_error isa E2E.CatalogueValidationError
         @test occursin("unknown_priming_record", sprint(showerror, invalid_priming_error))
 
-        source_record = first(filter(record -> record.type == "zeta_coefficients", actual_records))
+        source_record =
+            first(filter(record -> record.type == "zeta_coefficients", actual_records))
         invalid_parameters = copy(source_record.parameters)
         invalid_parameters["algorithm"] = 1
         invalid_algorithm_record = E2E.ExecutionRecord(
@@ -789,7 +779,10 @@ end
     @testset "shared executor parameter validation" begin
         validate = E2E.Common.validate_common_parameters
         @test isnothing(
-            validate("shared", Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2])),
+            validate(
+                "shared",
+                Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2]),
+            ),
         )
         @test_throws r"unknown parameter" validate(
             "shared",
@@ -1251,7 +1244,11 @@ end
             )
             invalid_prime_error = nothing
             try
-                E2E.validate_catalogue(invalid_prime_catalogue, records[2:end], bad_records_cfg)
+                E2E.validate_catalogue(
+                    invalid_prime_catalogue,
+                    records[2:end],
+                    bad_records_cfg,
+                )
                 error("expected CatalogueValidationError")
             catch e
                 invalid_prime_error = e
@@ -1413,17 +1410,11 @@ end
             record,
         )
         @test_throws r"must be in 1:10" executor.expected(
-            with_notes(
-                sigma_case,
-                "derham-invariants: {\"5\":{\"artin_invariant\":0}}",
-            ),
+            with_notes(sigma_case, "derham-invariants: {\"5\":{\"artin_invariant\":0}}"),
             record,
         )
         @test_throws r"must be in 1:10" executor.expected(
-            with_notes(
-                sigma_case,
-                "derham-invariants: {\"5\":{\"artin_invariant\":11}}",
-            ),
+            with_notes(sigma_case, "derham-invariants: {\"5\":{\"artin_invariant\":11}}"),
             record,
         )
     end

@@ -44,10 +44,10 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
             error("execution record $(repr(name)): unknown parameter $(repr(key))")
     end
     if haskey(params, "algorithm")
-        params["algorithm"] isa AbstractString && params["algorithm"] in COMMON_ALGORITHMS ||
-            error(
-                "execution record $(repr(name)): unknown algorithm $(repr(get(params, "algorithm", nothing)))",
-            )
+        params["algorithm"] isa AbstractString &&
+        params["algorithm"] in COMMON_ALGORITHMS || error(
+            "execution record $(repr(name)): unknown algorithm $(repr(get(params, "algorithm", nothing)))",
+        )
     end
     if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
         error("execution record $(repr(name)): termorder must be a string")
@@ -59,7 +59,9 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
     end
     for key in COMMON_BOOLEAN_PARAMETERS
         if haskey(params, key) && !(params[key] isa Bool)
-            error("execution record $(repr(name)): parameter $(repr(key)) must be a boolean")
+            error(
+                "execution record $(repr(name)): parameter $(repr(key)) must be a boolean",
+            )
         end
     end
     if haskey(params, "S")

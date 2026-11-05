@@ -36,10 +36,8 @@ end
 
 function priming_configuration_key(record::ExecutionRecord, example::ExampleCase)
     options = Tuple(
-        key => _canonical_priming_option(
-            key,
-            get(record.parameters, key, default),
-        ) for (key, default) in PRIMING_CODE_PATH_DEFAULTS
+        key => _canonical_priming_option(key, get(record.parameters, key, default)) for
+        (key, default) in PRIMING_CODE_PATH_DEFAULTS
     )
     return (record.type, Int(example.variety["dim"]), options)
 end
@@ -84,7 +82,8 @@ function priming_coverage_errors(
 
     errors = String[]
     for key in sort!(collect(keys(configurations)); by = repr)
-        cheapest = first(sort(configurations[key]; by = record -> (record.runtime, record.name)))
+        cheapest =
+            first(sort(configurations[key]; by = record -> (record.runtime, record.name)))
         cheapest.runtime < config.ci_seconds || continue
         key in primed_configurations && continue
         push!(

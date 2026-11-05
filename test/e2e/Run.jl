@@ -37,14 +37,7 @@ runtime_drift(outcome::CaseOutcome) =
 
 function print_runtime_summary(outcomes::AbstractVector{CaseOutcome}, io::IO = stdout)
     println(io, "[e2e] runtime summary")
-    @printf(
-        io,
-        "%-52s %12s %12s %s\n",
-        "record",
-        "declared (s)",
-        "measured (s)",
-        "flag",
-    )
+    @printf(io, "%-52s %12s %12s %s\n", "record", "declared (s)", "measured (s)", "flag",)
     for outcome in outcomes
         flag = if outcome.skipped
             "SKIP"
@@ -125,19 +118,13 @@ function evaluate_case(executor, input, parameters::AbstractDict, expected_value
     execution.error_message === nothing ||
         return _case_error(execution.error_message, execution.runtime)
 
-    normalization = _capture_case_step(
-        "normalization",
-        () -> executor.normalize(execution.value),
-    )
+    normalization =
+        _capture_case_step("normalization", () -> executor.normalize(execution.value))
     normalization.error_message === nothing ||
         return _case_error(normalization.error_message, execution.runtime)
 
-    comparison = _comparison_result(
-        executor,
-        expected_value,
-        normalization.value,
-        "comparison",
-    )
+    comparison =
+        _comparison_result(executor, expected_value, normalization.value, "comparison")
     comparison.error_message === nothing ||
         return _case_error(comparison.error_message, execution.runtime)
 
@@ -165,7 +152,8 @@ function run_selected(
     )
 
     estimated_total = isempty(records) ? 0.0 : sum(r.runtime for r in records)
-    isempty(priming_records) || println("[e2e] priming set: $(length(priming_records)) record(s)")
+    isempty(priming_records) ||
+        println("[e2e] priming set: $(length(priming_records)) record(s)")
     println(
         "[e2e] selected $(length(selected.records)) case(s), running $(length(records)) record(s), estimated total runtime $(round(estimated_total, digits = 3))s",
     )
@@ -182,14 +170,7 @@ function run_selected(
                 println("[e2e] SKIP $(record.name): $(reason)")
                 push!(
                     outcomes,
-                    CaseOutcome(
-                        record.name,
-                        false,
-                        true,
-                        reason,
-                        record.runtime,
-                        0.0,
-                    ),
+                    CaseOutcome(record.name, false, true, reason, record.runtime, 0.0),
                 )
                 continue
             else
@@ -202,9 +183,10 @@ function run_selected(
         F = Common.build_input(example, record)
         result = evaluate_case(executor, F, record.parameters, expected[record.name])
         status = result.errored ? "ERROR" : result.passed ? "PASS" : "FAIL"
-        line = "[e2e] $(status) $(record.name)  " *
-               "expected_runtime=$(record.runtime)s " *
-               "actual_runtime=$(round(result.actual_runtime, digits = 3))s"
+        line =
+            "[e2e] $(status) $(record.name)  " *
+            "expected_runtime=$(record.runtime)s " *
+            "actual_runtime=$(round(result.actual_runtime, digits = 3))s"
         if result.errored
             line *= "  $(result.error_message)"
         end
