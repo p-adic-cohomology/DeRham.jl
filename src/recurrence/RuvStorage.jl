@@ -253,3 +253,93 @@ function select_Ruv_PEP(n, d, S, params, compute, lazy, oscar_matspace, cache)
 
     Ruv
 end
+
+function pregen_select_Ruv_PEP(n, d, S, params, oscar_matspace)
+
+    m = Integer(modulus(base_ring(oscar_matspace)))
+
+    if 3 < n && d == 3 && S == [n] && params.use_gpu && (ZZ(2)^25 < m < ZZ(2)^106) #4 < n
+
+        cpu_Ruv = PregenLazyPEP{Matrix{Float64}}(nothing)
+        m = M = Int(modulus(base_ring(oscar_matspace)))
+        temp = collect(factor(m))[1]
+        d = temp[2]
+        p = temp[1]
+
+        N1 = Int(p)^Int(round(d/2))
+        N2 = Int(p)^Int(d - round(d/2))
+
+        create_gpu =
+            matrices -> KaratsubaMatrix.(
+                Float64,
+                CuModMatrix.(matrices, N1, elem_type = Float64),
+                N1,
+                N2,
+                N1*N2,
+            )
+        convert_gpu = (dest, matrices) -> begin
+            for i = 1:length(dest)
+                copyto!(dest[i], matrices[i])
+            end
+        end
+        s = size(oscar_matspace(), 1)
+
+        memory_cap = totalmem(CUDA.device())#4_500_000_000 # about 6 gigabytes of gpu memory
+        # 8 bytes per float64, n+2 matrices, s^2 entries per matrix
+        memory = s^2 * 8 * (n+2)
+
+        maxsize = div(memory_cap, memory)
+
+        #println(maxsize)
+        #testing
+        #maxsize = 13
+
+        Ruv = CachePEP{Matrix{Float64},KaratsubaMatrix{Float64}}(
+            cpu_Ruv,
+            create_gpu,
+            convert_gpu,
+            maxsize,
+        )
+
+    elseif 3 < n && d == 3 && S == [n] && params.use_gpu #4 < n
+
+        cpu_Ruv = PregenLazyPEP{Matrix{Float64}}(nothing)
+        m = M = Int(modulus(base_ring(oscar_matspace)))
+
+        create_gpu = matrices -> CuModMatrix.(matrices, M, elem_type = Float64)
+        convert_gpu = (dest, matrices) -> begin
+            for i = 1:length(dest)
+                copyto!(dest[i], matrices[i])
+            end
+        end
+        s = size(oscar_matspace(), 1)
+
+        memory_cap = totalmem(CUDA.device())#4_500_000_000 # about 6 gigabytes of gpu memory
+        # 8 bytes per float64, n+2 matrices, s^2 entries per matrix
+        memory = s^2 * 8 * (n+2)
+
+        maxsize = div(memory_cap, memory)
+
+        #println(maxsize)
+        #testing
+        #maxsize = 13
+
+        Ruv = CachePEP{Matrix{Float64},CuModMatrix{Float64}}(
+            cpu_Ruv,
+            create_gpu,
+            convert_gpu,
+            maxsize,
+        )
+
+        #(1 < params.verbose) && println("Initial cache info: $(cache_info(Ruv.Ucomponent))")
+
+    elseif params.use_gpu && (ZZ(2)^25 < m < ZZ(2)^106)
+        Ruv = PregenLazyPEP{KaratsubaMatrix{Float64}}(nothing)
+    elseif params.use_gpu
+        Ruv = PregenLazyPEP{CuModMatrix{Float64}}(nothing)
+    else
+        Ruv = PregenLazyPEP{typeof(oscar_matspace())}(nothing)
+    end
+
+    Ruv
+end
