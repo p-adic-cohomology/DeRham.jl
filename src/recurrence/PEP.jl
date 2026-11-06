@@ -285,39 +285,6 @@ function Base.getindex(P::LFUDACachePEP, V::Vector{Int})
 end
 
 """
-PregenLazyPEP{T}
-
-This isn't documented yet, but presumably it allows for pregeneration
-"""
-mutable struct PregenLazyPEP{T} <: AbstractPEP{T}
-    Vs::Vector{Vector{Int}}
-    Ucomponent::Dict{Vector{Int},Vector{T}}
-    compute::Union{Function,Nothing}
-
-    function PregenLazyPEP{T}(compute; Vs = Vector{Vector{Int}}()) where {T}
-        Ucomponent = Dict{Vector{Int},Vector{T}}()
-        new{T}(Vs, Ucomponent, compute)
-    end
-end
-
-allpoints(P::PregenLazyPEP) = P.Vs
-allcomponents(P::PregenLazyPEP) = P.Ucomponent
-
-function Base.getindex(P::PregenLazyPEP, V::Vector{Int})
-    if haskey(P.Ucomponent, V)
-        return P.Ucomponent[V]
-    end
-
-    coeffs = P.compute(V)
-
-    push!(P.Vs, V)
-    P.Ucomponent[V] = coeffs
-
-    return coeffs
-end
-
-
-"""
 A LRULazyPEP{T} is a PEP with coefficients of type T.
 
 It computes each entry the first time it gets accessed, like a LazyPEP.

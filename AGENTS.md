@@ -59,6 +59,7 @@ precision for each stage.
 
 Files at the top of `src/` (options, utilities, L-polynomial reconstruction,
 slope polygons, example polynomials, the K3/𝔽₃ wrapper) do not belong to one
-component yet. `src/unused/` is not loaded. `NemoDerivedWrappers.jl` (BSD-2-Clause)
+component yet. Unused historical source files have been removed.
+`NemoDerivedWrappers.jl` (BSD-2-Clause)
 and `SeriesPrecisionDefaults.jl` (GPL) carry their own license headers; do not
 merge other code into them.

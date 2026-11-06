@@ -3,35 +3,6 @@
 #using Oscar
 
 """
-A polynomial with (a) pole is mathematically
-an element of k[x_1, ..., x_n]_f, the localization
-of the polynomial right at an element f.
-For us, f is predetermined.
-
-Such an element is determined by the order of the pole
-and the numerator, i.e. a polynomial.
-
-Right now, this is modeled in our code by
-arrays of length 2.
-The first term is an oscar polynomial and
-the second is an integer, the pole order.
-
-Another common type is an array of polynomials
-with pole, ordered by pole order.
-
-I suspect in the future we may change this to
-an array of tuples or a custom struct.
-If/when that happens, hopefully all of the necessary
-changes will be in this file.
-
-NOTE: these typealiases aren't used anywhere yet,
-it mostly exists so that this docstring can exist
-right now.
-"""
-const PolyWithPole = Array{Any}
-const PolysWithPole = Array{Array{Any}}
-
-"""
 gets all of the terms of polpol,
 including their pole information
 
