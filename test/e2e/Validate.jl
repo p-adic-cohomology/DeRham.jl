@@ -31,7 +31,6 @@ function _canonical_priming_option(key::String, value)
     if key in ("algorithm", "termorder") && value isa AbstractString
         return String(value)
     elseif key == "k" && value isa Integer
-        # `k` changes the iteration bound; its integer type determines specialization.
         return typeof(value)
     end
     return value
