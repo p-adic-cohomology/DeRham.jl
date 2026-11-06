@@ -6,8 +6,104 @@
 
 using Test
 
+@testset "priming config validation" begin
+    thresholds = "[thresholds]\npresubmit_seconds = 1.0\nci_seconds = 2.0\n"
+    tags = "\n[tags]\nallowed = []\n"
+    valid_prefix = thresholds * tags
+    cases = [
+        (valid_prefix, "missing [priming] table"),
+        ("priming = \"not-a-table\"\n" * valid_prefix, "[priming] must be a table"),
+        (valid_prefix * "\n[priming]\n", "priming.records is required"),
+        (valid_prefix * "\n[priming]\nrecords = \"record\"\n", "must be an array"),
+        (valid_prefix * "\n[priming]\nrecords = [1]\n", "must contain only strings"),
+        (valid_prefix * "\n[priming]\nrecords = [\"\"]\n", "must not contain empty names"),
+        (
+            valid_prefix * "\n[priming]\nrecords = [\"record\", \"record\"]\n",
+            "must not contain duplicate names",
+        ),
+    ]
+    mktempdir() do directory
+        config_path = joinpath(directory, "config.toml")
+        for (contents, expected_message) in cases
+            write(config_path, contents)
+            failure = try
+                E2E.load_config(config_path)
+                nothing
+            catch exception
+                exception
+            end
+            @test failure isa ErrorException
+            if failure isa ErrorException
+                @test occursin(expected_message, sprint(showerror, failure))
+            end
+        end
+    end
+end
+
+module StubE2EExecutor
+const execute_calls = Ref(0)
+const compare_calls = Ref(0)
+
+function execute(input, parameters::AbstractDict)
+    execute_calls[] += 1
+    get(parameters, "behavior", "pass") == "throw" && error("stub executor failure")
+    get(parameters, "behavior", "pass") == "normalize" && return :normalize_throw
+    return 7
+end
+
+normalize(raw) = raw == :normalize_throw ? error("stub normalization failure") : raw
+function compare(expected, actual)
+    compare_calls[] += 1
+    expected == :compare_throw && error("stub comparison failure")
+    expected == :compare_nonboolean && return nothing
+    return expected == actual
+end
+end
+
+struct IsolatedE2ETestSet <: Test.AbstractTestSet
+    results::Vector{Any}
+end
+
+IsolatedE2ETestSet(::AbstractString; kwargs...) = IsolatedE2ETestSet(Any[])
+Test.record(testset::IsolatedE2ETestSet, result) = push!(testset.results, result)
+Test.finish(testset::IsolatedE2ETestSet) = testset
+
 @testset "E2E harness" begin
     @testset "selection" begin
+        @test !E2E.record_selector_only(String[])
+        @test E2E.record_selector_only(["--name=foo"])
+        @test E2E.record_selector_only(["--tag=gpu"])
+        @test !E2E.record_selector_only(["--workflow=ci"])
+        @test !E2E.record_selector_only(["--bogus=1"])
+        @test E2E.test_entrypoint_route(["--name=foo"]) == :record_only
+        @test E2E.test_entrypoint_route(["--tag=gpu"]) == :record_only
+        @test E2E.test_entrypoint_route(["--workflow=ci"]) == :full_suite
+        @test E2E.test_entrypoint_route(String[]) == :full_suite
+
+        for args in (["--name=foo"], ["--tag=gpu"])
+            record_calls = Vector{String}[]
+            full_suite_calls = Ref(0)
+            E2E.dispatch_test_entrypoint(
+                args,
+                selected_args -> push!(record_calls, collect(selected_args)),
+                () -> (full_suite_calls[] += 1),
+            )
+            @test record_calls == [args]
+            @test full_suite_calls[] == 0
+        end
+
+        for args in (["--workflow=ci"], String[])
+            record_calls = Vector{String}[]
+            full_suite_calls = Ref(0)
+            E2E.dispatch_test_entrypoint(
+                args,
+                selected_args -> push!(record_calls, collect(selected_args)),
+                () -> (full_suite_calls[] += 1),
+            )
+            @test isempty(record_calls)
+            @test full_suite_calls[] == 1
+        end
+
         @test E2E.parse_selection(String[]) == E2E.Selection(:workflow, :ci)
         @test E2E.parse_selection(["--workflow=presubmit"]) ==
               E2E.Selection(:workflow, :presubmit)
@@ -24,6 +120,7 @@ using Test
             5.0,
             90.0,
             Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            String[],
         )
         mk(name, runtime; tags = String[]) = E2E.ExecutionRecord(
             name,
@@ -55,6 +152,21 @@ using Test
         @test full_names == Set(["fast", "mid", "slow", "gpuslow"])
         @test presubmit.broad && ci.broad && full.broad
 
+        ci_config = E2E.load_config(joinpath(@__DIR__, "..", "config.toml"))
+        slowest_zenodo_ci_record = mk("zenodo_p7_slowest", 69.074)
+        slowest_zenodo_ci = E2E.select_records(
+            [slowest_zenodo_ci_record],
+            ci_config,
+            E2E.Selection(:workflow, :ci),
+        )
+        slowest_zenodo_full = E2E.select_records(
+            [slowest_zenodo_ci_record],
+            ci_config,
+            E2E.Selection(:workflow, :full),
+        )
+        @test [record.name for record in slowest_zenodo_ci.records] == ["zenodo_p7_slowest"]
+        @test [record.name for record in slowest_zenodo_full.records] == ["zenodo_p7_slowest"]
+
         name_sel = E2E.select_records(recs, cfg, E2E.Selection(:name, "slow"))
         @test length(name_sel.records) == 1 && name_sel.records[1].name == "slow"
         @test !name_sel.broad
@@ -79,15 +191,462 @@ using Test
         )
     end
 
-    @testset "zeta_coefficients executor validation" begin
-        exec = E2E.ZetaCoefficientsExecutor
+    @testset "runtime summary" begin
+        @test !E2E.runtime_drift(10.0, 5.0)
+        @test !E2E.runtime_drift(10.0, 20.0)
+        @test E2E.runtime_drift(10.0, 4.9)
+        @test E2E.runtime_drift(10.0, 20.1)
+        @test E2E.runtime_drift(0.0, 0.1)
+        @test !E2E.runtime_drift(
+            E2E.CaseOutcome("skip", false, true, "gpu required", 10.0, 0.0),
+        )
 
-        good_variety(kind = "plane_curve", vars = ["x1", "x2", "x3"]) = Dict{String,Any}(
+        io = IOBuffer()
+        E2E.print_runtime_summary(
+            [
+                E2E.CaseOutcome("slow", true, false, nothing, 1.0, 2.1),
+                E2E.CaseOutcome("gpu_case", false, true, "gpu required", 1.0, 0.0),
+                E2E.CaseOutcome(
+                    "errored",
+                    false,
+                    false,
+                    nothing,
+                    "execution: stub executor failure",
+                    1.0,
+                    0.0,
+                ),
+            ],
+            io,
+        )
+        summary = String(take!(io))
+        @test occursin("declared (s)", summary)
+        @test occursin("measured (s)", summary)
+        @test occursin("slow", summary) && occursin("DRIFT", summary)
+        @test occursin("gpu_case", summary) && occursin("SKIP", summary)
+        @test occursin("errored", summary) && occursin("ERROR", summary)
+    end
+
+    @testset "single-run case checking" begin
+        calls = Ref(0)
+        comparisons = Ref(0)
+        executor = (
+            execute = (input, parameters) -> begin
+                calls[] += 1
+                calls[]
+            end,
+            normalize = identity,
+            compare = (expected, actual) -> begin
+                comparisons[] += 1
+                expected == actual
+            end,
+        )
+        result = E2E.evaluate_case(executor, nothing, Dict{String,Any}(), 1)
+        @test calls[] == 1
+        @test comparisons[] == 1
+        @test result.passed
+        @test result.result == 1
+        @test result.actual_runtime >= 0
+
+        mismatch = E2E.evaluate_case(
+            (execute = (input, parameters) -> 7, normalize = identity, compare = ==),
+            nothing,
+            Dict{String,Any}(),
+            6,
+        )
+        @test !mismatch.passed
+        @test !mismatch.errored
+    end
+
+    @testset "record errors do not stop later records" begin
+        variety = Dict{String,Any}(
             "coeff_domain" => Dict("kind" => "integer"),
             "dim" => 1,
             "non_middle_factors" => Dict(
                 "kind" => "projective_lefschetz",
                 "middle_factor_content" => "full",
+            ),
+            "model" => Dict(
+                "kind" => "plane_curve",
+                "vars" => ["x1", "x2", "x3"],
+                "monomials" => [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+                "coeffs" => [1, 1, 1],
+            ),
+        )
+        example = E2E.ExampleCase("stub", "synthetic.json", variety, Any[], "")
+        catalogue = E2E.ExampleCatalogue(Dict("stub" => example))
+        record(name, behavior) = E2E.ExecutionRecord(
+            name,
+            "zeta_coefficients",
+            String[],
+            0.1,
+            "stub",
+            7,
+            Dict{String,Any}("behavior" => behavior),
+            "synthetic.toml",
+        )
+        records = [
+            record("record_error", "throw"),
+            record("record_nonboolean", "pass"),
+            record("record_pass", "pass"),
+        ]
+        expected = Dict{String,Any}(
+            "record_error" => 7,
+            "record_nonboolean" => :compare_nonboolean,
+            "record_pass" => 7,
+        )
+        selected = (records = records, broad = false)
+        original_executor = E2E.EXECUTOR_REGISTRY["zeta_coefficients"]
+        E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = StubE2EExecutor
+        StubE2EExecutor.execute_calls[] = 0
+        StubE2EExecutor.compare_calls[] = 0
+        outcomes = Ref{Any}(nothing)
+        isolated_testset = try
+            Test.@testset IsolatedE2ETestSet "isolated E2E record errors" begin
+                outcomes[] = E2E.run_selected(catalogue, selected, expected)
+            end
+        finally
+            E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = original_executor
+        end
+
+        isolated_failures = filter(result -> result isa Test.Fail, isolated_testset.results)
+        @test length(isolated_failures) == 2
+        @test occursin("record_error", sprint(show, isolated_failures[1]))
+        @test occursin("stub executor failure", sprint(show, isolated_failures[1]))
+        @test occursin("record_nonboolean", sprint(show, isolated_failures[2]))
+        @test occursin(
+            "comparison returned Nothing; expected Bool",
+            sprint(show, isolated_failures[2]),
+        )
+        @test length(outcomes[]) == 3
+        @test outcomes[][1].error_message !== nothing
+        @test occursin("stub executor failure", outcomes[][1].error_message)
+        @test occursin(
+            "comparison returned Nothing; expected Bool",
+            outcomes[][2].error_message,
+        )
+        @test outcomes[][3].passed
+        @test outcomes[][3].error_message === nothing
+        @test StubE2EExecutor.execute_calls[] == 3
+        @test StubE2EExecutor.compare_calls[] == 2
+
+        normalization_error = E2E.evaluate_case(
+            StubE2EExecutor,
+            nothing,
+            Dict{String,Any}("behavior" => "normalize"),
+            7,
+        )
+        comparison_error =
+            E2E.evaluate_case(StubE2EExecutor, nothing, Dict{String,Any}(), :compare_throw)
+        @test normalization_error.errored
+        @test occursin("stub normalization failure", normalization_error.error_message)
+        @test comparison_error.errored
+        @test occursin("stub comparison failure", comparison_error.error_message)
+
+        interrupting_executor = (
+            execute = (input, parameters) -> throw(InterruptException()),
+            normalize = identity,
+            compare = (expected, actual) -> true,
+        )
+        @test_throws InterruptException E2E.evaluate_case(
+            interrupting_executor,
+            nothing,
+            Dict{String,Any}(),
+            7,
+        )
+        @test_throws InterruptException E2E.evaluate_case(
+            (
+                execute = (input, parameters) -> 7,
+                normalize = raw -> throw(InterruptException()),
+                compare = (expected, actual) -> true,
+            ),
+            nothing,
+            Dict{String,Any}(),
+            7,
+        )
+        @test_throws InterruptException E2E.evaluate_case(
+            (
+                execute = (input, parameters) -> 7,
+                normalize = identity,
+                compare = (expected, actual) -> throw(InterruptException()),
+            ),
+            nothing,
+            Dict{String,Any}(),
+            7,
+        )
+    end
+
+    @testset "priming set and configuration coverage" begin
+        @test !E2E.should_run_priming(E2E.Selection(:workflow, :presubmit))
+        @test E2E.should_run_priming(E2E.Selection(:workflow, :ci))
+        @test E2E.should_run_priming(E2E.Selection(:workflow, :full))
+        @test E2E.should_run_priming(E2E.Selection(:name, "record"))
+        @test E2E.should_run_priming(E2E.Selection(:tag, "gpu"))
+
+        example = E2E.ExampleCase("stub", "synthetic.json", Dict("dim" => 1), Any[], "")
+        example_dim2 =
+            E2E.ExampleCase("stub_dim2", "synthetic.json", Dict("dim" => 2), Any[], "")
+        catalogue =
+            E2E.ExampleCatalogue(Dict("stub" => example, "stub_dim2" => example_dim2))
+        record(name, runtime, parameters; type = "zeta_coefficients", example = "stub") =
+            E2E.ExecutionRecord(
+                name,
+                type,
+                String[],
+                runtime,
+                example,
+                nothing,
+                parameters,
+                "synthetic.toml",
+            )
+        primed = record(
+            "primed",
+            0.1,
+            Dict{String,Any}("algorithm" => "depthfirst", "S" => [0, 1]),
+        )
+        same_configuration = record(
+            "same_configuration",
+            0.2,
+            Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2]),
+        )
+        uncovered = record("uncovered", 0.2, Dict{String,Any}("algorithm" => "pchunk"))
+        threshold_boundary =
+            record("threshold_boundary", 0.25, Dict{String,Any}("algorithm" => "varbyvar"))
+        config = E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed"])
+
+        @test E2E.priming_configuration_key(primed, example) ==
+              E2E.priming_configuration_key(same_configuration, example)
+        empty_options = record("empty_options", 0.2, Dict{String,Any}())
+        explicit_defaults = record(
+            "explicit_defaults",
+            0.2,
+            Dict{String,Any}(
+                "algorithm" => "default",
+                "fastevaluation" => true,
+                "changef" => true,
+                "always_use_bigints" => false,
+                "use_gpu" => false,
+                "use_threads" => false,
+                "termorder" => "invlex",
+                "k" => nothing,
+            ),
+        )
+        @test E2E.priming_configuration_key(empty_options, example) ==
+              E2E.priming_configuration_key(explicit_defaults, example)
+        @test E2E.priming_configuration_key(primed, example) !=
+              E2E.priming_configuration_key(uncovered, example)
+
+        for (option, value) in (
+            "algorithm" => "pchunk",
+            "fastevaluation" => false,
+            "changef" => false,
+            "always_use_bigints" => true,
+            "use_gpu" => true,
+            "use_threads" => true,
+            "termorder" => "lex",
+            "k" => 1,
+        )
+            changed = record("changed_$(option)", 0.2, Dict{String,Any}(option => value))
+            @test E2E.priming_configuration_key(changed, example) !=
+                  E2E.priming_configuration_key(primed, example)
+            option_errors =
+                E2E.priming_coverage_errors(catalogue, [primed, changed], config)
+            @test length(option_errors) == 1
+            @test occursin("changed_$(option)", only(option_errors))
+        end
+
+        k_one = record("k_one", 0.2, Dict{String,Any}("k" => 1))
+        k_two = record("k_two", 0.2, Dict{String,Any}("k" => 2))
+        @test E2E.priming_configuration_key(k_one, example) ==
+              E2E.priming_configuration_key(k_two, example)
+        @test isempty(
+            E2E.priming_coverage_errors(
+                catalogue,
+                [k_one, k_two],
+                E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["k_one"]),
+            ),
+        )
+
+        different_executor = record(
+            "different_executor",
+            0.2,
+            Dict{String,Any}("algorithm" => "depthfirst"),
+            type = "another_executor",
+        )
+        @test E2E.priming_configuration_key(different_executor, example) ==
+              E2E.priming_configuration_key(primed, example)
+        @test isempty(
+            E2E.priming_coverage_errors(catalogue, [primed, different_executor], config),
+        )
+
+        different_dimension = record(
+            "different_dimension",
+            0.2,
+            Dict{String,Any}("algorithm" => "depthfirst"),
+            example = "stub_dim2",
+        )
+        @test E2E.priming_configuration_key(different_dimension, example_dim2) !=
+              E2E.priming_configuration_key(primed, example)
+        @test length(
+            E2E.priming_coverage_errors(catalogue, [primed, different_dimension], config),
+        ) == 1
+        @test isempty(E2E.priming_record_errors(["primed"], [primed]))
+        @test occursin("unknown", only(E2E.priming_record_errors(["missing"], [primed])))
+
+        coverage_errors = E2E.priming_coverage_errors(
+            catalogue,
+            [primed, same_configuration, uncovered, threshold_boundary],
+            config,
+        )
+        @test length(coverage_errors) == 1
+        @test occursin("uncovered", only(coverage_errors))
+        @test occursin("add a priming record", only(coverage_errors))
+
+        e2e_root = dirname(@__DIR__)
+        actual_config = E2E.load_config(joinpath(e2e_root, "config.toml"))
+        actual_catalogue = E2E.load_example_catalogue(e2e_root)
+        actual_records = E2E.load_execution_records(e2e_root)
+        @test !isempty(actual_config.priming_records)
+        @test isempty(
+            E2E.priming_record_errors(actual_config.priming_records, actual_records),
+        )
+        @test isempty(
+            E2E.priming_coverage_errors(actual_catalogue, actual_records, actual_config),
+        )
+        invalid_priming_config = E2E.CatalogueConfig(
+            actual_config.presubmit_seconds,
+            actual_config.ci_seconds,
+            actual_config.allowed_tags,
+            ["unknown_priming_record"],
+        )
+        invalid_priming_error = try
+            E2E.validate_catalogue(actual_catalogue, actual_records, invalid_priming_config)
+            nothing
+        catch error
+            error
+        end
+        @test invalid_priming_error isa E2E.CatalogueValidationError
+        @test occursin("unknown_priming_record", sprint(showerror, invalid_priming_error))
+
+        source_record =
+            first(filter(record -> record.type == "zeta_coefficients", actual_records))
+        invalid_parameters = copy(source_record.parameters)
+        invalid_parameters["algorithm"] = 1
+        invalid_algorithm_record = E2E.ExecutionRecord(
+            "invalid_algorithm",
+            source_record.type,
+            source_record.tags,
+            source_record.runtime,
+            source_record.example,
+            source_record.p,
+            invalid_parameters,
+            source_record.source_path,
+        )
+        invalid_algorithm_config = E2E.CatalogueConfig(
+            actual_config.presubmit_seconds,
+            actual_config.ci_seconds,
+            actual_config.allowed_tags,
+            ["invalid_algorithm"],
+        )
+        invalid_algorithm_error = try
+            E2E.validate_catalogue(
+                actual_catalogue,
+                [invalid_algorithm_record],
+                invalid_algorithm_config,
+            )
+            nothing
+        catch exception
+            exception
+        end
+        @test invalid_algorithm_error isa E2E.CatalogueValidationError
+        @test occursin("algorithm", sprint(showerror, invalid_algorithm_error))
+
+        variety = Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => 1,
+            "non_middle_factors" => Dict(
+                "kind" => "projective_lefschetz",
+                "middle_factor_content" => "full",
+            ),
+            "model" => Dict(
+                "kind" => "plane_curve",
+                "vars" => ["x1", "x2", "x3"],
+                "monomials" => [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+                "coeffs" => [1, 1, 1],
+            ),
+        )
+        e2e_example = E2E.ExampleCase("stub", "synthetic.json", variety, Any[], "")
+        e2e_catalogue = E2E.ExampleCatalogue(Dict("stub" => e2e_example))
+        execution_record(name) = E2E.ExecutionRecord(
+            name,
+            "zeta_coefficients",
+            String[],
+            0.1,
+            "stub",
+            7,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+        primer = execution_record("primer")
+        selected_record = execution_record("selected")
+        original_executor = E2E.EXECUTOR_REGISTRY["zeta_coefficients"]
+        E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = StubE2EExecutor
+        StubE2EExecutor.execute_calls[] = 0
+        try
+            outcomes = E2E.run_selected(
+                e2e_catalogue,
+                (records = [primer, selected_record], broad = false),
+                Dict{String,Any}("primer" => 7, "selected" => 7);
+                priming_records = [primer],
+            )
+            @test [outcome.name for outcome in outcomes] == ["primer", "selected"]
+            @test all(outcome.passed for outcome in outcomes)
+            @test StubE2EExecutor.execute_calls[] == 2
+        finally
+            E2E.EXECUTOR_REGISTRY["zeta_coefficients"] = original_executor
+        end
+
+        gpu_primer = E2E.ExecutionRecord(
+            "gpu_primer",
+            "zeta_coefficients",
+            ["gpu"],
+            0.1,
+            "stub",
+            7,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+        unavailable = _ -> false
+        @test_throws ErrorException E2E.run_selected(
+            e2e_catalogue,
+            (records = [gpu_primer], broad = false),
+            Dict{String,Any}("gpu_primer" => 7);
+            priming_records = [gpu_primer],
+            capability_available = unavailable,
+        )
+        skipped_primer = E2E.run_selected(
+            e2e_catalogue,
+            (records = E2E.ExecutionRecord[], broad = true),
+            Dict{String,Any}("gpu_primer" => 7);
+            priming_records = [gpu_primer],
+            capability_available = unavailable,
+        )
+        @test only(skipped_primer).skipped
+    end
+
+    @testset "zeta_coefficients executor validation" begin
+        exec = E2E.ZetaCoefficientsExecutor
+
+        good_variety(
+            kind = "plane_curve",
+            vars = ["x1", "x2", "x3"];
+            dim = 1,
+            middle_factor_content = "full",
+        ) = Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => dim,
+            "non_middle_factors" => Dict(
+                "kind" => "projective_lefschetz",
+                "middle_factor_content" => middle_factor_content,
             ),
             "model" => Dict(
                 "kind" => kind,
@@ -115,7 +674,47 @@ using Test
             good_variety(),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
-        @test exec.expected_descending(ex, record()) == BigInt[7, 1, 1]
+        @test exec.expected(ex, record()) == BigInt[7, 1, 1]
+        bool_lpoly = example(
+            good_variety(),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => Any[1, true, 7]))],
+        )
+        @test_throws r"boolean values are not valid integer coefficients" exec.expected(
+            bool_lpoly,
+            record(),
+        )
+        primitive_curve = example(
+            good_variety(; middle_factor_content = "primitive"),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+        )
+        @test exec.expected(primitive_curve, record()) == BigInt[7, 1, 1]
+
+        full_threefold = example(
+            good_variety(
+                "projective_hypersurface",
+                ["x1", "x2", "x3", "x4", "x5"];
+                dim = 3,
+            ),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+        )
+        @test exec.expected(full_threefold, record()) == BigInt[7, 1, 1]
+
+        primitive_surface = example(
+            good_variety(
+                "projective_hypersurface",
+                ["x1", "x2", "x3", "x4"];
+                dim = 2,
+                middle_factor_content = "primitive",
+            ),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 0, 0, 0, 0, 0, 7]))],
+        )
+        @test length(exec.expected(primitive_surface, record())) == 7
+
+        full_surface = example(
+            good_variety("projective_hypersurface", ["x1", "x2", "x3", "x4"]; dim = 2),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 0, 0, 0, 0, 0, 7]))],
+        )
+        @test_throws r"primitive middle factor" exec.expected(full_surface, record())
 
         # reversed (descending) coeffs_asc is caught as the specific
         # orientation mistake, not a generic error.
@@ -123,25 +722,25 @@ using Test
             good_variety(),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [7, 1, 1]))],
         )
-        @test_throws r"orientation mistake" exec.expected_descending(bad, record())
+        @test_throws r"orientation mistake" exec.expected(bad, record())
 
         # unsupported model kind / coeff domain / non_middle_factors convention.
         unsupported_kind = example(
             good_variety("hyperelliptic"),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
-        @test_throws ErrorException exec.expected_descending(unsupported_kind, record())
+        @test_throws ErrorException exec.expected(unsupported_kind, record())
 
         v = good_variety()
         v["coeff_domain"] = Dict("kind" => "number_field")
         unsupported_domain =
             example(v, [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))])
-        @test_throws ErrorException exec.expected_descending(unsupported_domain, record())
+        @test_throws ErrorException exec.expected(unsupported_domain, record())
 
         v2 = good_variety()
         v2["non_middle_factors"] = Dict("kind" => "explicit")
         unsupported_nmf = example(v2, [Dict("p" => 7, "l_factors" => Dict())])
-        @test_throws ErrorException exec.expected_descending(unsupported_nmf, record())
+        @test_throws ErrorException exec.expected(unsupported_nmf, record())
 
         # multi-result example requires an explicit p on the record.
         multi = example(
@@ -151,8 +750,8 @@ using Test
                 Dict("p" => 11, "Lpoly" => Dict("coeffs_asc" => [1, 0, 11])),
             ],
         )
-        @test_throws ErrorException exec.expected_descending(multi, record())
-        @test exec.expected_descending(multi, record(; p = 11)) == BigInt[11, 0, 1]
+        @test_throws ErrorException exec.expected(multi, record())
+        @test exec.expected(multi, record(; p = 11)) == BigInt[11, 0, 1]
 
         # parameter validation.
         @test isnothing(
@@ -171,8 +770,9 @@ using Test
         )
 
         # capability requirement derivation.
-        @test :gpu in exec.required_capabilities(record(; params = Dict("use_gpu" => true)))
-        @test isempty(exec.required_capabilities(record()))
+        @test :gpu in
+              E2E.Common.required_capabilities(record(; params = Dict("use_gpu" => true)))
+        @test isempty(E2E.Common.required_capabilities(record()))
         gpu_tagged = E2E.ExecutionRecord(
             "rec2",
             "zeta_coefficients",
@@ -183,7 +783,336 @@ using Test
             Dict{String,Any}(),
             "synthetic.toml",
         )
-        @test :gpu in exec.required_capabilities(gpu_tagged)
+        @test :gpu in E2E.Common.required_capabilities(gpu_tagged)
+        @test exec.INVARIANT_NAME == "zeta_coefficients"
+        @test exec.EXPECTED_SOURCE == :lpoly
+    end
+
+    @testset "shared executor parameter validation" begin
+        validate = E2E.Common.validate_common_parameters
+        @test isnothing(
+            validate(
+                "shared",
+                Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2]),
+            ),
+        )
+        @test_throws r"unknown parameter" validate(
+            "shared",
+            Dict{String,Any}("not_a_parameter" => 1),
+        )
+        @test_throws r"unknown algorithm" validate(
+            "shared",
+            Dict{String,Any}("algorithm" => "not_an_algorithm"),
+        )
+        @test_throws r"termorder must be a string" validate(
+            "shared",
+            Dict{String,Any}("termorder" => 1),
+        )
+        for invalid_s in (["x"], [1.5], [true], 1)
+            @test_throws r"S must be an array of integers" validate(
+                "shared",
+                Dict{String,Any}("S" => invalid_s),
+            )
+        end
+        @test isnothing(validate("shared", Dict{String,Any}("verbose" => 3)))
+        for invalid_verbose in ("3", true, 1.5)
+            @test_throws r"verbose must be an integer" validate(
+                "shared",
+                Dict{String,Any}("verbose" => invalid_verbose),
+            )
+        end
+        for parameter in (
+            "changef",
+            "givefrobmat",
+            "vars_reversed",
+            "fastevaluation",
+            "always_use_bigints",
+            "use_gpu",
+            "use_threads",
+        )
+            @test isnothing(validate("shared", Dict{String,Any}(parameter => true)))
+            @test_throws r"must be a boolean" validate(
+                "shared",
+                Dict{String,Any}(parameter => "true"),
+            )
+        end
+        @test isnothing(validate("shared", Dict{String,Any}("S" => [1, 2])))
+    end
+
+    @testset "derived invariant executors" begin
+        function variety(kind, dimension, vars, monomials, coefficients)
+            return Dict{String,Any}(
+                "coeff_domain" => Dict("kind" => "integer"),
+                "dim" => dimension,
+                "non_middle_factors" => Dict(
+                    "kind" => "projective_lefschetz",
+                    "middle_factor_content" => "primitive",
+                ),
+                "model" => Dict(
+                    "kind" => kind,
+                    "vars" => vars,
+                    "monomials" => monomials,
+                    "coeffs" => coefficients,
+                ),
+            )
+        end
+        function example_case(id, v, p, coeffs_desc)
+            return E2E.ExampleCase(
+                id,
+                "synthetic.json",
+                v,
+                [Dict("p" => p, "Lpoly" => Dict("coeffs_asc" => reverse(coeffs_desc)))],
+                "",
+            )
+        end
+        function record(type; params = Dict{String,Any}())
+            return E2E.ExecutionRecord(
+                "record_$(type)",
+                type,
+                String[],
+                0.1,
+                "synthetic",
+                nothing,
+                params,
+                "synthetic.toml",
+            )
+        end
+
+        curve = example_case(
+            "curve",
+            variety(
+                "plane_curve",
+                1,
+                ["x1", "x2", "x3"],
+                [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+                [1, 1, 1],
+            ),
+            7,
+            BigInt[7, 1, 1],
+        )
+        curve_input_record = E2E.ExecutionRecord(
+            "curve_input",
+            "newton_polygon",
+            String[],
+            0.1,
+            "curve",
+            nothing,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+        curve_F = E2E.Common.build_input(curve, curve_input_record)
+        newton = E2E.NewtonPolygonExecutor
+        expected_newton = newton.expected(curve, curve_input_record)
+        actual_newton = newton.normalize(newton.execute(curve_F, Dict{String,Any}()))
+        @test newton.compare(expected_newton, actual_newton)
+        @test !newton.compare(expected_newton, E2E.DeRham.SlopesPolygon([0, 2]))
+        @test newton.INVARIANT_NAME == "newton_polygon"
+        @test newton.EXPECTED_SOURCE == :lpoly
+        @test isnothing(newton.validate_parameters("newton", Dict{String,Any}()))
+
+        point_counts = E2E.PointCountsExecutor
+        point_params = Dict{String,Any}("k" => 2)
+        point_record = record("point_counts"; params = point_params)
+        point_expected = point_counts.expected(curve, point_record)
+        point_actual = point_counts.normalize(point_counts.execute(curve_F, point_params))
+        @test point_counts.compare(point_expected, point_actual)
+        @test point_expected == BigInt[9, 63]
+        @test isnothing(point_counts.validate_parameters("counts", point_params))
+        @test_throws r"requires parameter 'k'" point_counts.validate_parameters(
+            "counts",
+            Dict{String,Any}(),
+        )
+        @test_throws r"positive integer" point_counts.validate_parameters(
+            "counts",
+            Dict{String,Any}("k" => 0),
+        )
+        @test_throws r"unknown parameter" point_counts.validate_parameters(
+            "counts",
+            Dict{String,Any}("k" => 2, "other" => 1),
+        )
+        unsupported_curve = deepcopy(curve)
+        unsupported_curve.variety["model"]["kind"] = "hyperelliptic"
+        @test newton.expected(unsupported_curve, curve_input_record) == expected_newton
+        @test point_counts.expected(unsupported_curve, point_record) == point_expected
+
+        cubic_surface = example_case(
+            "cubic_surface",
+            variety(
+                "projective_hypersurface",
+                2,
+                ["x1", "x2", "x3", "x4"],
+                [[3, 0, 0, 0], [0, 3, 0, 0], [0, 0, 3, 0], [0, 0, 0, 3]],
+                [1, 1, 1, 1],
+            ),
+            11,
+            BigInt[-1771561, 0, 43923, 0, -363, 0, 1],
+        )
+        bound = E2E.PicardRankBoundExecutor
+        bound_record = record("picard_rank_bound")
+        @test bound.expected(cubic_surface, bound_record) == 7
+        @test bound.EXPECTED_SOURCE == :lpoly
+        @test isnothing(bound.validate_parameters("bound", Dict{String,Any}()))
+        @test_throws r"requires dimension 2" bound.expected(curve, bound_record)
+        malformed_surface = deepcopy(cubic_surface)
+        malformed_surface.variety["model"]["kind"] = "plane_curve"
+        @test_throws r"requires model.kind .*projective_hypersurface" bound.expected(
+            malformed_surface,
+            bound_record,
+        )
+
+        k3_desc = vcat(BigInt[-7^21], zeros(BigInt, 20), BigInt[1])
+        k3 = example_case(
+            "k3",
+            variety(
+                "projective_hypersurface",
+                2,
+                ["x1", "x2", "x3", "x4"],
+                [[4, 0, 0, 0], [0, 4, 0, 0], [0, 0, 4, 0], [0, 0, 0, 4]],
+                [1, 1, 1, 1],
+            ),
+            7,
+            k3_desc,
+        )
+        height = E2E.ArtinMazurHeightExecutor
+        geo = E2E.K3GeometricPicardRankExecutor
+        rank = E2E.K3PicardRankExecutor
+        realization = E2E.K3PicardRealizationDegreeExecutor
+        @test height.expected(k3, record("artin_mazur_height")) == Inf
+        @test geo.expected(k3, record("k3_geometric_picard_rank")) == 22
+        rank_params = Dict{String,Any}("k" => 2)
+        @test rank.expected(k3, record("k3_picard_rank"; params = rank_params)) == 2
+        @test isnothing(rank.validate_parameters("rank", rank_params))
+        @test_throws r"requires parameter 'k'" rank.validate_parameters(
+            "rank",
+            Dict{String,Any}(),
+        )
+        @test_throws r"positive integer" rank.validate_parameters(
+            "rank",
+            Dict{String,Any}("k" => 0),
+        )
+        @test realization.expected(k3, record("k3_picard_realization_degree")) == 21
+        @test_throws r"homogeneous degree-4" geo.expected(
+            cubic_surface,
+            record("k3_geometric_picard_rank"),
+        )
+        @test_throws r"homogeneous degree-4" height.expected(
+            cubic_surface,
+            record("artin_mazur_height"),
+        )
+        @test_throws r"homogeneous degree-4" rank.expected(
+            cubic_surface,
+            record("k3_picard_rank"; params = rank_params),
+        )
+        @test_throws r"homogeneous degree-4" realization.expected(
+            cubic_surface,
+            record("k3_picard_realization_degree"),
+        )
+        malformed_k3 = deepcopy(k3)
+        malformed_k3.variety["model"]["kind"] = "plane_curve"
+        @test_throws r"requires model.kind .*projective_hypersurface" geo.expected(
+            malformed_k3,
+            record("k3_geometric_picard_rank"),
+        )
+        for executor in (newton, bound, geo, realization, height)
+            @test_throws r"unknown parameter" executor.validate_parameters(
+                "unsupported",
+                Dict{String,Any}("not_a_parameter" => 1),
+            )
+        end
+        @test_throws r"unknown parameter" point_counts.validate_parameters(
+            "unsupported",
+            Dict{String,Any}("k" => 2, "not_a_parameter" => 1),
+        )
+        @test_throws r"unknown parameter" rank.validate_parameters(
+            "unsupported",
+            Dict{String,Any}("k" => 2, "not_a_parameter" => 1),
+        )
+        @test all(
+            executor.EXPECTED_SOURCE == :lpoly for
+            executor in (bound, geo, rank, realization, height)
+        )
+    end
+
+    @testset "a_number notes executor" begin
+        executor = E2E.ANumberExecutor
+        @test executor.INVARIANT_NAME == "a_number"
+        @test executor.EXPECTED_SOURCE == :notes
+        @test E2E.INVARIANT_REGISTRY["a_number"] === executor
+        @test isnothing(executor.validate_parameters("a_number_notes", Dict{String,Any}()))
+        @test_throws r"unknown parameter" executor.validate_parameters(
+            "a_number_notes",
+            Dict{String,Any}("verbose" => 1),
+        )
+
+        variety = Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => 1,
+            "non_middle_factors" => Dict(
+                "kind" => "projective_lefschetz",
+                "middle_factor_content" => "full",
+            ),
+            "model" => Dict(
+                "kind" => "plane_curve",
+                "vars" => ["x1", "x2", "x3"],
+                "monomials" => [[0, 2, 1], [3, 0, 0], [1, 0, 2], [0, 0, 3]],
+                "coeffs" => [1, -1, -1, -1],
+            ),
+        )
+        function example(notes)
+            return E2E.ExampleCase(
+                "a_number_curve",
+                "synthetic.json",
+                deepcopy(variety),
+                [Dict("p" => 7)],
+                notes,
+            )
+        end
+        record = E2E.ExecutionRecord(
+            "a_number_notes",
+            "a_number",
+            String[],
+            0.1,
+            "a_number_curve",
+            7,
+            Dict{String,Any}(),
+            "synthetic.toml",
+        )
+
+        valid = example("derham-invariants: {\"7\":{\"a_number\":0}}")
+        @test executor.expected(valid, record) == 0
+        cfg = E2E.CatalogueConfig(
+            5.0,
+            90.0,
+            Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            ["a_number_notes"],
+        )
+        expected = E2E.validate_catalogue(
+            E2E.ExampleCatalogue(Dict(valid.id => valid)),
+            [record],
+            cfg,
+        )
+        @test expected[record.name] == 0
+
+        @test_throws r"notes have no derham-invariants values" executor.expected(
+            example("smooth plane curve"),
+            record,
+        )
+        @test_throws r"malformed derham-invariants tag" executor.expected(
+            example("derham-invariants: {broken}"),
+            record,
+        )
+        @test_throws r"must be an integer" executor.expected(
+            example("derham-invariants: {\"7\":{\"a_number\":true}}"),
+            record,
+        )
+        @test_throws r"must be nonnegative" executor.expected(
+            example("derham-invariants: {\"7\":{\"a_number\":-1}}"),
+            record,
+        )
+
+        curve = E2E.Common.build_input(valid, record)
+        actual = executor.normalize(executor.execute(curve, record.parameters))
+        @test executor.compare(expected[record.name], actual)
     end
 
     @testset "catalogue validation aggregates errors" begin
@@ -191,6 +1120,7 @@ using Test
             5.0,
             90.0,
             Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            ["r_ok", "r_bad_type"],
         )
         variety = Dict{String,Any}(
             "coeff_domain" => Dict("kind" => "integer"),
@@ -268,6 +1198,13 @@ using Test
             ),
         ]
 
+        bad_records_cfg = E2E.CatalogueConfig(
+            5.0,
+            90.0,
+            Set(["gpu", "multithreading", "uint", "bigint", "karatsuba"]),
+            ["r_bad_type", "r_bad_tag"],
+        )
+
         err = nothing
         try
             E2E.validate_catalogue(catalogue, records, cfg)
@@ -283,8 +1220,215 @@ using Test
         @test occursin("r_bad_type", joined)
         @test occursin("r_bad_runtime", joined)
 
-        expected = E2E.validate_catalogue(catalogue, [records[1]], cfg)
+        malformed_result = E2E.ExampleCase(
+            "bad_result",
+            "bad.json",
+            deepcopy(variety),
+            [Dict("Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+            "",
+        )
+        malformed_catalogue = E2E.ExampleCatalogue(
+            Dict("ok" => good_example, "bad_result" => malformed_result),
+        )
+        malformed_error = nothing
+        try
+            E2E.validate_catalogue(malformed_catalogue, records[2:end], bad_records_cfg)
+            error("expected CatalogueValidationError")
+        catch e
+            malformed_error = e
+        end
+        @test malformed_error isa E2E.CatalogueValidationError
+        malformed_joined = join(malformed_error.errors, "\n")
+        @test occursin("bad_result", malformed_joined)
+        @test occursin("valid prime values", malformed_joined)
+        @test occursin("r_missing_ref", malformed_joined)
+
+        for (id, p) in (("bad_boolean_prime", true), ("bad_composite_prime", 9))
+            invalid_prime_example = E2E.ExampleCase(
+                id,
+                "bad.json",
+                deepcopy(variety),
+                [Dict("p" => p, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+                "",
+            )
+            invalid_prime_catalogue = E2E.ExampleCatalogue(
+                Dict("ok" => good_example, id => invalid_prime_example),
+            )
+            invalid_prime_error = nothing
+            try
+                E2E.validate_catalogue(
+                    invalid_prime_catalogue,
+                    records[2:end],
+                    bad_records_cfg,
+                )
+                error("expected CatalogueValidationError")
+            catch e
+                invalid_prime_error = e
+            end
+            @test invalid_prime_error isa E2E.CatalogueValidationError
+            invalid_prime_joined = join(invalid_prime_error.errors, "\n")
+            @test occursin("valid prime values", invalid_prime_joined)
+            if p isa Bool
+                @test occursin("non-boolean integer", invalid_prime_joined)
+            else
+                @test occursin("p=9 must be prime", invalid_prime_joined)
+            end
+            @test occursin("r_missing_ref", invalid_prime_joined)
+        end
+
+        expected_cfg = E2E.CatalogueConfig(
+            cfg.presubmit_seconds,
+            cfg.ci_seconds,
+            cfg.allowed_tags,
+            ["r_ok"],
+        )
+        expected = E2E.validate_catalogue(catalogue, [records[1]], expected_cfg)
         @test expected["r_ok"] == BigInt[7, 1, 1]
+
+        validate_notes(notes) = begin
+            ex = E2E.ExampleCase(
+                "notes",
+                "notes.json",
+                deepcopy(variety),
+                [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+                notes,
+            )
+            note_record = E2E.ExecutionRecord(
+                "r_notes",
+                "zeta_coefficients",
+                String[],
+                0.1,
+                "notes",
+                nothing,
+                Dict{String,Any}(),
+                "notes.toml",
+            )
+            notes_cfg = E2E.CatalogueConfig(
+                cfg.presubmit_seconds,
+                cfg.ci_seconds,
+                cfg.allowed_tags,
+                ["r_notes"],
+            )
+            E2E.validate_catalogue(
+                E2E.ExampleCatalogue(Dict("notes" => ex)),
+                [note_record],
+                notes_cfg,
+            )
+        end
+
+        valid_notes = "prose\nderham-invariants: {\"7\":{\"a_number\":0}}\n"
+        parsed_notes = E2E.Common.parse_notes_invariants(valid_notes)
+        @test parsed_notes == Dict("7" => Dict("a_number" => 0))
+        @test_throws r"canonical prime string" E2E.Common.parse_notes_invariants(
+            "derham-invariants: {\"9\":{\"a_number\":1}}",
+        )
+        @test E2E.Common.notes_invariant_value(
+            E2E.ExampleCase(
+                "notes",
+                "notes.json",
+                deepcopy(variety),
+                [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+                valid_notes,
+            ),
+            7,
+            "a_number",
+        ) == 0
+        @test_throws r"malformed derham-invariants tag" validate_notes(
+            "derham-invariants: {broken}",
+        )
+        @test_throws r"malformed derham-invariants tag" validate_notes(
+            "derham-invariants {\"7\":{}}",
+        )
+        @test_throws r"only one tag line is allowed" validate_notes(
+            "derham-invariants: {}\nderham-invariants: {}",
+        )
+        @test_throws r"prime 11 with no result in the case" validate_notes(
+            "derham-invariants: {\"11\":{\"a_number\":1}}",
+        )
+        @test_throws r"unregistered invariant" validate_notes(
+            "derham-invariants: {\"7\":{\"not_registered\":1}}",
+        )
+        @test_throws r"derived from Lpoly" validate_notes(
+            "derham-invariants: {\"7\":{\"zeta_coefficients\":[7,1,1]}}",
+        )
+    end
+
+    @testset "artin_invariant notes executor" begin
+        executor = E2E.ArtinInvariantExecutor
+        @test executor.INVARIANT_NAME == "artin_invariant"
+        @test executor.EXPECTED_SOURCE == :notes
+        @test E2E.INVARIANT_REGISTRY["artin_invariant"] === executor
+        @test isnothing(
+            executor.validate_parameters("artin_invariant_notes", Dict{String,Any}()),
+        )
+        @test_throws r"artin_invariant accepts no parameters" executor.validate_parameters(
+            "artin_invariant_notes",
+            Dict{String,Any}("S" => [0, 1, 2]),
+        )
+
+        examples_path = joinpath(
+            @__DIR__,
+            "..",
+            "examples",
+            "zenodo",
+            "zenodo_22784396_quartic_k3.json",
+        )
+        cases = E2E._read_example_document(examples_path)
+        parse_case(id) = E2E._parse_example_case(
+            only(filter(case -> case["id"] == id, cases)),
+            examples_path,
+            1,
+        )
+        with_notes(example, notes) = E2E.ExampleCase(
+            example.id,
+            example.source_path,
+            example.variety,
+            example.results,
+            notes,
+        )
+        sigma_case = parse_case("zenodo_22784396_p5_r6")
+        ordinary_case = parse_case("zenodo_22784396_p5_r172")
+        function artin_record(example; p = nothing, params = Dict{String,Any}())
+            return E2E.ExecutionRecord(
+                "artin_invariant_$(example.id)",
+                "artin_invariant",
+                String[],
+                0.1,
+                example.id,
+                p,
+                params,
+                "synthetic.toml",
+            )
+        end
+
+        record = artin_record(sigma_case)
+        @test executor.expected(sigma_case, record) == 9
+        @test executor.compare(9, executor.normalize(9))
+        @test_throws r"requires an odd prime field" executor.expected(
+            sigma_case,
+            artin_record(sigma_case; p = 2),
+        )
+        @test_throws r"requires a supersingular quartic K3" executor.expected(
+            ordinary_case,
+            artin_record(ordinary_case; p = 5),
+        )
+
+        missing_tag =
+            with_notes(sigma_case, "Zenodo 22784396 quartic K3 without its invariant note")
+        @test_throws r"no derham-invariants values" executor.expected(missing_tag, record)
+        malformed_tag = with_notes(sigma_case, "derham-invariants: {broken}")
+        @test_throws r"malformed derham-invariants tag" executor.expected(
+            malformed_tag,
+            record,
+        )
+        @test_throws r"must be in 1:10" executor.expected(
+            with_notes(sigma_case, "derham-invariants: {\"5\":{\"artin_invariant\":0}}"),
+            record,
+        )
+        @test_throws r"must be in 1:10" executor.expected(
+            with_notes(sigma_case, "derham-invariants: {\"5\":{\"artin_invariant\":11}}"),
+            record,
+        )
     end
 
     @testset "loader — example documents" begin

@@ -20,7 +20,8 @@
 
     @testset "pinned regression values (the curve is ordinary: a_7 = 3, coprime to 7)" begin
         @test DeRham.hasse_witt_matrix(f) == matrix(GF(7), [3;;])
-        @test DeRham.a_number(f) == 0
+        R_mod7, _ = residue_ring(ZZ, 7)
+        @test DeRham.a_number(matrix(R_mod7, [3;;]), 1) == 0
     end
 
     @testset "a_number only supports curves" begin
