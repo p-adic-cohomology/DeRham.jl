@@ -1,6 +1,6 @@
 module Combined
 using Oscar
-include("ControlledReduction.jl")
+include("../reduction/ControlledReduction.jl")
 include("CopiedFindMonomialBasis.jl")
 
 
