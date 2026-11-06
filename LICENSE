@@ -6,10 +6,10 @@ Copyright (c) 2024-2026 Jack J Garzella, Yongyuan Huang, Maximus Mellberg, Ryan 
 
 Exceptions:
 
-* src/SeriesPrecisionDefaults.jl is licensed GPL-2.0-only OR GPL-3.0-only. It
+* src/precision/SeriesPrecisionDefaults.jl is licensed GPL-2.0-only OR GPL-3.0-only. It
   is derived from controlledreduction (https://github.com/edgarcosta/controlledreduction,
   tools/default_args.cc), Copyright (C) 2013-2017 Edgar Costa.
-* src/NemoDerivedWrappers.jl is licensed BSD-2-Clause. It is derived from
+* src/recurrence/backend/NemoDerivedWrappers.jl is licensed BSD-2-Clause. It is derived from
   Nemo.jl (https://github.com/Nemocas/Nemo.jl), Copyright (c) 2014-2024:
   William Hart, Tommy Hofmann, Claus Fieker, Fredrik Johansson, and Nemo
   developers.
