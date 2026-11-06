@@ -282,3 +282,23 @@ function reducetransform_varbyvar(
 
     return result
 end
+
+function varbyvar_chooseV(I, d)
+    v = zeros(Int, length(I))
+    n = length(I)
+    J = copy(I)
+    i = 0
+    while i < d
+        for j in eachindex(J)
+            if J[n-j+1] > 0
+                J[n-j+1] = J[n-j+1] - 1
+                v[n-j+1] = v[n-j+1] + 1
+                i = i + 1
+                break
+            elseif j == n
+                throw(error)
+            end
+        end
+    end
+    return v
+end
