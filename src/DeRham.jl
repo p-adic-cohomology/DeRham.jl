@@ -170,6 +170,7 @@ public fermat_hypersurface,
     tate_twist,
     tate_untwist,
     normalized_tate_twist,
-    ibm_lattice_correction
+    ibm_lattice_correction,
+    pregen_default_context
 
 end

@@ -135,24 +135,17 @@ function default_context(matspace, Ruv, params)
 end
 
 """
-    pregen_default_context
-Note that n is (number of variables - 1) in this case
+    pregen_default_context(n, d, p, S; kwargs...)
 
-fields
-------
-n - # of vars of f - 1
-d - degree of f
-p - prime number
-S - vector of ints
+Build a precomputed reduction context for the parameters `n`, `d`, `p`, and
+`S`. Here, `n` is the number of variables minus one, `d` is the degree, `p`
+is the prime characteristic, and `S` is a vector of integers.
 
-KEYWORD ARGUMENTS:
-givefrobmat -- should the funciton also output the appoximated frobenius matrix
-algorithm -- the algorithm used for controlled reduction
-termorder -- the term ordering that should be used in vector representations
-fastevaluation -- should the algorithm use fast evaluation?
->>>if you don't know what this is, ignore it.
-vars_reversed -- reverses the order of basis vectors at various places
->>>if you don't know what this is, ignore it.
+Keyword arguments and defaults:
+`verbose = 0`, `givefrobmat = false`, `algorithm = :naive`,
+`termorder = :invlex`, `vars_reversed = false`, `fastevaluation = false`,
+`always_use_bigints = false`, `use_gpu = false`, `use_threads = false`, and
+`lazy = false`.
 """
 function pregen_default_context(
     n,

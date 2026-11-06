@@ -11,6 +11,15 @@ DeRham.random_hypersurface
 DeRham.check_smoothness
 ```
 
+## Precomputing a reduction context
+
+`pregen_default_context` builds the R_uv and reduction context once for a given
+`(n, d, p, S)` so it can be reused.
+
+```@docs
+DeRham.pregen_default_context
+```
+
 ## Tate twists
 
 For a coefficient vector describing
