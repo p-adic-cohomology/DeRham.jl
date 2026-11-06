@@ -10,7 +10,7 @@
         "dim": 2,
         "non_middle_factors": {
           "kind": "projective_lefschetz",
-          "middle_factor_content": "full"
+          "middle_factor_content": "primitive"
         },
         "model": {
           "kind": "projective_hypersurface",
@@ -97,7 +97,7 @@
         "dim": 2,
         "non_middle_factors": {
           "kind": "projective_lefschetz",
-          "middle_factor_content": "full"
+          "middle_factor_content": "primitive"
         },
         "model": {
           "kind": "projective_hypersurface",
@@ -191,7 +191,7 @@
         "dim": 2,
         "non_middle_factors": {
           "kind": "projective_lefschetz",
-          "middle_factor_content": "full"
+          "middle_factor_content": "primitive"
         },
         "model": {
           "kind": "projective_hypersurface",
@@ -418,7 +418,7 @@
         "dim": 2,
         "non_middle_factors": {
           "kind": "projective_lefschetz",
-          "middle_factor_content": "full"
+          "middle_factor_content": "primitive"
         },
         "model": {
           "kind": "projective_hypersurface",
@@ -505,7 +505,7 @@
         "dim": 2,
         "non_middle_factors": {
           "kind": "projective_lefschetz",
-          "middle_factor_content": "full"
+          "middle_factor_content": "primitive"
         },
         "model": {
           "kind": "projective_hypersurface",

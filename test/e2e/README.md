@@ -1,10 +1,11 @@
 # E2E test catalogue
 
-A declarative, metadata-driven system for DeRham's end-to-end
-`zeta_coefficients` tests. Example data (the mathematical variety plus its
-known-correct zeta function) is separate from execution records (which
-example to run, with which parameters, tagged and timed). `Pkg.test()` runs
-it as part of the conventional test suite; see `test/runtests.jl`.
+A declarative, metadata-driven catalogue for DeRham's end-to-end
+zeta-coefficient and invariant tests. Example data (the mathematical variety
+plus stored `Lpoly` results and optional invariant notes) is separate from
+execution records (which invariant executor to run, with which parameters,
+tags, and runtime). `Pkg.test()` runs the catalogue as part of the conventional
+test suite; see `test/runtests.jl`.
 
 ## Add local JSON example data
 
@@ -44,13 +45,14 @@ execution semantics) containing one or more grouped cases in the
 ```
 
 The `zeta_coefficients` executor supports `model.kind` of `plane_curve` (3
-variables) or `projective_hypersurface` (>= 2 variables), `coeff_domain.kind
-== "integer"`, and `non_middle_factors = {kind: "projective_lefschetz",
-middle_factor_content: "full"}`. `Lpoly.coeffs_asc` is **ascending** (constant
-term first); DeRham's own `zeta_coefficients` return value is **descending**
-(leading coefficient first) — the executor reverses one to compare against
-the other, and rejects an accidentally-reversed `coeffs_asc` (its first entry
-must be `1`).
+variables) or `projective_hypersurface` (>= 2 variables), and
+`coeff_domain.kind == "integer"`. DeRham returns the **primitive** middle
+factor. Set `middle_factor_content` to `"primitive"` for surfaces. Odd-
+dimensional hypersurfaces may use `"primitive"` or `"full"` because those
+factors coincide. `Lpoly.coeffs_asc` is **ascending** (constant term first);
+DeRham's own `zeta_coefficients` return value is **descending** (leading
+coefficient first) — the executor reverses the stored coefficients and rejects
+an accidentally-reversed `coeffs_asc` (its first entry must be `1`).
 
 Example ids must be nonempty and globally unique across every local file and
 the pinned artifact.
@@ -71,16 +73,41 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 ```
 
 - `name` must be nonempty and globally unique across every record file.
-- `runtime` is an approximate, bucket-oriented estimate in seconds — not a
-  measured average — used only for `--workflow=` membership.
+- `runtime` is the measured execution time in seconds, used only for
+  `--workflow=` membership. Use Julia 1.13.2; update affected records in the
+  same change when an implementation change affects their speed.
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
 - `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
   `gpu`, `multithreading`, `uint`, `bigint`, `karatsuba`). A `gpu` tag (or
   `parameters.use_gpu = true`) marks the record as requiring a functional
   CUDA device.
-- `parameters` are passed straight through as keyword arguments to
-  `DeRham.zeta_coefficients`.
+- For `Lpoly`-derived records, common computation options are passed through as
+  keyword arguments to the selected DeRham invariant. `point_counts` and
+  `k3_picard_rank` also require a positive integer `k`; the notes-based
+  `a_number` and `artin_invariant` executors accept no parameters.
+
+### Supported record types
+
+| `type` | Expected value and input | Record-specific parameters |
+| --- | --- | --- |
+| `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
+| `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
+| `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |
+| `picard_rank_bound` | Stored `Lpoly`; projective surface | None required |
+| `k3_geometric_picard_rank` | Stored `Lpoly`; quartic K3 surface | None required |
+| `k3_picard_rank` | Stored `Lpoly`; quartic K3 surface | `k`: positive extension degree |
+| `k3_picard_realization_degree` | Stored `Lpoly`; quartic K3 surface | None required |
+| `artin_mazur_height` | Stored `Lpoly`; quartic K3 surface | None required |
+| `a_number` | `derham-invariants` notes value; plane curve | None |
+| `artin_invariant` | `derham-invariants` notes value; supersingular quartic K3 over an odd prime | None; note value must be in `1:10` |
+
+All `Lpoly`-derived record types accept the shared DeRham computation options
+recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
+`algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
+`always_use_bigints`, `use_gpu`, and `use_threads`. `algorithm` accepts
+`default`, `depthfirst`, `varbyvar`, or `pchunk`; `S` must be an array and
+`termorder` must be a string.
 
 ## Reference an example from the pinned artifact
 
@@ -93,6 +120,10 @@ exactly as you would a local example; there is no separate syntax.
 
 `Pkg.test` passes `test_args` straight through to `ARGS`. Exactly one
 selector may be given; a bare `Pkg.test()` defaults to `--workflow=ci`.
+An invocation with only a `--name=` or `--tag=` selector runs the selected E2E
+record(s) without running the conventional testsets, E2E harness tests, or
+quality gates. Bare `Pkg.test()` and `--workflow=` invocations still run those
+tests and gates.
 
 ```julia
 Pkg.test("DeRham")                                    # --workflow=ci (default)
@@ -107,3 +138,80 @@ Pkg.test("DeRham"; test_args = ["--tag=bigint"])
 `--name=` and `--tag=` ignore runtime thresholds; a `--tag=` selection (like
 a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
+
+Each selected record that is not skipped for an unavailable capability runs
+once, timed. The harness normalizes the result and compares it with the
+expected value. The `[e2e]` case line and runtime summary report that measured
+execution time; the summary remains informational.
+
+## Prime compiled code paths
+
+`config.toml` lists the fixed priming set under `[priming].records`. The harness
+runs those ordinary records before `ci` and `full` workflows and before
+`--name=` or `--tag=` selections. `presubmit` does not run the priming set. Each
+priming result is checked like any other record, and a priming record that is
+also selected runs only once. A priming-only record that requires an unavailable
+capability is skipped; when explicitly selected by `--name=`, it follows the
+exact-selection rule above and fails if the capability is unavailable.
+
+Keep the complete priming set under five minutes in one fresh Julia 1.13.2
+process. A validation guard requires a priming record for every configuration
+whose cheapest catalogue record has `runtime < ci_seconds`; configurations
+whose records all meet or exceed that threshold are exempt. A configuration
+uses variety dimension and the code-path options `algorithm`, `fastevaluation`,
+`changef`, `always_use_bigints`, `use_gpu`, `use_threads`, `termorder`, and
+`k`. Executors share the compiled pipeline for a dimension and option set, so
+executor type does not split configurations. Integer `k` values are keyed by
+type, so `k=1` and `k=2` share a configuration while an absent `k` remains
+distinct. `S` is record data and does not split configurations.
+
+When adding a record, check whether it creates a configuration that needs
+priming. Add the shortest suitable existing record for that configuration to
+`config.toml` before running it by name, then confirm the measured priming total
+stays below five minutes. The guard reports the uncovered configuration and
+asks for a priming entry when one is missing.
+
+
+## Adding an executor
+
+Add one module under `test/e2e/executors/` and register it with one `include`
+and one entry in `EXECUTOR_REGISTRY` in `E2E.jl`. Keep the module's functions
+focused on one invariant:
+
+- `validate_parameters(name, parameters)` rejects unsupported record
+  parameters before execution.
+- `expected(example, record)` returns the expected value in the form that
+  executor compares.
+- `execute(input, parameters)` computes the invariant from the example's
+  defining polynomial.
+- `normalize(raw)` and `compare(expected, actual)` make result representation
+  and equality explicit.
+- `INVARIANT_NAME` identifies the invariant for notes-tag validation.
+- `EXPECTED_SOURCE` is `:lpoly` when `expected` derives its value from the
+  stored `Lpoly`, or `:notes` when it reads a value from the notes tag.
+
+`Common.jl` supplies prime/result resolution, polynomial construction,
+parameter conversion, capability checks, notes-tag parsing, and the stored
+descending-order `Lpoly` accessor with its orientation check. Use these shared
+helpers instead of duplicating catalogue behavior.
+
+Derive expected values from the stored `Lpoly` whenever that polynomial
+determines the invariant, applying DeRham's data-form function. Do not store a
+second expected value for a derivable invariant. Put only values not determined
+by `Lpoly` in the optional notes line:
+
+    derham-invariants: {"5": {"a_number": 1, "artin_invariant": 2}}
+
+The JSON object is keyed by prime strings, then invariant names. Free prose may
+appear on other notes lines. Catalogue validation rejects malformed tags,
+primes without a case result, unregistered invariant names, and values for
+invariants derived from `Lpoly`. Do not add provenance fields or new example
+file kinds.
+
+Keep short tests on precomputed data in `test/invariants/`. Put longer
+examples computed from the defining polynomial in E2E records, with an accurate
+measured runtime. Run `Pkg.test(test_args=["--name=<record>"])` for each record
+added or changed, plus the prescribed workflow test tier. The end-of-run
+runtime table flags cases whose measured time is more than twice or less than
+half their declared runtime; this is informational and does not change a test
+result.

@@ -11,6 +11,25 @@ struct Selection
     value::Any
 end
 
+function record_selector_only(args::AbstractVector{<:AbstractString})
+    return !isempty(args) &&
+           all(arg -> startswith(arg, "--name=") || startswith(arg, "--tag="), args)
+end
+
+test_entrypoint_route(args::AbstractVector{<:AbstractString}) =
+    record_selector_only(args) ? :record_only : :full_suite
+
+function dispatch_test_entrypoint(
+    args::AbstractVector{<:AbstractString},
+    run_records,
+    run_full_suite,
+)
+    if test_entrypoint_route(args) == :record_only
+        return run_records(args)
+    end
+    return run_full_suite()
+end
+
 function parse_selection(args::AbstractVector{<:AbstractString})
     modes = Selection[]
     for arg in args
@@ -37,6 +56,13 @@ function parse_selection(args::AbstractVector{<:AbstractString})
         "pass exactly one of --workflow=, --name=, or --tag=",
     )
     return only(modes)
+end
+
+function should_run_priming(selection::Selection)
+    if selection.mode == :workflow
+        return selection.value in (:ci, :full)
+    end
+    return selection.mode in (:name, :tag)
 end
 
 # Returns (broad, records): `broad` selections (workflow, tag) skip cases

@@ -36,6 +36,7 @@ using Oscar:
     homogenizer,
     ideal,
     is_cyclotomic_polynomial_with_data,
+    is_homogeneous,
     is_prime,
     is_smooth,
     leading_coefficient,
@@ -134,6 +135,7 @@ include("./invariants/PointCounts.jl")
 include("./invariants/ZetaFunction.jl")
 include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
+include("./invariants/ArtinInvariant.jl")
 include("./invariants/Jacobian.jl")
 
 
@@ -152,6 +154,7 @@ export zeta_coefficients,
     k3_picard_rank,
     k3_picard_realization_degree,
     artin_mazur_height,
+    artin_invariant,
     jacobian_zeta_coefficients,
     jacobian_point_counts,
     jacobian_zeta_function
@@ -162,6 +165,7 @@ public fermat_hypersurface,
     SlopesPolygon,
     tate_twist,
     tate_untwist,
-    normalized_tate_twist
+    normalized_tate_twist,
+    ibm_lattice_correction
 
 end

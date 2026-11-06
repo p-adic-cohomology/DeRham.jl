@@ -6,6 +6,7 @@ struct CatalogueConfig
     presubmit_seconds::Float64
     ci_seconds::Float64
     allowed_tags::Set{String}
+    priming_records::Vector{String}
 end
 
 function load_config(path::AbstractString)
@@ -27,5 +28,20 @@ function load_config(path::AbstractString)
     haskey(raw["tags"], "allowed") || error("$(path): tags.allowed is required")
     allowed_tags = Set{String}(String.(raw["tags"]["allowed"]))
 
-    return CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags)
+    haskey(raw, "priming") || error("$(path): missing [priming] table")
+    priming = raw["priming"]
+    priming isa AbstractDict || error("$(path): [priming] must be a table")
+    haskey(priming, "records") || error("$(path): priming.records is required")
+    raw_priming_records = priming["records"]
+    raw_priming_records isa AbstractVector ||
+        error("$(path): priming.records must be an array of record names")
+    all(name -> name isa AbstractString, raw_priming_records) ||
+        error("$(path): priming.records must contain only strings")
+    priming_records = String.(raw_priming_records)
+    any(isempty, priming_records) &&
+        error("$(path): priming.records must not contain empty names")
+    length(unique(priming_records)) == length(priming_records) ||
+        error("$(path): priming.records must not contain duplicate names")
+
+    return CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records)
 end

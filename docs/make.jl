@@ -33,6 +33,7 @@ makedocs(
             "Hasse–Witt matrix & a-number" => "invariants/hasse_witt.md",
             "Picard rank" => "invariants/picard_rank.md",
             "Artin–Mazur height" => "invariants/artin_mazur_height.md",
+            "Artin invariant" => "invariants/artin_invariant.md",
             "Jacobians" => "invariants/jacobians.md",
         ],
         "Utilities" => "utilities.md",

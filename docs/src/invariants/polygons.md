@@ -14,6 +14,8 @@ $h^{n-1-r,r}$, for $r = 0, \ldots, n-1$. Both functions return a
 [`SlopesPolygon`](@ref DeRham.SlopesPolygon), which stores the slopes and
 their horizontal lengths starting from $(0, 0)$.
 
+For a smooth quartic K3 surface over a prime field, `newton_polygon(f)` uses `artin_mazur_height(f)` at relative Frobenius precision $[1,1,1]$ and deduces the Newton polygon from that, instead of computing the full zeta coefficients.
+
 ```@docs
 DeRham.newton_polygon
 DeRham.hodge_polygon

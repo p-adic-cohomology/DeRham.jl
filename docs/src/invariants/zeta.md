@@ -29,6 +29,12 @@ nonsmooth hypersurface currently produces `false`.
 
 ## API
 
+The relative precision passed to `DeRham.zeta_coefficients_with_precision` is
+the requested relative precision of the Frobenius matrix. The intermediate
+Frobenius matrix, or the returned matrix when `givefrobmat=true`, is computed to
+at least that precision on each Hodge-filtered piece and may use greater
+precision when needed for the zeta coefficients to be correct.
+
 ```@docs
 DeRham.zeta_coefficients
 DeRham.zeta_coefficients_with_precision
