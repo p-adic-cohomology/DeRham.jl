@@ -186,15 +186,3 @@ function print_precision_info(n, d, p)
     println("Series precision: $ser")
     println("Algorithm precision: $alg")
 end
-
-function pregen_precision_info(n, d, p)
-    R, vars = polynomial_ring(GF(p), n+1)
-
-    # any hypersurface will do, all we care
-    # about is the hodge polygon
-    fermat_hypersurface = sum(vars .^ d)
-
-    (hp, rel, ser, alg) = calculate_precision_information(fermat_hypersurface)
-
-    return alg
-end
