@@ -46,6 +46,7 @@ function run_de_rham_full_test_suite!()
             include(joinpath($test_dir, "invariants/ArtinMazurHeight.jl"))
             include(joinpath($test_dir, "invariants/ArtinInvariant.jl"))
             include(joinpath($test_dir, "invariants/Jacobian.jl"))
+            include(joinpath($test_dir, "presentations/CohomologyPresentation.jl"))
 
             include(joinpath($test_dir, "e2e/test/runtests.jl"))
 
