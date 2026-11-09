@@ -27,4 +27,4 @@ reduction_prescale(::ProjectiveHypersurface, m::Integer) = factorial(ZZ(m - 1))
 frobenius_series(::ProjectiveHypersurface, N, m) = computeD(N, m)
 
 frobenius_term_pole_order(fe::ProjectiveHypersurface, m, j) =
-    characteristic(parent(polynomial(fe))) * (m + j)
+    Int(characteristic(parent(polynomial(fe)))) * (m + j)

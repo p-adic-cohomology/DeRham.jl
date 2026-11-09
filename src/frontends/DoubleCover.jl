@@ -42,6 +42,6 @@ frobenius_series(fe::DoubleCover, N, m) =
     computeD_half_integral(N, pole_exponent(presentation(fe), m))
 
 function frobenius_term_pole_order(fe::DoubleCover, m, j)
-    p = characteristic(parent(polynomial(fe)))
+    p = Int(characteristic(parent(polynomial(fe))))
     return (p * (2m - 1 + 2j) + 1) ÷ 2
 end

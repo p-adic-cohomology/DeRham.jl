@@ -34,6 +34,7 @@ end
     @test P == DeRham.DoubleCoverPresentation(1, 4)
     @test DeRham.weight(curve) == 1
     @test DeRham.check_input(curve) === nothing
+    @test typeof(DeRham.frobenius_term_pole_order(curve, 1, 0)) == Int
 
     scale = QQ(1)
     for m in 1:6

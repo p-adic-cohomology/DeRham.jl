@@ -9,6 +9,7 @@
     @test DeRham.check_smoothness(cubic)
     @test_throws ArgumentError DeRham.zeta_coefficients(cubic_frontend; series_precision = 3)
     @test DeRham.zeta_coefficients(cubic_frontend) == DeRham.zeta_coefficients(cubic)
+    @test typeof(DeRham.frobenius_term_pole_order(cubic_frontend, 1, 0)) == Int
 
     Rsurface, (a, b, c, d) = polynomial_ring(GF(2), ["a", "b", "c", "d"])
     quartic = a^3*c + a^2*b^2 + a*b*d^2 + a*c^2*d + a*d^3 + b^4 + c^3*d
