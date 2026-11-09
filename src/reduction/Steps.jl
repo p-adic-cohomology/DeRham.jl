@@ -208,7 +208,7 @@ S - vector
 cache - the GradedExpCache used for this controlled reduction
 params - the ControlledReductionParamaters
 """
-function costadata_of_initial_term!(term, g, n, d, p, S, cache, params)
+function costadata_of_initial_term!(term, g, n, d, P, p, S, cache, params)
     termorder = params.termorder
     vars_reversed = params.vars_reversed
 
@@ -224,9 +224,10 @@ function costadata_of_initial_term!(term, g, n, d, p, S, cache, params)
 
     gCoeff = coeff(i[1], 1)
 
-    g_exps = U - tweak(U, n*d-n)  # TODO: make our code work with tweak
+    reduction_degree = _reduction_g_degree(P)
+    g_exps = U - tweak(U, reduction_degree)  # TODO: make our code work with tweak
 
-    ev = cache[n*d-n]
+    ev = cache[reduction_degree]
 
     my_zero!(g)
 
@@ -238,6 +239,11 @@ function costadata_of_initial_term!(term, g, n, d, p, S, cache, params)
     end
 
     return (U, g)
+end
+
+function costadata_of_initial_term!(term, g, n, d, p, S, cache, params)
+    P = HypersurfacePresentation(n, d)
+    return costadata_of_initial_term!(term, g, n, d, P, p, S, cache, params)
 end
 
 """
@@ -320,13 +326,19 @@ d - degree of f
 n - # of vars of f
 params - the ControlledReductionParamaters
 """
-function poly_of_end_costadata(costadata, PR, p, d, n, params)
+function poly_of_end_costadata(costadata, PR, P, p, d, n, params)
     (u, g_vec) = costadata
     vars = gens(PR)
     cpu_g = Array(g_vec)
-    CUDA.@allowscalar g = vector_to_polynomial(cpu_g, n, d*n-n, PR, params.termorder)
+    reduction_degree = _reduction_g_degree(P)
+    CUDA.@allowscalar g = vector_to_polynomial(cpu_g, n, reduction_degree, PR, params.termorder)
 
-    return [prod(vars .^ u) * g, n]
+    return [prod(vars .^ u) * g, terminal_pole_order(P)]
+end
+
+function poly_of_end_costadata(costadata, PR, p, d, n, params)
+    P = HypersurfacePresentation(n, d)
+    return poly_of_end_costadata(costadata, PR, P, p, d, n, params)
 end
 
 
@@ -348,12 +360,17 @@ n - # of vars of f - 1
 S - vector of ints
 params - the ControlledReductionParamaters
 """
-function poly_of_end_costadatas(costadatas, PR, p, d, n, S, params)
+function poly_of_end_costadatas(costadatas, PR, P, p, d, n, S, params)
     res = PR(0)
     vars = gens(PR)
     for costadata in costadatas
-        res += poly_of_end_costadata(costadata, PR, p, d, n, params)[1]
+        res += poly_of_end_costadata(costadata, PR, P, p, d, n, params)[1]
     end
     XS = prod(PR(vars[i+1]) for i in S; init = PR(1))
-    [[div(res, XS), n]]
+    [[div(res, XS), terminal_pole_order(P)]]
+end
+
+function poly_of_end_costadatas(costadatas, PR, p, d, n, S, params)
+    P = HypersurfacePresentation(n, d)
+    return poly_of_end_costadatas(costadatas, PR, P, p, d, n, S, params)
 end

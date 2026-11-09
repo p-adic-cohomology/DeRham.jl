@@ -86,6 +86,19 @@ function zeta_coefficients(
     context = nothing,
     precision_info = nothing,
 )
+    if !(fe isa ProjectiveHypersurface)
+        if algorithm in (:pchunk, :varbyvar, :akr)
+            throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
+        elseif use_gpu
+            throw(ArgumentError("GPU execution is not yet supported for $(typeof(fe))"))
+        elseif context !== nothing
+            throw(ArgumentError("custom reduction contexts are not yet supported for $(typeof(fe))"))
+        end
+        if algorithm == :default
+            algorithm = :depthfirst
+        end
+    end
+
     check_input(fe)
     f = polynomial(fe)
     P = presentation(fe)
@@ -109,7 +122,7 @@ function zeta_coefficients(
             algorithm = :varbyvar
         elseif n > 4
             for i = 0:n
-                if is_Ssmooth(f, [n-i])
+                if is_Ssmooth(f, P, [n-i])
                     algorithm = :varbyvar
                     S = [n]
                     vars = gens(PR)
@@ -187,10 +200,10 @@ function zeta_coefficients(
     if (0 < verbose)
         println("Computing the relations matrix...")
         @time f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, M, S, params, changef, cache)
+            find_Ssmooth_model(f, P, M, S, params, changef, cache)
     else
         f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, M, S, params, changef, cache)
+            find_Ssmooth_model(f, P, M, S, params, changef, cache)
     end
 
     # For large examples, force a GC here; Julia's GC doesn't seem to automatically cause the
@@ -273,6 +286,7 @@ function zeta_coefficients(
         N_m,
         S,
         fLift,
+        P,
         pseudo_inverse_mat,
         p,
         params,
