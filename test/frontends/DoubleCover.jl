@@ -84,3 +84,114 @@ end
         algorithm_precision = 0,
     ) == false
 end
+
+@testset "Double cover zeta suite" begin
+    R3, (x3, z3) = polynomial_ring(GF(3), ["x", "z"])
+    R7, (x7, z7) = polynomial_ring(GF(7), ["x", "z"])
+    suite_cases = (
+        (
+            "g1_d4_a",
+            DeRham.DoubleCover(x3^4 - x3*z3^3 + z3^4),
+            3,
+            [1, 3, 3],
+            0,
+            (2, 5),
+        ),
+        (
+            "g2_d6_a",
+            DeRham.DoubleCover(4*x7^6 - 4*x7*z7^5 + 4*z7^6),
+            7,
+            [1, 1, 9, 7, 49],
+            0,
+            (2, 5),
+        ),
+        (
+            "g3_d8_a",
+            DeRham.DoubleCover(4*x7^8 - 4*x7*z7^7 + 4*z7^8),
+            7,
+            [1, 0, 0, 0, 0, 0, 343],
+            1,
+            (3, 7),
+        ),
+    )
+
+    for (id, fe, p, expected_ascending, precision_increment, expected_pair) in suite_cases
+        basis = DeRham.get_basis_of_cohomology(fe)
+        polygon = DeRham._hodge_polygon(basis, DeRham.presentation(fe))
+        relative_precision = DeRham.calculate_relative_precision(polygon, DeRham.weight(fe), p)
+        N = 2 + precision_increment
+        M = maximum(relative_precision) + 3 + precision_increment
+        @test (N, M) == expected_pair
+
+        for always_use_bigints in (false, true)
+            result = DeRham.zeta_coefficients(
+                fe;
+                algorithm = :depthfirst,
+                series_precision = N,
+                algorithm_precision = M,
+                always_use_bigints,
+            )
+            next_result = DeRham.zeta_coefficients(
+                fe;
+                algorithm = :depthfirst,
+                series_precision = N + 1,
+                algorithm_precision = M + 1,
+                always_use_bigints,
+            )
+            @test result !== false
+            @test result !== false && reverse(result) == expected_ascending
+            @test result !== false && next_result == result
+        end
+    end
+
+    R5, (x5, y5, z5) = polynomial_ring(GF(5), ["x", "y", "z"])
+    double_sextic = DeRham.DoubleCover(
+        x5^6 + 3*x5*y5^5 + x5*y5^2*z5^3 + y5^6 + 2*y5^3*z5^3 + 4*y5^2*z5^4 + z5^6,
+    )
+    sextic_basis = DeRham.get_basis_of_cohomology(double_sextic)
+    sextic_polygon = DeRham._hodge_polygon(sextic_basis, DeRham.presentation(double_sextic))
+    sextic_relative_precision =
+        DeRham.calculate_relative_precision(sextic_polygon, DeRham.weight(double_sextic), 5)
+    sextic_M = maximum(sextic_relative_precision) + 4
+    @test length(sextic_basis) == 21
+    @test sextic_M == 8
+    sextic_result = DeRham.zeta_coefficients(
+        double_sextic;
+        algorithm = :depthfirst,
+        series_precision = 3,
+        algorithm_precision = sextic_M,
+    )
+    next_sextic_result = DeRham.zeta_coefficients(
+        double_sextic;
+        algorithm = :depthfirst,
+        series_precision = 4,
+        algorithm_precision = sextic_M + 1,
+    )
+    expected_sextic_ascending = [
+        1,
+        0,
+        -10,
+        75,
+        -250,
+        -3750,
+        6250,
+        31250,
+        -468750,
+        781250,
+        9765625,
+        -48828125,
+        -97656250,
+        1464843750,
+        -2441406250,
+        -12207031250,
+        183105468750,
+        305175781250,
+        -2288818359375,
+        7629394531250,
+        0,
+        -476837158203125,
+    ]
+    @test sextic_result !== false
+    @test sextic_result !== false && reverse(sextic_result) == expected_sextic_ascending
+    @test sextic_result !== false && next_sextic_result == sextic_result
+end
