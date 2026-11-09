@@ -147,12 +147,12 @@ function zeta_coefficients(
         use_threads,
     )
 
-    cache = controlled_reduction_cache(n, d, S, params)
+    cache = controlled_reduction_cache(n, d, S, params, P)
 
     (0 < verbose) && println("p = $p")
     (9 < verbose) && println("Working with a degree $d hypersurface in P^$n")
 
-    (basis, Basis) = get_basis_of_cohomology_twoflavors(f, S, params, cache)
+    (basis, Basis) = get_basis_of_cohomology_twoflavors(f, P, S, params, cache)
 
     #println("Basis of cohomology is $Basis")
     (9 < verbose) && println("Basis of cohomology is $Basis")
@@ -217,11 +217,11 @@ function zeta_coefficients(
         fe = typeof(fe)(f)
         f = polynomial(fe)
         P = presentation(fe)
-        basis = compute_monomial_bases(f, params, cache) # basis of cohomology
+        basis = compute_monomial_bases(f, P, params, cache) # basis of cohomology
         Basis = []
-        for i = 1:n
+        for (i, m) in enumerate(pole_orders(P))
             for j in basis[i]
-                push!(Basis, [j, i])
+                push!(Basis, [j, m])
             end
         end
         (9 < verbose) && println("New basis of cohomology is $Basis")
