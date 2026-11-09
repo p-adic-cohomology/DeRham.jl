@@ -689,6 +689,22 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         )
         @test exec.expected(primitive_curve, record()) == BigInt[7, 1, 1]
 
+        hyperelliptic_curve = example(
+            good_variety("hyperelliptic", ["x", "z"]; dim = 1, middle_factor_content = "full"),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
+        )
+        @test exec.expected(hyperelliptic_curve, record()) == BigInt[7, 1, 1]
+        double_cover_surface = example(
+            good_variety(
+                "double_cover_P2",
+                ["x", "y", "z"];
+                dim = 2,
+                middle_factor_content = "primitive",
+            ),
+            [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 0, 0, 0, 0, 0, 7]))],
+        )
+        @test length(exec.expected(double_cover_surface, record())) == 7
+
         full_threefold = example(
             good_variety(
                 "projective_hypersurface",
@@ -726,7 +742,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
 
         # unsupported model kind / coeff domain / non_middle_factors convention.
         unsupported_kind = example(
-            good_variety("hyperelliptic"),
+            good_variety("not_a_supported_kind"),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
         @test_throws ErrorException exec.expected(unsupported_kind, record())
@@ -815,6 +831,46 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             )
         end
         @test isnothing(validate("shared", Dict{String,Any}("verbose" => 3)))
+        @test isnothing(
+            validate(
+                "shared",
+                Dict{String,Any}(
+                    "relative_precision" => [1, 2],
+                    "series_precision" => 3,
+                    "algorithm_precision" => 5,
+                ),
+            ),
+        )
+        precision_kwargs = E2E.Common.parse_kwargs(
+            Dict{String,Any}(
+                "relative_precision" => [1, 2],
+                "series_precision" => 3,
+                "algorithm_precision" => 5,
+            ),
+        )
+        @test precision_kwargs == Dict{Symbol,Any}(
+            :relative_precision => [1, 2],
+            :series_precision => 3,
+            :algorithm_precision => 5,
+        )
+        @test eltype(precision_kwargs[:relative_precision]) == Int
+        for (parameter, value) in (
+            ("relative_precision", "2"),
+            ("relative_precision", [1, true]),
+            ("series_precision", [1.5]),
+            ("series_precision", true),
+        )
+            @test_throws r"must be an integer or an array of integers" validate(
+                "shared",
+                Dict{String,Any}(parameter => value),
+            )
+        end
+        for invalid_algorithm_precision in ([1, 2], true, "4")
+            @test_throws r"algorithm_precision must be an integer" validate(
+                "shared",
+                Dict{String,Any}("algorithm_precision" => invalid_algorithm_precision),
+            )
+        end
         for invalid_verbose in ("3", true, 1.5)
             @test_throws r"verbose must be an integer" validate(
                 "shared",
@@ -1624,6 +1680,23 @@ end
     @test Oscar.total_degree(curve) == 6
     @test curve == x^5 * z - x * z^5 + z^6
     @test DeRham.check_smoothness(curve)
+    curve_record = E2E.ExecutionRecord(
+        "double_cover_curve",
+        "zeta_coefficients",
+        String[],
+        0.1,
+        hyperelliptic.id,
+        3,
+        Dict{String,Any}(),
+        "synthetic.toml",
+    )
+    curve_frontend = E2E.Common.build_input(hyperelliptic, curve_record)
+    @test curve_frontend isa DeRham.DoubleCover
+    @test DeRham.polynomial(curve_frontend) == curve
+    @test_throws r"does not support model.kind" E2E.Common.validate_geometry(
+        hyperelliptic,
+        "point_counts",
+    )
 
     h_model = Dict{String,Any}(
         "kind" => "hyperelliptic",
@@ -1665,4 +1738,21 @@ end
           x^6 + 3 * x^3 * y^2 * z + x * y^2 * z^3 + y^6 + y^5 * z + 4 * y^4 * z^2 + z^6
     @test DeRham.check_smoothness(surface)
     @test_throws r"p=2" E2E.DoubleCoverModels.build_input(double_sextic, 2)
+    surface_record = E2E.ExecutionRecord(
+        "double_cover_surface",
+        "zeta_coefficients",
+        String[],
+        0.1,
+        double_sextic.id,
+        7,
+        Dict{String,Any}(),
+        "synthetic.toml",
+    )
+    surface_frontend = E2E.Common.build_input(double_sextic, surface_record)
+    @test surface_frontend isa DeRham.DoubleCover
+    @test DeRham.polynomial(surface_frontend) == surface
+    @test_throws r"does not support model.kind" E2E.Common.validate_geometry(
+        double_sextic,
+        "point_counts",
+    )
 end

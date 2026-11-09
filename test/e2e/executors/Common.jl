@@ -26,6 +26,9 @@ const COMMON_PARAMETERS = Set([
     "always_use_bigints",
     "use_gpu",
     "use_threads",
+    "relative_precision",
+    "series_precision",
+    "algorithm_precision",
 ])
 const COMMON_ALGORITHMS = Set(["default", "depthfirst", "varbyvar", "pchunk"])
 const COMMON_BOOLEAN_PARAMETERS = Set([
@@ -72,6 +75,24 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
         if !valid_s
             error("execution record $(repr(name)): S must be an array of integers")
         end
+    end
+    for key in ("relative_precision", "series_precision")
+        if haskey(params, key)
+            value = params[key]
+            valid_scalar = value isa Integer && !(value isa Bool)
+            valid_array =
+                value isa AbstractVector &&
+                all(entry -> entry isa Integer && !(entry isa Bool), value)
+            valid_scalar || valid_array || error(
+                "execution record $(repr(name)): $(key) must be an integer or an array of integers",
+            )
+        end
+    end
+    if haskey(params, "algorithm_precision")
+        value = params["algorithm_precision"]
+        value isa Integer && !(value isa Bool) || error(
+            "execution record $(repr(name)): algorithm_precision must be an integer",
+        )
     end
     return nothing
 end
@@ -200,6 +221,12 @@ end
 function build_input(example::ExampleCase, record::ExecutionRecord)
     p = resolve_prime(example, record)
     model = example.variety["model"]
+    kind = get(model, "kind", nothing)
+    if kind in ("hyperelliptic", "double_cover_P2")
+        double_cover_models = getproperty(parentmodule(@__MODULE__), :DoubleCoverModels)
+        branch_polynomial = double_cover_models.build_input(example, p)
+        return DeRham.DoubleCover(branch_polynomial)
+    end
     R, _ = Oscar.polynomial_ring(Oscar.GF(Int(p)), Symbol.(model["vars"]))
     return _multivariable_poly(model["monomials"], model["coeffs"], R)
 end
@@ -212,6 +239,8 @@ function parse_kwargs(params::AbstractDict)
             Symbol(v)
         elseif sym == :S
             Int.(v)
+        elseif sym in (:relative_precision, :series_precision, :algorithm_precision)
+            v isa AbstractVector ? Int.(v) : Int(v)
         else
             v
         end
