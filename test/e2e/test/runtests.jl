@@ -1715,6 +1715,22 @@ end
     @test curve_with_h == x^3 * z + 2 * x^2 * z^2 + 2 * x * z^3 + 2 * z^4
     @test DeRham.check_smoothness(curve_with_h)
 
+    zero_h_model = Dict{String,Any}(
+        "kind" => "hyperelliptic",
+        "f_coeffs_asc" => [1, 0, 1, 1],
+        "h_coeffs_asc" => Int[],
+    )
+    zero_h_variety = Dict{String,Any}(
+        "coeff_domain" => Dict("kind" => "integer"),
+        "dim" => 1,
+        "genus" => 1,
+        "model" => zero_h_model,
+    )
+    zero_h_example = E2E.ExampleCase("zero_h", "synthetic.json", zero_h_variety, Any[], "")
+    curve_without_h = E2E.DoubleCoverModels.build_input(zero_h_example, 3)
+    x, z = Oscar.gens(parent(curve_without_h))
+    @test curve_without_h == x^3 * z + x^2 * z^2 + z^4
+
     degree_drop_model = Dict{String,Any}(
         "kind" => "hyperelliptic",
         "f_coeffs_asc" => [1, 0, 0, 3],

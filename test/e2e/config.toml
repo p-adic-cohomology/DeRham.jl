@@ -17,6 +17,8 @@ records = [
     "artin_invariant_original_sigma_two_p3",
     "derived_k3_realization_k3f3_p3",
     "derived_k3_picard_rank_p5_k2",
+    "double_cover_hyperelliptic_g1_p3",
+    "double_cover_P2_sextic_sparse_p5",
 ]
 
 [tags]

@@ -29,10 +29,16 @@ function _prime(example::ExampleCase, p::Integer)
     return Int(p)
 end
 
-function _integer_coefficients(example::ExampleCase, model::AbstractDict, key::String)
+function _integer_coefficients(
+    example::ExampleCase,
+    model::AbstractDict,
+    key::String;
+    empty_is_zero::Bool = false,
+)
     raw = get(model, key, nothing)
-    raw isa AbstractVector && !isempty(raw) ||
+    raw isa AbstractVector && (empty_is_zero || !isempty(raw)) ||
         _invalid(example, "model.$(key) must be a nonempty array of integer coefficients")
+    isempty(raw) && return BigInt[0]
     coefficients = BigInt[]
     for (index, value) in enumerate(raw)
         coefficient = try
@@ -66,7 +72,7 @@ function _hyperelliptic(example::ExampleCase, model::AbstractDict, p::Int)
     target_degree = 2 * Int(genus) + 2
 
     f = _integer_coefficients(example, model, "f_coeffs_asc")
-    h = _integer_coefficients(example, model, "h_coeffs_asc")
+    h = _integer_coefficients(example, model, "h_coeffs_asc"; empty_is_zero = true)
     h_squared = zeros(BigInt, length(h) * 2 - 1)
     for i in eachindex(h), j in eachindex(h)
         h_squared[i+j-1] += h[i] * h[j]
