@@ -154,8 +154,8 @@ function zeta_coefficients_k3f3(
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
-        (FM, zeta_coefficients_from_frobenius(FM, n, q, hodge_polygon, r_m, verbose))
+        (FM, zeta_coefficients_from_frobenius(FM, n - 1, q, hodge_polygon, r_m, verbose))
     else
-        zeta_coefficients_from_frobenius(FM, n, q, hodge_polygon, r_m, verbose)
+        zeta_coefficients_from_frobenius(FM, n - 1, q, hodge_polygon, r_m, verbose)
     end
 end

@@ -30,19 +30,19 @@ function prec_vec(polygon, relative_precision, verbose = 0)
 end
 
 """
-    sign_fe(n, d, prec_vec, cp_coeffs)
+    sign_fe(weight, d, prec_vec, cp_coeffs)
 
 returns the sign of the functional equation. The sign is always 1 if the dimension of the hypersurface is odd.
 
 INPUTS:
-* "n" -- integer, dimension of the ambient projective space
+* "weight" -- integer, motivic weight of the cohomology group
 * "d" -- integer, degree of characteristic polygon = dimension of cohomology group
 * "prec_vec" -- list, prec_vec[i] = maximum p-adic valuation of the i-th coefficient of the Frobenius char poly?
 * "cp_coeffs" -- list, cp_coeffs[i] = i-th coefficient of the Frobenius char poly, which a priori may be incorrect
 """
-function sign_fe(n, d, p, prec_vec, cp_coeffs)
+function sign_fe(weight, d, p, prec_vec, cp_coeffs)
     sign = 1
-    dimension = n-1 # dimension of hypersurface = motivic weight = n-1
+    dimension = weight
     cp = cp_coeffs #TODO: why the naming discrepancy?
     if dimension % 2 == 0
         for i = 1:Int(floor(d/2))
@@ -68,13 +68,13 @@ function sign_fe(n, d, p, prec_vec, cp_coeffs)
 end
 
 """
-    apply_symmetry(n, d, p, prec_vec, cp_coeffs, modulus, sign)
+    apply_symmetry(weight, d, p, prec_vec, cp_coeffs, modulus, sign)
 
 Update the coefficients in the Frobenius characteristic polynomial using symmetry in the coefficients coming from
 the Weil conjecture/Poincare duality
 
 INPUTS:
-* "n" -- integer, dimension of the ambient projective space
+* "weight" -- integer, motivic weight of the cohomology group
 * "d" -- integer, degree of characteristic polygon = dimension of cohomology group
 * "p" -- integer, prime number
 * "prec_vec" -- list, prec_vec[i] = maximum p-adic valuation of the i-th coefficient of the Frobenius char poly?
@@ -82,8 +82,8 @@ INPUTS:
 * "modulus" -- list, modulus[i] = p^(prec_vec[i])
 * "sign" -- integer, sign of the functional equation
 """
-function apply_symmetry(n, d, p, prec_vec, cp_coeffs, modulus, sign)
-    dimension = n-1
+function apply_symmetry(weight, d, p, prec_vec, cp_coeffs, modulus, sign)
+    dimension = weight
     for i = 0:div(d, 2)
         k = div((d-2*i) * dimension, 2)
         if prec_vec[i+1] >= (prec_vec[d+1-i] + k)
@@ -104,18 +104,18 @@ function apply_symmetry(n, d, p, prec_vec, cp_coeffs, modulus, sign)
 end
 
 """
-    apply_newton_identity(n, d, p, prec_vec, cp_coeffs, modulus)
+    apply_newton_identity(weight, d, p, prec_vec, cp_coeffs, modulus)
 calculate the i-th power sum of the roots and correct the coefficients along the way
 
 INPUTS:
-* "n" -- integer, dimension of the ambient projective space
+* "weight" -- integer, motivic weight of the cohomology group
 * "d" -- integer, degree of characteristic polygon = dimension of cohomology group
 * "p" -- integer, prime number
 * "prec_vec" -- list, prec_vec[i] = maximum p-adic valuation of the i-th coefficient of the Frobenius char poly?
 * "cp_coeffs" -- list, cp_coeffs[i] = i-th coefficient of the Frobenius char poly, which a priori may be incorrect
 * "modulus" -- list, modulus[i] = p^(prec_vec[i])
 """
-function apply_newton_identity(n, d, p, prec_vec, cp_coeffs, modulus)
+function apply_newton_identity(weight, d, p, prec_vec, cp_coeffs, modulus)
     e = [ZZ(0) for i = 1:(d+1)]  # e[k] = (k-1)-th elementary symmetric polynomial evaluated at the roots
     s = [ZZ(0) for i = 1:(d+1)]  # s[k] = k-th power sum of the roots
     for k = 0:d
@@ -149,7 +149,7 @@ function apply_newton_identity(n, d, p, prec_vec, cp_coeffs, modulus)
         s[k+1] = mod(s[k+1], pN)
         #println(s[k+1])
 
-        if ZZ(s[k+1])^2 > (ZZ(d)*ZZ(d)*ZZ(p)^((n-1)*k))
+        if ZZ(s[k+1])^2 > (ZZ(d)*ZZ(d)*ZZ(p)^(weight*k))
             s[k+1] = -mod(-s[k+1], pN)
         end
         #println(s[k+1])
@@ -172,9 +172,9 @@ function apply_newton_identity(n, d, p, prec_vec, cp_coeffs, modulus)
 end
 
 """
-    compute_Lpolynomial(n, d, p, polygon, relative_precision, cp_coeffs)
+    compute_Lpolynomial(weight, d, p, polygon, relative_precision, cp_coeffs)
 INPUTS:
-* "n" -- integer, dimension of the ambient projective space
+* "weight" -- integer, motivic weight of the cohomology group
 * "p" -- integer, prime number
 * "polygon" -- A SlopesPolygon struct describing a polygon whose values describe the
 divisibility of the roots.
@@ -183,9 +183,9 @@ divisibility of the roots.
                         Frobenius matrix computed over the integers
 
 """
-function compute_Lpolynomial(n, p, polygon, relative_precision, cp_coeffs, verbose = 0)
+function compute_Lpolynomial(weight, p, polygon, relative_precision, cp_coeffs, verbose = 0)
     p = ZZ(p)
-    dimension = n - 1  # dimension of the projective space
+    dimension = weight
     Lpoly_coeffs = [ZZ(x) for x in cp_coeffs]
     (1 == verbose) && println("initial coefficients = $Lpoly_coeffs")
     precision_vec = prec_vec(polygon, relative_precision)
@@ -200,16 +200,16 @@ function compute_Lpolynomial(n, p, polygon, relative_precision, cp_coeffs, verbo
     #println("coefficients after moding by prec = $Lpoly_coeffs")
 
     Lpoly_coeffs[d+1] = 1  # set leading coefficient to 1
-    sign = sign_fe(n, d, p, precision_vec, Lpoly_coeffs)  # determine the sign of the functional equation
+    sign = sign_fe(weight, d, p, precision_vec, Lpoly_coeffs)  # determine the sign of the functional equation
     (1 == verbose) && println("sign of functional equation = $sign")
     Lpoly_coeffs[1] = sign * p^(div(d*dimension, 2))
     #println(Lpoly_coeffs[1])
     #println("prec_vec=$precision_vec")
-    Lpoly_coeffs = apply_symmetry(n, d, p, precision_vec, Lpoly_coeffs, modulus, sign)
+    Lpoly_coeffs = apply_symmetry(weight, d, p, precision_vec, Lpoly_coeffs, modulus, sign)
     (1 == verbose) && println("coefficients after apply symmetry = $Lpoly_coeffs")
     #println("prec_vec=$precision_vec")
     #println("coefficients after apply symmetry = $Lpoly_coeffs")
-    Lpoly_coeffs = apply_newton_identity(n, d, p, precision_vec, Lpoly_coeffs, modulus)
+    Lpoly_coeffs = apply_newton_identity(weight, d, p, precision_vec, Lpoly_coeffs, modulus)
     (1 == verbose) &&
         println("coeffficients after applying Newton's identity = $Lpoly_coeffs")
 
