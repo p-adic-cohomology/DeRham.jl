@@ -87,6 +87,66 @@ function applyFrobeniusToMon(
     return result
 end
 
+function _residue_ring_rational(R, q)
+    q = QQ(q)
+    return R(Oscar.numerator(q)) * inv(R(Oscar.denominator(q)))
+end
+
+function applyFrobeniusToMon(
+    n,
+    d,
+    f,
+    fe::ZetaFrontend,
+    N,
+    p,
+    beta,
+    m,
+    R,
+    PR,
+    termorder,
+    vars_reversed;
+    verbose = false,
+)
+    (9 < verbose) && println("Applying Frobenius to $beta with pole order $m")
+    (9 < verbose) && println("N=$N, m=$m")
+    if N == 0
+        return []
+    end
+    terminal_index = frobenius_term_pole_order(fe, m, N - 1)
+    (9 < verbose) && println("Scaling by prescale at pole order: $terminal_index")
+    Factorial = reduction_prescale(fe, BigInt(terminal_index))
+    o = ones(Int64, n + 1)
+    B = MPolyBuildCtx(PR)
+    push_term!(B, R(1), o)
+    X1 = finish(B)
+    D = frobenius_series(fe, N, m)
+    result = []
+    for j = 0:(N-1)
+        e = j + m
+        pole_order = frobenius_term_pole_order(fe, m, j)
+        factorial_e = _residue_ring_rational(
+            R,
+            Factorial / reduction_prescale(fe, BigInt(pole_order)),
+        )
+        series_coefficient = _residue_ring_rational(R, D[j+1])
+        ev = gen_exp_vec(n + 1, d * j, termorder)
+        fj = f^j
+        sum = 0
+        for alpha in ev
+            B = MPolyBuildCtx(PR)
+            push_term!(B, R(1), Int64(p) * (beta + alpha + o))
+            monomial = div(finish(B), X1)
+            coefficient = factorial_e * series_coefficient * coeff(fj, alpha)
+            sum = sum + coefficient * monomial
+            if (9 < verbose) && coefficient != 0
+                println("Djm=$(D[j+1]), C_jalpha=$(coeff(fj, alpha))\n")
+            end
+        end
+        push!(result, [sum, pole_order])
+    end
+    return result
+end
+
 """
     applyFrobeniusToBasis(Basis,n,d,f,N,p,R,PR)
 
@@ -115,6 +175,42 @@ function applyFrobeniusToBasis(Basis, f, N_m, p, params)
             n,
             d,
             f,
+            N_m[b[2]],
+            p,
+            exponent_vector(b[1], 1),
+            b[2],
+            R,
+            PR,
+            termorder,
+            vars_reversed,
+            verbose = verbose,
+        )
+        (9 < verbose) && println("Applying Frobenius to $b gives $Fmon")
+        push!(result, Fmon)
+    end
+    return result
+end
+
+function applyFrobeniusToBasis(Basis, fe::ZetaFrontend, N_m, p, params)
+    isempty(Basis) && return []
+
+    termorder = params.termorder
+    vars_reversed = params.vars_reversed
+    verbose = params.verbose
+
+    f = polynomial(fe)
+    n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    PR = parent(Basis[1][1])
+    R = coefficient_ring(PR)
+    fLift = liftCoefficients(R, PR, f)
+    result = []
+    for b in Basis
+        Fmon = applyFrobeniusToMon(
+            n,
+            d,
+            fLift,
+            fe,
             N_m[b[2]],
             p,
             exponent_vector(b[1], 1),

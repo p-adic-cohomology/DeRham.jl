@@ -237,9 +237,9 @@ function zeta_coefficients(
     fLift = liftCoefficients(precisionring, precisionringpoly, f)
     if (0 < verbose)
         println("\nApplying Frobenius to basis elements")
-        @time FBasis = applyFrobeniusToBasis(Basis, fLift, N_m, p, params)
+        @time FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     else
-        FBasis = applyFrobeniusToBasis(Basis, fLift, N_m, p, params)
+        FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     end
 
     l = d * n - n + d - length(S)
