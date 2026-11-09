@@ -7,6 +7,7 @@
     @test DeRham.weight(cubic_frontend) == 1
     @test DeRham.check_input(cubic_frontend) === nothing
     @test DeRham.check_smoothness(cubic)
+    @test_throws ArgumentError DeRham.zeta_coefficients(cubic_frontend; series_precision = 3)
     @test DeRham.zeta_coefficients(cubic_frontend) == DeRham.zeta_coefficients(cubic)
 
     Rsurface, (a, b, c, d) = polynomial_ring(GF(2), ["a", "b", "c", "d"])

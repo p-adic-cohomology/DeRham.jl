@@ -47,6 +47,10 @@ Keyword arguments:
   and the coefficient vector, instead of just the coefficient vector.
 - `algorithm=:default`: selects the controlled-reduction algorithm; `:default`
   chooses automatically.
+- `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
+  uncertified precision inputs for non-hypersurface frontends. Hypersurface
+  frontends reject these keywords; other frontends require series and algorithm
+  precision.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
 
@@ -85,6 +89,9 @@ function zeta_coefficients(
     use_threads = false,
     context = nothing,
     precision_info = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
 )
     if !(fe isa ProjectiveHypersurface)
         if algorithm in (:pchunk, :varbyvar, :akr)
@@ -97,6 +104,20 @@ function zeta_coefficients(
         if algorithm == :default
             algorithm = :depthfirst
         end
+    end
+
+    if fe isa ProjectiveHypersurface
+        if relative_precision !== nothing || series_precision !== nothing ||
+           algorithm_precision !== nothing
+            throw(ArgumentError("explicit precision keywords are not supported for $(typeof(fe))"))
+        end
+    else
+        precision_info === nothing ||
+            throw(ArgumentError("precision_info is not accepted for $(typeof(fe))"))
+        series_precision === nothing &&
+            throw(ArgumentError("series_precision is required for $(typeof(fe))"))
+        algorithm_precision === nothing &&
+            throw(ArgumentError("algorithm_precision is required for $(typeof(fe))"))
     end
 
     check_input(fe)
@@ -170,10 +191,21 @@ function zeta_coefficients(
     #println("Basis of cohomology is $Basis")
     (9 < verbose) && println("Basis of cohomology is $Basis")
 
-    if precision_info === nothing
-        (hodge_polygon, r_m, N_m, M) = calculate_precision_information(f, Basis, verbose)
-    else
+    if precision_info !== nothing
         (hodge_polygon, r_m, N_m, M) = precision_info
+    elseif fe isa ProjectiveHypersurface
+        (hodge_polygon, r_m, N_m, M) = calculate_precision_information(fe, Basis, verbose)
+    else
+        hodge_polygon = _hodge_polygon(Basis, P)
+        (hodge_polygon, r_m, N_m, M) = _explicit_precision_information(
+            P,
+            hodge_polygon,
+            weight(fe),
+            p;
+            relative_precision = relative_precision,
+            series_precision = series_precision,
+            algorithm_precision = algorithm_precision,
+        )
     end
 
     (1 < verbose) && println("N_m=$N_m")
@@ -322,6 +354,9 @@ function zeta_coefficients(
     use_threads = false,
     context = nothing,
     precision_info = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
 )
     return zeta_coefficients(
         ProjectiveHypersurface(f);
@@ -338,6 +373,9 @@ function zeta_coefficients(
         use_threads = use_threads,
         context = context,
         precision_info = precision_info,
+        relative_precision = relative_precision,
+        series_precision = series_precision,
+        algorithm_precision = algorithm_precision,
     )
 end
 
@@ -364,6 +402,9 @@ function zeta_coefficients(
     use_gpu = false,
     use_threads = false,
     context = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
 )
     @assert is_prime(p) "p must be prime"
     f = polynomial(fe)
@@ -383,6 +424,9 @@ function zeta_coefficients(
         use_gpu = use_gpu,
         use_threads = use_threads,
         context = context,
+        relative_precision = relative_precision,
+        series_precision = series_precision,
+        algorithm_precision = algorithm_precision,
     )
 end
 
@@ -401,6 +445,9 @@ function zeta_coefficients(
     use_gpu = false,
     use_threads = false,
     context = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
 )
     return zeta_coefficients(
         ProjectiveHypersurface(f),
@@ -417,6 +464,9 @@ function zeta_coefficients(
         use_gpu = use_gpu,
         use_threads = use_threads,
         context = context,
+        relative_precision = relative_precision,
+        series_precision = series_precision,
+        algorithm_precision = algorithm_precision,
     )
 end
 

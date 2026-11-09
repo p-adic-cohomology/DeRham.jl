@@ -28,6 +28,7 @@ function run_de_rham_full_test_suite!()
 
                 @testset "Precision information" begin
                     test_user_relative_precision_bypasses_default_table()
+                    test_explicit_precision_information()
                     test_max_auto_precision_without_default_table()
                     test_certified_series_precision()
                 end
