@@ -34,4 +34,15 @@
     for n in 2:5, i in 0:(n - 1)
         @test DeRham.reduction_prescale(cubic_frontend, n - i) == factorial(ZZ(n - 1 - i))
     end
+
+    dimension = DeRham.presentation(cubic_frontend).n
+    p = Int(characteristic(parent(cubic)))
+    orders = DeRham.pole_orders(DeRham.presentation(cubic_frontend))
+    scale_basis = [[nothing, m] for m in orders]
+    N_m = [1, 2]
+    expected_scale_exponents = [
+        dimension - 1 - DeRham._ibm_vp_factorial(p * (m + N_m[m] - 1) - 1, p) for m in orders
+    ]
+    @test DeRham._frobenius_column_scale_exponents(cubic_frontend, p, N_m, scale_basis) ==
+          expected_scale_exponents
 end

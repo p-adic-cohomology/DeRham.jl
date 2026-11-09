@@ -267,9 +267,9 @@ function zeta_coefficients(
 
     if (0 < verbose)
         println("Computing T matrix...")
-        @time T = computeT(f, basis, M, params, cache)
+        @time T = computeT(fe, basis, M, params, cache)
     else
-        T = computeT(f, basis, M, params, cache)
+        T = computeT(fe, basis, M, params, cache)
     end
     (9 < verbose) && println("T matrix is $T")
 
@@ -295,9 +295,9 @@ function zeta_coefficients(
     )
     (2 < verbose) && println(Reductions)
 
-    ev = cache[n*d-n-1]
+    ev = cache[numerator_degree(P, terminal_pole_order(P))]
     (9 < verbose) && println(convert_p_to_m([Reductions[1][1][1], Reductions[2][1][1]], ev))
-    FM = compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, cache)
+    FM = compute_frobenius_matrix(fe, p, N_m, Reductions, T, Basis, params, cache)
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
