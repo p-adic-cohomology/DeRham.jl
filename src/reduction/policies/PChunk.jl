@@ -64,7 +64,7 @@ function reducechain_pchunk(
 
     @. u = u - gVec
     if m - n < p
-        nend = Int(m - n)
+        nend = m - n
     else
         nend = p
     end
