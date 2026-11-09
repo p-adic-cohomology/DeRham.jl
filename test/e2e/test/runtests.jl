@@ -1615,3 +1615,54 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         end
     end
 end
+
+@testset "double-cover model conversion" begin
+    catalogue = E2E.load_example_catalogue(dirname(@__DIR__))
+    hyperelliptic = catalogue.examples["g2_d5_a"]
+    curve = E2E.DoubleCoverModels.build_input(hyperelliptic, 3)
+    x, z = Oscar.gens(parent(curve))
+    @test Oscar.total_degree(curve) == 6
+    @test curve == x^5 * z - x * z^5 + z^6
+    @test DeRham.check_smoothness(curve)
+
+    h_model = Dict{String,Any}(
+        "kind" => "hyperelliptic",
+        "f_coeffs_asc" => [1, 0, 1, 1],
+        "h_coeffs_asc" => [1, 1],
+    )
+    h_variety = Dict{String,Any}(
+        "coeff_domain" => Dict("kind" => "integer"),
+        "dim" => 1,
+        "genus" => 1,
+        "model" => h_model,
+    )
+    h_example = E2E.ExampleCase("nonzero_h", "synthetic.json", h_variety, Any[], "")
+    curve_with_h = E2E.DoubleCoverModels.build_input(h_example, 3)
+    x, z = Oscar.gens(parent(curve_with_h))
+    @test curve_with_h == x^3 * z + 2 * x^2 * z^2 + 2 * x * z^3 + 2 * z^4
+    @test DeRham.check_smoothness(curve_with_h)
+
+    degree_drop_model = Dict{String,Any}(
+        "kind" => "hyperelliptic",
+        "f_coeffs_asc" => [1, 0, 0, 3],
+        "h_coeffs_asc" => [0],
+    )
+    degree_drop_variety = Dict{String,Any}(
+        "coeff_domain" => Dict("kind" => "integer"),
+        "dim" => 1,
+        "genus" => 1,
+        "model" => degree_drop_model,
+    )
+    degree_drop = E2E.ExampleCase("degree_drop", "synthetic.json", degree_drop_variety, Any[], "")
+    @test_throws r"singular at infinity" E2E.DoubleCoverModels.build_input(degree_drop, 3)
+    @test_throws r"p=2" E2E.DoubleCoverModels.build_input(hyperelliptic, 2)
+
+    double_sextic = catalogue.examples["p7_dc_sextic_sparse_fk_001"]
+    surface = E2E.DoubleCoverModels.build_input(double_sextic, 7)
+    x, y, z = Oscar.gens(parent(surface))
+    @test Oscar.total_degree(surface) == 6
+    @test surface ==
+          x^6 + 3 * x^3 * y^2 * z + x * y^2 * z^3 + y^6 + y^5 * z + 4 * y^4 * z^2 + z^6
+    @test DeRham.check_smoothness(surface)
+    @test_throws r"p=2" E2E.DoubleCoverModels.build_input(double_sextic, 2)
+end
