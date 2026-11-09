@@ -49,6 +49,7 @@ function run_de_rham_full_test_suite!()
             include(joinpath($test_dir, "invariants/Jacobian.jl"))
             include(joinpath($test_dir, "presentations/CohomologyPresentation.jl"))
             include(joinpath($test_dir, "frontends/ProjectiveHypersurface.jl"))
+            include(joinpath($test_dir, "frontends/DoubleCover.jl"))
             include(joinpath($test_dir, "frontends/Refusals.jl"))
             include(joinpath($test_dir, "graded_ring/GradedExpCache.jl"))
 

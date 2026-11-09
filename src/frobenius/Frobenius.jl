@@ -16,6 +16,33 @@ function computeD(N, m)
     return D
 end
 
+function _generalized_binomial(a::QQFieldElem, i::Integer)
+    value = QQ(1)
+    for t in 0:(i-1)
+        value *= (a - t) / QQ(t + 1)
+    end
+    return value
+end
+
+"""
+    computeD_half_integral(N, k)
+
+Return the length-`N` Frobenius series coefficients for the pole exponent `k`.
+The coefficients are exact rationals and use the generalized binomial
+coefficient with exponent `-k/2`.
+"""
+function computeD_half_integral(N, k::Integer)
+    a = QQ(-BigInt(k), BigInt(2))
+    D = Vector{QQFieldElem}(undef, N)
+    for j = 0:(N-1)
+        D[j+1] = sum(
+            (-1)^(i+j) * _generalized_binomial(a, i) * binomial(i, j) for i = j:(N-1);
+            init = QQ(0),
+        )
+    end
+    return D
+end
+
 """
     applyFrobeniusToMon(n,d,f,N,p,beta,m,R,PR)
 
