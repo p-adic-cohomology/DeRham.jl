@@ -9,6 +9,13 @@ function get_basis_of_cohomology(f)
     get_basis_of_cohomology(f, S, params, cache)
 end
 
+"""
+    get_basis_of_cohomology(fe::ZetaFrontend)
+
+Return the cohomology basis for `fe` as a vector of `[monomial, pole_order]`
+pairs. Frontend-specific input requirements are checked before the basis is
+constructed.
+"""
 function get_basis_of_cohomology(fe::ZetaFrontend)
     check_input(fe)
     f = polynomial(fe)

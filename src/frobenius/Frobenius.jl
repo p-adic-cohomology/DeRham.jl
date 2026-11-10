@@ -34,9 +34,10 @@ coefficient with exponent `-k/2`.
 function computeD_half_integral(N, k::Integer)
     a = QQ(-BigInt(k), BigInt(2))
     D = Vector{QQFieldElem}(undef, N)
+    generalized_binomial_coefficients = [_generalized_binomial(a, i) for i = 0:(N-1)]
     for j = 0:(N-1)
         D[j+1] = sum(
-            (-1)^(i+j) * _generalized_binomial(a, i) * binomial(i, j) for i = j:(N-1);
+            (-1)^(i+j) * generalized_binomial_coefficients[i+1] * binomial(i, j) for i = j:(N-1);
             init = QQ(0),
         )
     end

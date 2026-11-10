@@ -55,4 +55,5 @@ julia> DeRham.zeta_coefficients(
 ```@docs
 DeRham.DoubleCover
 DeRham.zeta_coefficients(::DeRham.ZetaFrontend)
+DeRham.get_basis_of_cohomology(::DeRham.ZetaFrontend)
 ```
