@@ -1,0 +1,93 @@
+{
+  "schema_version": "3",
+  "cases": [
+    {
+      "id": "quadric_surface_split_p3",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 2,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "primitive"
+        },
+        "model": {
+          "kind": "projective_hypersurface",
+          "pretty": "w*x - y*z = 0",
+          "vars": ["w", "x", "y", "z"],
+          "monomials": [[1, 1, 0, 0], [0, 0, 1, 1]],
+          "coeffs": [1, -1]
+        }
+      },
+      "results": [
+        { "p": 3, "Lpoly": { "coeffs_asc": [1, -3] } }
+      ],
+      "notes": "Split quadric surface; the primitive eigenvalue is +3."
+    },
+    {
+      "id": "quadric_surface_nonsplit_p3",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 2,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "primitive"
+        },
+        "model": {
+          "kind": "projective_hypersurface",
+          "pretty": "w^2 + x^2 + y^2 + 2*z^2 = 0",
+          "vars": ["w", "x", "y", "z"],
+          "monomials": [[2, 0, 0, 0], [0, 2, 0, 0], [0, 0, 2, 0], [0, 0, 0, 2]],
+          "coeffs": [1, 1, 1, 2]
+        }
+      },
+      "results": [
+        { "p": 3, "Lpoly": { "coeffs_asc": [1, 3] } }
+      ],
+      "notes": "Nonsplit quadric surface; the primitive eigenvalue is -3."
+    },
+    {
+      "id": "double_cover_conic_nonsplit_p3",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 2,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "primitive"
+        },
+        "model": {
+          "kind": "double_cover_P2",
+          "pretty": "x^2 + y^2 + z^2",
+          "branch_vars": ["x", "y", "z"],
+          "branch_monomials": [[2, 0, 0], [0, 2, 0], [0, 0, 2]],
+          "branch_coeffs": [1, 1, 1]
+        }
+      },
+      "results": [
+        { "p": 3, "Lpoly": { "coeffs_asc": [1, 3] } }
+      ],
+      "notes": "Nonsplit quadric surface written as a double cover of P2; the primitive eigenvalue is -3."
+    },
+    {
+      "id": "double_cover_conic_split_p3",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 2,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "primitive"
+        },
+        "model": {
+          "kind": "double_cover_P2",
+          "pretty": "x^2 + y^2 + 2*z^2",
+          "branch_vars": ["x", "y", "z"],
+          "branch_monomials": [[2, 0, 0], [0, 2, 0], [0, 0, 2]],
+          "branch_coeffs": [1, 1, 2]
+        }
+      },
+      "results": [
+        { "p": 3, "Lpoly": { "coeffs_asc": [1, -3] } }
+      ],
+      "notes": "Split quadric surface written as a double cover of P2; the primitive eigenvalue is +3."
+    }
+  ]
+}

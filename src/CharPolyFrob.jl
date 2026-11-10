@@ -40,26 +40,48 @@ INPUTS:
 * "prec_vec" -- list, prec_vec[i] = maximum p-adic valuation of the i-th coefficient of the Frobenius char poly?
 * "cp_coeffs" -- list, cp_coeffs[i] = i-th coefficient of the Frobenius char poly, which a priori may be incorrect
 """
-function sign_fe(weight, d, p, prec_vec, cp_coeffs)
+function sign_fe(weight, d, p, prec_vec, cp_coeffs; degree_one_sign_factor = 1)
     sign = 1
     dimension = weight
     cp = cp_coeffs #TODO: why the naming discrepancy?
     if dimension % 2 == 0
-        for i = 1:Int(floor(d/2))
-            # NOTE-TO-SELF: check if the symmetric index is d-i or d+1-i
-            k = div((d-2*i)*dimension, 2)
-            p_power = p^(min(prec_vec[i+1], prec_vec[d+1-i]+k))
+        if d == 1
+            k = div(d * dimension, 2)
+            precision = min(prec_vec[1], prec_vec[d+1] + k)
+            precision > k || throw(
+                ArgumentError("not enough p-adic precision to determine the sign of a degree-one L-polynomial"),
+            )
+            p_power = p^precision
+            coefficient = mod(cp[1], p_power)
+            quotient, remainder = divrem(coefficient, p^k)
+            iszero(remainder) || throw(
+                ArgumentError("degree-one characteristic coefficient is not divisible by its expected p-power"),
+            )
+            unit = mod(quotient, p)
+            expected_unit = mod(degree_one_sign_factor, p)
+            iszero(expected_unit) && throw(
+                ArgumentError("degree-one sign factor must be invertible modulo p"),
+            )
+            if unit == expected_unit
+                sign = 1
+            elseif unit == mod(-expected_unit, p)
+                sign = -1
+            else
+                throw(ArgumentError("degree-one characteristic coefficient does not determine a functional-equation sign"))
+            end
+        else
+            for i = 1:Int(floor(d/2))
+                k = div((d-2*i)*dimension, 2)
+                p_power = p^(min(prec_vec[i+1], prec_vec[d+1-i]+k))
 
-            if (mod(cp[i+1], p_power) != 0) && (mod(cp[d+1-i], p_power) != 0)
-                if 0 == mod(cp[i+1] + cp[d+1-i] * p^k, p_power)
-                    sign = -1
-                else
-                    sign = 1
-                    #println(mod(cp[i+1] - cp[d+1-i] * ZZ(p^k), p_power))
-                    # commented out for K3 over F3
-                    # @assert 0 == mod(cp[i+1] - cp[d+1-i] * ZZ(p^k), p_power)
+                if (mod(cp[i+1], p_power) != 0) && (mod(cp[d+1-i], p_power) != 0)
+                    if 0 == mod(cp[i+1] + cp[d+1-i] * p^k, p_power)
+                        sign = -1
+                    else
+                        sign = 1
+                    end
+                    break
                 end
-                break
             end
         end
     end
@@ -183,7 +205,15 @@ divisibility of the roots.
                         Frobenius matrix computed over the integers
 
 """
-function compute_Lpolynomial(weight, p, polygon, relative_precision, cp_coeffs, verbose = 0)
+function compute_Lpolynomial(
+    weight,
+    p,
+    polygon,
+    relative_precision,
+    cp_coeffs,
+    verbose = 0;
+    degree_one_sign_factor = 1,
+)
     p = ZZ(p)
     dimension = weight
     Lpoly_coeffs = [ZZ(x) for x in cp_coeffs]
@@ -200,7 +230,14 @@ function compute_Lpolynomial(weight, p, polygon, relative_precision, cp_coeffs, 
     #println("coefficients after moding by prec = $Lpoly_coeffs")
 
     Lpoly_coeffs[d+1] = 1  # set leading coefficient to 1
-    sign = sign_fe(weight, d, p, precision_vec, Lpoly_coeffs)  # determine the sign of the functional equation
+    sign = sign_fe(
+        weight,
+        d,
+        p,
+        precision_vec,
+        Lpoly_coeffs;
+        degree_one_sign_factor = degree_one_sign_factor,
+    )
     (1 == verbose) && println("sign of functional equation = $sign")
     Lpoly_coeffs[1] = sign * p^(div(d*dimension, 2))
     #println(Lpoly_coeffs[1])
