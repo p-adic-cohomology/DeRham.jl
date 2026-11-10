@@ -120,6 +120,35 @@ function _residue_ring_rational(R, q)
     return R(Oscar.numerator(q)) * inv(R(Oscar.denominator(q)))
 end
 
+function _frobenius_prescale_factors(fe::ZetaFrontend, m, N)
+    N == 0 && return QQFieldElem[]
+    terminal_index = BigInt(frobenius_term_pole_order(fe, m, N - 1))
+    terminal_prescale = reduction_prescale(fe, terminal_index)
+    factors = Vector{QQFieldElem}(undef, N)
+    for j = 0:(N-1)
+        pole_order = BigInt(frobenius_term_pole_order(fe, m, j))
+        factors[j+1] = terminal_prescale / reduction_prescale(fe, pole_order)
+    end
+    return factors
+end
+
+function _frobenius_prescale_factors(fe::DoubleCover, m, N)
+    N == 0 && return QQFieldElem[]
+    P = presentation(fe)
+    pole_orders = BigInt[frobenius_term_pole_order(fe, m, j) for j = 0:(N-1)]
+    factors = Vector{QQFieldElem}(undef, N)
+    scale = QQ(1)
+    for i in N:-1:1
+        factors[i] = scale
+        if i > 1
+            for pole_order in pole_orders[i-1]:(pole_orders[i]-1)
+                scale *= inv(reduction_scalar(P, pole_order))
+            end
+        end
+    end
+    return factors
+end
+
 function applyFrobeniusToMon(
     n,
     d,
@@ -135,6 +164,7 @@ function applyFrobeniusToMon(
     vars_reversed;
     verbose = false,
     series = nothing,
+    prescale_factors = nothing,
 )
     (9 < verbose) && println("Applying Frobenius to $beta with pole order $m")
     (9 < verbose) && println("N=$N, m=$m")
@@ -143,7 +173,7 @@ function applyFrobeniusToMon(
     end
     terminal_index = frobenius_term_pole_order(fe, m, N - 1)
     (9 < verbose) && println("Scaling by prescale at pole order: $terminal_index")
-    Factorial = reduction_prescale(fe, BigInt(terminal_index))
+    rescaling = prescale_factors === nothing ? _frobenius_prescale_factors(fe, m, N) : prescale_factors
     o = ones(Int64, n + 1)
     B = MPolyBuildCtx(PR)
     push_term!(B, R(1), o)
@@ -153,10 +183,7 @@ function applyFrobeniusToMon(
     for j = 0:(N-1)
         e = j + m
         pole_order = frobenius_term_pole_order(fe, m, j)
-        factorial_e = _residue_ring_rational(
-            R,
-            Factorial / reduction_prescale(fe, BigInt(pole_order)),
-        )
+        factorial_e = _residue_ring_rational(R, rescaling[j+1])
         series_coefficient = _residue_ring_rational(R, D[j+1])
         ev = gen_exp_vec(n + 1, d * j, termorder)
         fj = f^j
@@ -235,6 +262,7 @@ function applyFrobeniusToBasis(Basis, fe::ZetaFrontend, N_m, p, params)
     fLift = liftCoefficients(R, PR, f)
     result = []
     series_cache = Dict{Int,Any}()
+    prescale_cache = Dict{Int,Vector{QQFieldElem}}()
     if fe isa DoubleCover
         for b in Basis
             m = b[2]
@@ -242,6 +270,13 @@ function applyFrobeniusToBasis(Basis, fe::ZetaFrontend, N_m, p, params)
             if N != 0 && !haskey(series_cache, m)
                 series_cache[m] = frobenius_series(fe, N, m)
             end
+        end
+    end
+    for b in Basis
+        m = b[2]
+        N = N_m[m]
+        if N != 0 && !haskey(prescale_cache, m)
+            prescale_cache[m] = _frobenius_prescale_factors(fe, m, N)
         end
     end
     for b in Basis
@@ -261,6 +296,7 @@ function applyFrobeniusToBasis(Basis, fe::ZetaFrontend, N_m, p, params)
             vars_reversed,
             verbose = verbose,
             series = get(series_cache, m, nothing),
+            prescale_factors = get(prescale_cache, m, nothing),
         )
         (9 < verbose) && println("Applying Frobenius to $b gives $Fmon")
         push!(result, Fmon)

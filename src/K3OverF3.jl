@@ -1,3 +1,7 @@
+function _k3f3_zeta_coefficients_from_frobenius(FM, q, hodge_polygon, r_m, verbose)
+    zeta_coefficients_from_frobenius(FM, 2, q, hodge_polygon, r_m, verbose)
+end
+
 # wrapper function to compute zeta functions for quartic K3 surfaces over F_3s ONLY
 function zeta_coefficients_k3f3(
     f;
@@ -154,8 +158,8 @@ function zeta_coefficients_k3f3(
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
-        (FM, zeta_coefficients_from_frobenius(FM, n - 1, q, hodge_polygon, r_m, verbose))
+        (FM, _k3f3_zeta_coefficients_from_frobenius(FM, q, hodge_polygon, r_m, verbose))
     else
-        zeta_coefficients_from_frobenius(FM, n - 1, q, hodge_polygon, r_m, verbose)
+        _k3f3_zeta_coefficients_from_frobenius(FM, q, hodge_polygon, r_m, verbose)
     end
 end

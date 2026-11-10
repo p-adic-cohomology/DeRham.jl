@@ -49,6 +49,20 @@ end
     @test [DeRham.reduction_prescale(curve, m) for m in 1:3] == [QQ(1), QQ(1, 2), QQ(3, 4)]
 
     for N in 1:5, m in 1:4
+        terminal_scale = DeRham.reduction_prescale(
+            curve,
+            DeRham.frobenius_term_pole_order(curve, m, N - 1),
+        )
+        expected = [
+            terminal_scale / DeRham.reduction_prescale(
+                curve,
+                DeRham.frobenius_term_pole_order(curve, m, j),
+            ) for j in 0:(N-1)
+        ]
+        @test DeRham._frobenius_prescale_factors(curve, m, N) == expected
+    end
+
+    for N in 1:5, m in 1:4
         @test DeRham.frobenius_series(curve, N, m) ==
               DeRham.computeD_half_integral(N, DeRham.pole_exponent(P, m))
         for j in 0:(N-1)
@@ -77,6 +91,10 @@ end
     char2_frontend = DeRham.DoubleCover(u^4 + v^4)
     @test_throws ArgumentError DeRham.check_input(char2_frontend)
     @test_throws ArgumentError DeRham.get_basis_of_cohomology(char2_frontend)
+
+    Rchar0, (u0, v0) = polynomial_ring(ZZ, ["u0", "v0"])
+    char0_frontend = DeRham.DoubleCover(u0^4 + v0^4)
+    @test_throws r"finite field" DeRham.check_input(char0_frontend)
 
     inhomogeneous_branch = x^4 + x^2 + z^4
     @test_throws r"homogeneous" DeRham.check_input(DeRham.DoubleCover(inhomogeneous_branch))
