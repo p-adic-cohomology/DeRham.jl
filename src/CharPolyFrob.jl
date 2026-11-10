@@ -37,6 +37,7 @@ Returns the sign of the functional equation. For a degree-one characteristic pol
 INPUTS:
 * "weight" -- integer, motivic weight of the cohomology group
 * "d" -- integer, degree of characteristic polygon = dimension of cohomology group
+* "p" -- integer, prime number
 * "prec_vec" -- list, prec_vec[i] = maximum p-adic valuation of the i-th coefficient of the Frobenius char poly?
 * "cp_coeffs" -- list, cp_coeffs[i] = i-th coefficient of the Frobenius char poly, which a priori may be incorrect
 """
@@ -48,7 +49,7 @@ function sign_fe(weight, d, p, prec_vec, cp_coeffs)
         k = div(dimension, 2)
         required_precision = k + (p == 2 ? 2 : 1)
         if prec_vec[1] < required_precision
-            throw(ArgumentError("not enough p-adic precision to determine the sign of a degree-one L-polynomial (need c_0 mod p^(k+1))"))
+            throw(ArgumentError("not enough p-adic precision to determine the sign of a degree-one L-polynomial (need c_0 mod p^$required_precision)"))
         end
 
         p = ZZ(p)
