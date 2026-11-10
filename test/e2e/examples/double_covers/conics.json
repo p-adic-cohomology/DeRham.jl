@@ -20,6 +20,26 @@
       },
       "results": [{ "p": 3, "Lpoly": { "coeffs_asc": [1, 3] } }],
       "notes": "Nonsplit conic branch; primitive Frobenius eigenvalue is -3."
+    },
+    {
+      "id": "double_cover_conic_split_p3",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 2,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "primitive"
+        },
+        "model": {
+          "kind": "double_cover_P2",
+          "pretty": "x^2 + y^2 + 2*z^2",
+          "branch_vars": ["x", "y", "z"],
+          "branch_monomials": [[2, 0, 0], [0, 2, 0], [0, 0, 2]],
+          "branch_coeffs": [1, 1, 2]
+        }
+      },
+      "results": [{ "p": 3, "Lpoly": { "coeffs_asc": [1, -3] } }],
+      "notes": "Split conic branch; primitive Frobenius eigenvalue is +3."
     }
   ]
 }

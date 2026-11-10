@@ -562,6 +562,7 @@ function test_certified_series_precision()
         S = [3],
     )
     frobenius = regression[1]
+    @test regression[2][1] == -5
     @test frobenius isa MatElem
     entry = lift(ZZ, frobenius[1, 1])
     @test modulus(base_ring(frobenius)) == 25

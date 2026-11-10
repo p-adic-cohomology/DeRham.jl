@@ -30,9 +30,9 @@ function prec_vec(polygon, relative_precision, verbose = 0)
 end
 
 """
-    sign_fe(weight, d, prec_vec, cp_coeffs)
+    sign_fe(weight, d, p, prec_vec, cp_coeffs)
 
-returns the sign of the functional equation. The sign is always 1 if the dimension of the hypersurface is odd.
+Returns the sign of the functional equation. For a degree-one characteristic polynomial, the constant coefficient determines the sign when it is known to sufficient p-adic precision.
 
 INPUTS:
 * "weight" -- integer, motivic weight of the cohomology group
@@ -44,6 +44,30 @@ function sign_fe(weight, d, p, prec_vec, cp_coeffs)
     sign = 1
     dimension = weight
     cp = cp_coeffs #TODO: why the naming discrepancy?
+    if d == 1
+        k = div(dimension, 2)
+        required_precision = k + (p == 2 ? 2 : 1)
+        if prec_vec[1] < required_precision
+            throw(ArgumentError("not enough p-adic precision to determine the sign of a degree-one L-polynomial (need c_0 mod p^(k+1))"))
+        end
+
+        p = ZZ(p)
+        p_power = p^k
+        c0 = ZZ(cp[1])
+        if !iszero(mod(c0, p_power))
+            throw(ArgumentError("constant coefficient is not divisible by p^k for a degree-one L-polynomial"))
+        end
+
+        unit_modulus = p == 2 ? ZZ(4) : p
+        unit = mod(divexact(c0, p_power), unit_modulus)
+        if unit == 1
+            return 1
+        elseif unit == unit_modulus - 1
+            return -1
+        end
+        throw(ArgumentError("constant coefficient does not determine a sign of ±1 for a degree-one L-polynomial"))
+    end
+
     if dimension % 2 == 0
         for i = 1:Int(floor(d/2))
             # NOTE-TO-SELF: check if the symmetric index is d-i or d+1-i
