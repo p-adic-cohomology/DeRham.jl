@@ -99,12 +99,11 @@ function frobenius_matrix_with_precision(
         f;
         precision_info = precision_info,
         givefrobmat = true,
-        _return_frobenius_only = true,
         verbose = verbose,
         kwargs...,
     )
     if result == false
         return false
     end
-    return result
+    return result[1]
 end
