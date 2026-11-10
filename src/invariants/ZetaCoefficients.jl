@@ -11,15 +11,7 @@ INPUTS:
 
 """
 
-function zeta_coefficients_from_frobenius(
-    FM,
-    weight,
-    q,
-    polygon,
-    relative_precision,
-    verbose;
-    degree_one_sign_factor = 1,
-)
+function zeta_coefficients_from_frobenius(FM, weight, q, polygon, relative_precision, verbose)
     @assert size(FM, 1) == size(FM, 2) "FM is not a square matrix"
 
     P, T = polynomial_ring(ZZ, "T")
@@ -27,15 +19,7 @@ function zeta_coefficients_from_frobenius(
 
     f = charpoly(P, lift_to_int(FM))
     cp_coeffs = collect(coefficients(f))
-    return compute_Lpolynomial(
-        weight,
-        q,
-        polygon,
-        relative_precision,
-        cp_coeffs,
-        verbose;
-        degree_one_sign_factor = degree_one_sign_factor,
-    )
+    return compute_Lpolynomial(weight, q, polygon, relative_precision, cp_coeffs, verbose)
 end
 
 
@@ -147,7 +131,7 @@ function zeta_coefficients(
     d = P.d
 
     if S == [-1]
-        S = collect(0:min(n, d - 1))
+        S = collect(0:n)
     end
 
     if length(S) > d
@@ -348,30 +332,10 @@ function zeta_coefficients(
     FM = compute_frobenius_matrix(fe, p, N_m, Reductions, T, Basis, params, cache)
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
-    degree_one_sign_factor = fe isa DoubleCover ? 2 : 1
     if givefrobmat
-        (
-            FM,
-            zeta_coefficients_from_frobenius(
-                FM,
-                weight(fe),
-                q,
-                hodge_polygon,
-                r_m,
-                verbose;
-                degree_one_sign_factor = degree_one_sign_factor,
-            ),
-        )
+        (FM, zeta_coefficients_from_frobenius(FM, weight(fe), q, hodge_polygon, r_m, verbose))
     else
-        zeta_coefficients_from_frobenius(
-            FM,
-            weight(fe),
-            q,
-            hodge_polygon,
-            r_m,
-            verbose;
-            degree_one_sign_factor = degree_one_sign_factor,
-        )
+        zeta_coefficients_from_frobenius(FM, weight(fe), q, hodge_polygon, r_m, verbose)
     end
 end
 
