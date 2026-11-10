@@ -856,7 +856,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         @test eltype(precision_kwargs[:relative_precision]) == Int
         for (parameter, value) in (
             ("relative_precision", "2"),
-            ("relative_precision", [1, true]),
+            ("relative_precision", Any[1, true]),
             ("series_precision", [1.5]),
             ("series_precision", true),
         )
