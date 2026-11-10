@@ -108,6 +108,7 @@ function zeta_coefficients(
     relative_precision = nothing,
     series_precision = nothing,
     algorithm_precision = nothing,
+    _return_frobenius_only = false,
 )
     if !(fe isa ProjectiveHypersurface)
         if algorithm in (:pchunk, :varbyvar, :akr)
@@ -348,6 +349,8 @@ function zeta_coefficients(
     FM = compute_frobenius_matrix(fe, p, N_m, Reductions, T, Basis, params, cache)
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
+    _return_frobenius_only && return FM
+
     degree_one_sign_factor = fe isa DoubleCover ? 2 : 1
     if givefrobmat
         (
@@ -393,6 +396,7 @@ function zeta_coefficients(
     relative_precision = nothing,
     series_precision = nothing,
     algorithm_precision = nothing,
+    _return_frobenius_only = false,
 )
     return zeta_coefficients(
         ProjectiveHypersurface(f);
@@ -412,6 +416,7 @@ function zeta_coefficients(
         relative_precision = relative_precision,
         series_precision = series_precision,
         algorithm_precision = algorithm_precision,
+        _return_frobenius_only = _return_frobenius_only,
     )
 end
 

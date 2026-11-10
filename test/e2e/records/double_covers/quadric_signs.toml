@@ -2,7 +2,7 @@
 name = "projective_quadric_split_p3"
 type = "zeta_coefficients"
 tags = []
-runtime = 1.085
+runtime = 0.808
 example = "quadric_surface_split_p3"
 p = 3
 parameters = { algorithm = "depthfirst" }

@@ -12,10 +12,10 @@
         },
         "model": {
           "kind": "projective_hypersurface",
-          "pretty": "w*x - y*z = 0",
+          "pretty": "w^2 + x^2 + y^2 + z^2 = 0",
           "vars": ["w", "x", "y", "z"],
-          "monomials": [[1, 1, 0, 0], [0, 0, 1, 1]],
-          "coeffs": [1, -1]
+          "monomials": [[2, 0, 0, 0], [0, 2, 0, 0], [0, 0, 2, 0], [0, 0, 0, 2]],
+          "coeffs": [1, 1, 1, 1]
         }
       },
       "results": [
