@@ -133,6 +133,7 @@ function applyFrobeniusToMon(
     termorder,
     vars_reversed;
     verbose = false,
+    series = nothing,
 )
     (9 < verbose) && println("Applying Frobenius to $beta with pole order $m")
     (9 < verbose) && println("N=$N, m=$m")
@@ -146,7 +147,7 @@ function applyFrobeniusToMon(
     B = MPolyBuildCtx(PR)
     push_term!(B, R(1), o)
     X1 = finish(B)
-    D = frobenius_series(fe, N, m)
+    D = series === nothing ? frobenius_series(fe, N, m) : series
     result = []
     for j = 0:(N-1)
         e = j + m
@@ -232,7 +233,18 @@ function applyFrobeniusToBasis(Basis, fe::ZetaFrontend, N_m, p, params)
     R = coefficient_ring(PR)
     fLift = liftCoefficients(R, PR, f)
     result = []
+    series_cache = Dict{Int,Any}()
+    if fe isa DoubleCover
+        for b in Basis
+            m = b[2]
+            N = N_m[m]
+            if N != 0 && !haskey(series_cache, m)
+                series_cache[m] = frobenius_series(fe, N, m)
+            end
+        end
+    end
     for b in Basis
+        m = b[2]
         Fmon = applyFrobeniusToMon(
             n,
             d,
@@ -247,6 +259,7 @@ function applyFrobeniusToBasis(Basis, fe::ZetaFrontend, N_m, p, params)
             termorder,
             vars_reversed,
             verbose = verbose,
+            series = get(series_cache, m, nothing),
         )
         (9 < verbose) && println("Applying Frobenius to $b gives $Fmon")
         push!(result, Fmon)

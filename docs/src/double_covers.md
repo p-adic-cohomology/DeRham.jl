@@ -16,6 +16,12 @@ the existing Weil-bound formula. These precision choices are not certified:
 there is no precision proof for this frontend yet. Only the depth-first CPU
 algorithm is supported.
 
+Each precision may be given as a scalar for all pieces or, where supported, as
+a vector. `relative_precision` vectors have one entry per Hodge polygon piece
+in the order used by `calculate_relative_precision`. `series_precision`
+vectors have one entry per pole order in ascending order.
+`algorithm_precision` is a single integer.
+
 The only supported entry points for this frontend are
 `DeRham.zeta_coefficients` and `DeRham.get_basis_of_cohomology`. Other
 invariants are not implemented for double covers.

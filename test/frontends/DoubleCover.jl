@@ -76,6 +76,10 @@ end
     Rchar2, (u, v) = polynomial_ring(GF(2), ["u", "v"])
     char2_frontend = DeRham.DoubleCover(u^4 + v^4)
     @test_throws ArgumentError DeRham.check_input(char2_frontend)
+    @test_throws ArgumentError DeRham.get_basis_of_cohomology(char2_frontend)
+
+    inhomogeneous_branch = x^4 + x^2 + z^4
+    @test_throws r"homogeneous" DeRham.check_input(DeRham.DoubleCover(inhomogeneous_branch))
 
     Rsingular, (s, t) = polynomial_ring(GF(3), ["s", "t"])
     singular_frontend = DeRham.DoubleCover(s^2 * t^2)
@@ -195,6 +199,25 @@ end
     @test sextic_result !== false
     @test sextic_result !== false && reverse(sextic_result) == expected_sextic_ascending
     @test sextic_result !== false && next_sextic_result == sextic_result
+
+    _, (u, v) = polynomial_ring(GF(5), ["u", "v"])
+    genus_zero = DeRham.DoubleCover(u^2 + v^2)
+    @test isempty(DeRham.get_basis_of_cohomology(genus_zero))
+    @test DeRham.zeta_coefficients(
+        genus_zero;
+        algorithm = :depthfirst,
+        series_precision = 1,
+        algorithm_precision = 2,
+    ) == ZZRingElem[ZZ(1)]
+    empty_frobenius, empty_coefficients = DeRham.zeta_coefficients(
+        genus_zero;
+        algorithm = :depthfirst,
+        series_precision = 1,
+        algorithm_precision = 2,
+        givefrobmat = true,
+    )
+    @test size(empty_frobenius) == (0, 0)
+    @test empty_coefficients == ZZRingElem[ZZ(1)]
 end
 
 @testset "Double cover conic Frobenius scaling" begin

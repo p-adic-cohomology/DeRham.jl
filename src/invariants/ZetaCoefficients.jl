@@ -50,7 +50,11 @@ Keyword arguments:
 - `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
   uncertified precision inputs for non-hypersurface frontends. Hypersurface
   frontends reject these keywords; other frontends require series and algorithm
-  precision.
+  precision. `relative_precision` accepts an integer for all Hodge pieces or a
+  vector in the order returned by `calculate_relative_precision`; its length
+  must match the Hodge polygon. `series_precision` accepts an integer for all
+  pole orders or a vector in ascending pole-order order.
+  `algorithm_precision` is an integer.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
 
@@ -270,6 +274,14 @@ function zeta_coefficients(
             end
         end
         (9 < verbose) && println("New basis of cohomology is $Basis")
+    end
+
+    if isempty(Basis)
+        coefficients = ZZRingElem[ZZ(1)]
+        if givefrobmat
+            return (matrix_space(precisionring, 0, 0)(), coefficients)
+        end
+        return coefficients
     end
 
     for i = 1:length(Basis)

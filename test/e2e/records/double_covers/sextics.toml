@@ -83,7 +83,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [1, 2, 3], series_
 name = "double_cover_P2_sextic_sparse_p23"
 type = "zeta_coefficients"
 tags = []
-runtime = 18.899
+runtime = 58.594
 example = "p23_dc_sextic_sparse_fk_001"
 p = 23
 parameters = { algorithm = "depthfirst", relative_precision = [1, 2, 3], series_precision = [6, 6, 5], algorithm_precision = 12 }

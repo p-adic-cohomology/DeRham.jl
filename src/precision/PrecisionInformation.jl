@@ -48,7 +48,11 @@ function _explicit_precision_information(
 )
     relative_length = length(polygon.slopelengths)
     r_m = if relative_precision === nothing
-        calculate_relative_precision(polygon, weight, p)
+        if iszero(sum(polygon.slopelengths))
+            zeros(Int, relative_length)
+        else
+            calculate_relative_precision(polygon, weight, p)
+        end
     elseif relative_precision isa Integer
         fill(Int(relative_precision), relative_length)
     elseif relative_precision isa AbstractVector{<:Integer}

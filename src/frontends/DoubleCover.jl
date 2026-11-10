@@ -23,6 +23,7 @@ weight(fe::DoubleCover) = fe.P.n
 function check_input(fe::DoubleCover)
     F = polynomial(fe)
     iseven(total_degree(F)) || throw(ArgumentError("the branch degree must be even"))
+    is_homogeneous(F) || throw(ArgumentError("the branch polynomial must be homogeneous"))
     characteristic(parent(F)) == 2 &&
         throw(ArgumentError("double covers are not supported in characteristic 2"))
     return nothing

@@ -10,6 +10,7 @@ function get_basis_of_cohomology(f)
 end
 
 function get_basis_of_cohomology(fe::ZetaFrontend)
+    check_input(fe)
     f = polynomial(fe)
     P = presentation(fe)
     n = nvars(parent(f)) - 1

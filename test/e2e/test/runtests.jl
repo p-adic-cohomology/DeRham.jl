@@ -1754,6 +1754,51 @@ end
           x^6 + 3 * x^3 * y^2 * z + x * y^2 * z^3 + y^6 + y^5 * z + 4 * y^4 * z^2 + z^6
     @test DeRham.check_smoothness(surface)
     @test_throws r"p=2" E2E.DoubleCoverModels.build_input(double_sextic, 2)
+
+    p2_example = (model, dim) -> E2E.ExampleCase(
+        "synthetic_p2",
+        "synthetic.json",
+        Dict{String,Any}(
+            "coeff_domain" => Dict("kind" => "integer"),
+            "dim" => dim,
+            "model" => model,
+        ),
+        Any[],
+        "",
+    )
+    p2_model = Dict{String,Any}(
+        "kind" => "double_cover_P2",
+        "branch_vars" => ["x", "y", "z"],
+        "branch_monomials" => [[6, 0, 0]],
+        "branch_coeffs" => [1],
+    )
+    @test_throws ArgumentError E2E.DoubleCoverModels.build_input(p2_example(p2_model, 1), 7)
+    @test_throws ArgumentError E2E.DoubleCoverModels.build_input(
+        p2_example(merge(copy(p2_model), Dict("branch_vars" => ["x", "y"])), 2),
+        7,
+    )
+    @test_throws ArgumentError E2E.DoubleCoverModels.build_input(
+        p2_example(merge(copy(p2_model), Dict("branch_coeffs" => [1, 2])), 2),
+        7,
+    )
+    @test_throws ArgumentError E2E.DoubleCoverModels.build_input(
+        p2_example(
+            merge(copy(p2_model), Dict("branch_monomials" => [[3, 0, 0]], "branch_coeffs" => [1])),
+            2,
+        ),
+        7,
+    )
+    @test_throws ArgumentError E2E.DoubleCoverModels.build_input(
+        p2_example(
+            merge(
+                copy(p2_model),
+                Dict("branch_monomials" => [[6, 0, 0], [0, 5, 0]], "branch_coeffs" => [1, 1]),
+            ),
+            2,
+        ),
+        7,
+    )
+
     surface_record = E2E.ExecutionRecord(
         "double_cover_surface",
         "zeta_coefficients",
