@@ -196,3 +196,25 @@ end
     @test sextic_result !== false && reverse(sextic_result) == expected_sextic_ascending
     @test sextic_result !== false && next_sextic_result == sextic_result
 end
+
+@testset "Double cover conic Frobenius scaling" begin
+    R3, (x, y, z) = polynomial_ring(GF(3), ["x", "y", "z"])
+    conics = (
+        (x^2 + y^2 + z^2, -3),
+        (x^2 + y^2 + 2*z^2, 3),
+    )
+
+    for (F, expected_entry) in conics
+        FM, _ = DeRham.zeta_coefficients(
+            DeRham.DoubleCover(F);
+            S = [0, 1],
+            algorithm = :depthfirst,
+            relative_precision = 2,
+            series_precision = 1,
+            algorithm_precision = 1,
+            givefrobmat = true,
+        )
+        entry = lift(ZZ, FM[1, 1])
+        @test mod(entry, 3^2) == mod(expected_entry, 3^2)
+    end
+end
