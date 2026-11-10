@@ -85,7 +85,7 @@ function computeT(fe::ZetaFrontend, Basis, M, params, cache)
                 tmp = zero_matrix(precisionring, len_basis, len)
                 for j = 1:len # indexing over monomials
                     for k = 1:length(basis)
-                        tmp[k, j] = coeff(
+                        tmp[k, j] = scale * coeff(
                             monomials[j],
                             liftCoefficients(precisionring, precisionringpoly, basis[k]),
                         )
