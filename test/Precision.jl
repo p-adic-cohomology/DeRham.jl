@@ -368,7 +368,7 @@ function test_explicit_precision_information()
         polygon,
         1,
         2;
-        relative_precision = Any[4, true],
+        relative_precision = Bool[true, false],
         series_precision = 3,
         algorithm_precision = 7,
     )
@@ -387,7 +387,7 @@ function test_explicit_precision_information()
         1,
         2;
         relative_precision = 4,
-        series_precision = Any[3, true],
+        series_precision = Bool[true, false],
         algorithm_precision = 7,
     )
     @test_throws ArgumentError DeRham._explicit_precision_information(
