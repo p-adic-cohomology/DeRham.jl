@@ -22,4 +22,4 @@ records = [
 ]
 
 [tags]
-allowed = ["gpu", "multithreading", "uint", "bigint", "karatsuba"]
+allowed = ["gpu", "multithreading", "uint", "bigint", "karatsuba", "sextic_k3"]
