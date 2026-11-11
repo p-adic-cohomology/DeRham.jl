@@ -1,0 +1,89 @@
+[[test]]
+name = "double_cover_hyperelliptic_g1_p5"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.825
+example = "g1_d3_b"
+p = 5
+parameters = { algorithm = "depthfirst", relative_precision = [1, 2], series_precision = [2, 2], algorithm_precision = 3 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g2_p7"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.711
+example = "g2_d5_a"
+p = 7
+parameters = { algorithm = "depthfirst", relative_precision = [2, 2], series_precision = [3, 2], algorithm_precision = 4 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g2_p11"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.563
+example = "g2_d5_b"
+p = 11
+parameters = { algorithm = "depthfirst", relative_precision = [1, 2], series_precision = [2, 2], algorithm_precision = 3 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g3_p3"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.559
+example = "g3_d7_a"
+p = 3
+parameters = { algorithm = "depthfirst", relative_precision = [2, 3], series_precision = [3, 3], algorithm_precision = 6 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g3_p13"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.612
+example = "g3_d8_a"
+p = 13
+parameters = { algorithm = "depthfirst", relative_precision = [2, 3], series_precision = [3, 3], algorithm_precision = 5 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g4_p7"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.541
+example = "g4_d10_a"
+p = 7
+parameters = { algorithm = "depthfirst", relative_precision = [3, 3], series_precision = [3, 3], algorithm_precision = 5 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g4_p13"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.589
+example = "g4_d10_b"
+p = 13
+parameters = { algorithm = "depthfirst", relative_precision = [2, 3], series_precision = [3, 3], algorithm_precision = 5 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g1_p53"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.42
+example = "g1_d3_a"
+p = 53
+parameters = { algorithm = "depthfirst", relative_precision = [1, 1], series_precision = [2, 1], algorithm_precision = 2 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g2_p97"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.366
+example = "g2_d5_a"
+p = 97
+parameters = { algorithm = "depthfirst", relative_precision = [1, 2], series_precision = [2, 2], algorithm_precision = 3 }
+
+[[test]]
+name = "double_cover_hyperelliptic_g5_p5"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.407
+example = "p5_d11_001"
+p = 5
+parameters = { algorithm = "depthfirst", relative_precision = [4, 4], series_precision = [4, 3], algorithm_precision = 8 }

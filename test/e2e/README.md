@@ -45,14 +45,17 @@ execution semantics) containing one or more grouped cases in the
 ```
 
 The `zeta_coefficients` executor supports `model.kind` of `plane_curve` (3
-variables) or `projective_hypersurface` (>= 2 variables), and
-`coeff_domain.kind == "integer"`. DeRham returns the **primitive** middle
-factor. Set `middle_factor_content` to `"primitive"` for surfaces. Odd-
-dimensional hypersurfaces may use `"primitive"` or `"full"` because those
-factors coincide. `Lpoly.coeffs_asc` is **ascending** (constant term first);
-DeRham's own `zeta_coefficients` return value is **descending** (leading
-coefficient first) — the executor reverses the stored coefficients and rejects
-an accidentally-reversed `coeffs_asc` (its first entry must be `1`).
+variables), `projective_hypersurface` (>= 2 variables), `hyperelliptic`, or
+`double_cover_P2`, with `coeff_domain.kind == "integer"`. The double-cover
+kinds are converted to homogeneous branch polynomials and are supported only
+by this executor; other invariant executors continue to reject them. DeRham
+returns the **primitive** middle factor. Set `middle_factor_content` to
+`"primitive"` for surfaces. Odd-dimensional varieties may use `"primitive"`
+or `"full"` because those factors coincide. `Lpoly.coeffs_asc` is
+**ascending** (constant term first); DeRham's own `zeta_coefficients` return
+value is **descending** (leading coefficient first) — the executor reverses
+the stored coefficients and rejects an accidentally-reversed `coeffs_asc` (its
+first entry must be `1`).
 
 Example ids must be nonempty and globally unique across every local file and
 the pinned artifact.
@@ -79,9 +82,10 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
 - `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
-  `gpu`, `multithreading`, `uint`, `bigint`, `karatsuba`). A `gpu` tag (or
-  `parameters.use_gpu = true`) marks the record as requiring a functional
-  CUDA device.
+  `gpu`, `multithreading`, `uint`, `bigint`, `karatsuba`, `sextic_k3`). The
+  `sextic_k3` tag selects the degree-2 K3 sextic records for an on-demand run.
+  A `gpu` tag (or `parameters.use_gpu = true`) marks the record as requiring a
+  functional CUDA device.
 - For `Lpoly`-derived records, common computation options are passed through as
   keyword arguments to the selected DeRham invariant. `point_counts` and
   `k3_picard_rank` also require a positive integer `k`; the notes-based
@@ -107,7 +111,12 @@ recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
 `algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
 `always_use_bigints`, `use_gpu`, and `use_threads`. `algorithm` accepts
 `default`, `depthfirst`, `varbyvar`, or `pchunk`; `S` must be an array and
-`termorder` must be a string.
+`termorder` must be a string. The common option parser also accepts
+`relative_precision`, `series_precision`, and `algorithm_precision`;
+`relative_precision` and `series_precision` take an integer or an array of
+integers, while `algorithm_precision` takes an integer. For a double-cover
+zeta record, `series_precision` and `algorithm_precision` are required;
+`relative_precision` defaults to the existing Weil-bound formula.
 
 ## Reference an example from the pinned artifact
 

@@ -28,6 +28,7 @@ function run_de_rham_full_test_suite!()
 
                 @testset "Precision information" begin
                     test_user_relative_precision_bypasses_default_table()
+                    test_explicit_precision_information()
                     test_max_auto_precision_without_default_table()
                     test_certified_series_precision()
                 end
@@ -45,7 +46,13 @@ function run_de_rham_full_test_suite!()
             include(joinpath($test_dir, "invariants/PicardRank.jl"))
             include(joinpath($test_dir, "invariants/ArtinMazurHeight.jl"))
             include(joinpath($test_dir, "invariants/ArtinInvariant.jl"))
+            include(joinpath($test_dir, "invariants/CharPolyFrob.jl"))
             include(joinpath($test_dir, "invariants/Jacobian.jl"))
+            include(joinpath($test_dir, "presentations/CohomologyPresentation.jl"))
+            include(joinpath($test_dir, "frontends/ProjectiveHypersurface.jl"))
+            include(joinpath($test_dir, "frontends/DoubleCover.jl"))
+            include(joinpath($test_dir, "frontends/Refusals.jl"))
+            include(joinpath($test_dir, "graded_ring/GradedExpCache.jl"))
 
             include(joinpath($test_dir, "e2e/test/runtests.jl"))
 

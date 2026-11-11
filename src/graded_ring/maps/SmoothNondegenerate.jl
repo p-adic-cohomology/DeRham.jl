@@ -1,9 +1,9 @@
 
-function is_Ssmooth(f, S)
+function is_Ssmooth(f, P, S)
     p = characteristic(parent(f))
     n = length(gens(parent(f))) - 1
     d = total_degree(f)
-    l = d * n - n + d - length(S)
+    l = _reduction_g_degree(P) + d - length(S)
 
     PR = parent(f)
     R = base_ring(PR)
@@ -12,13 +12,20 @@ function is_Ssmooth(f, S)
     fLift = liftCoefficients(ZZ, PRZZ, f)
 
     params = default_params()
-    cache = controlled_reduction_cache(n, d, S, params)
+    cache = controlled_reduction_cache(n, d, S, params, P)
 
     M_ZZ = compute_controlled_matrix(fLift, l, S, ZZ, PRZZ, params, cache)
 
     M = matrix(R, M_ZZ)
     flag, B = Oscar.is_invertible_with_inverse(M, side = :right)
     flag
+end
+
+function is_Ssmooth(f, S)
+    n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    P = HypersurfacePresentation(n, d)
+    return is_Ssmooth(f, P, S)
 end
 
 function issmooth_linalg(f)
@@ -52,7 +59,7 @@ Inputs:
 * "changef" -- bool
 * "cache" -- the GradedExpCache used for this controlled reduction
 """
-function find_Ssmooth_model(f, M, S_target, params, changef, cache)
+function find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
     p = Int64(characteristic(parent(f)))
     q = p
     PR = parent(f)
@@ -61,7 +68,7 @@ function find_Ssmooth_model(f, M, S_target, params, changef, cache)
     SLn = special_linear_group(n + 1, GF(q))
     d = total_degree(f)
     vars = gens(PR)
-    l = d * n - n + d - length(S_target)
+    l = _reduction_g_degree(P) + d - length(S_target)
 
     f_transformed = f
     num_iter = min(2*p, 100)
@@ -105,4 +112,11 @@ function find_Ssmooth_model(f, M, S_target, params, changef, cache)
     end
     return (false, false, false)
 
+end
+
+function find_Ssmooth_model(f, M, S_target, params, changef, cache)
+    n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    P = HypersurfacePresentation(n, d)
+    return find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
 end

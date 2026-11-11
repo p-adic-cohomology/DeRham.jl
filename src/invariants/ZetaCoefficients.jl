@@ -1,17 +1,24 @@
 """
-    zeta_coefficients_from_frobenius(FM, n, q, polygon, relative_precision, verbose)
+    zeta_coefficients_from_frobenius(FM, weight, q, polygon, relative_precision, verbose)
 
 Given the Frobenius matrix, computes the corresponding L-polynomial det(1-tq^{-1}FM)
 returns an Oscar polynomial if as_poly=true, and the coefficients if as_poly=false
 
 INPUTS:
 * "FM" -- Frobenius matrix
-* "n" -- integer, dimension of the ambient projective space
+* "weight" -- integer, motivic weight of the cohomology group
 * "q" -- integer, characteristic of base field
 
 """
 
-function zeta_coefficients_from_frobenius(FM, n, q, polygon, relative_precision, verbose)
+function zeta_coefficients_from_frobenius(
+    FM,
+    weight,
+    q,
+    polygon,
+    relative_precision,
+    verbose,
+)
     @assert size(FM, 1) == size(FM, 2) "FM is not a square matrix"
 
     P, T = polynomial_ring(ZZ, "T")
@@ -19,20 +26,19 @@ function zeta_coefficients_from_frobenius(FM, n, q, polygon, relative_precision,
 
     f = charpoly(P, lift_to_int(FM))
     cp_coeffs = collect(coefficients(f))
-    return compute_Lpolynomial(n, q, polygon, relative_precision, cp_coeffs, verbose)
+    return compute_Lpolynomial(weight, q, polygon, relative_precision, cp_coeffs, verbose)
 end
 
 
 """
-    zeta_coefficients(f; S=[-1], verbose=0, changef=true, givefrobmat=false,
-                      algorithm=:default, use_gpu=false, use_threads=false)
+    zeta_coefficients(fe::ZetaFrontend; ...)
 
-Computes zeta coefficients for the projective hypersurface defined by the
-homogeneous Oscar polynomial ``f`` over a finite field of characteristic ``p``.
+Computes the zeta coefficients for a supported ``ZetaFrontend`` over a finite
+field. Supported frontends are ``ProjectiveHypersurface`` and ``DoubleCover``.
 The returned vector contains the coefficients of the middle-cohomology
 L-polynomial in descending powers of ``T``, as `ZZRingElem`s, with constant
-coefficient `1` last. If ``f`` is not smooth, the polynomial-based method
-returns `false`.
+coefficient `1` last. If the frontend is not smooth, this method returns
+`false`.
 
 Keyword arguments:
 - `S=[-1]`: controls the S-smooth model used by the reduction; the default
@@ -47,6 +53,16 @@ Keyword arguments:
   and the coefficient vector, instead of just the coefficient vector.
 - `algorithm=:default`: selects the controlled-reduction algorithm; `:default`
   chooses automatically.
+- `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
+  uncertified precision inputs for non-hypersurface frontends. Hypersurface
+  frontends reject these keywords. ``DoubleCover`` requires `series_precision`
+  and `algorithm_precision`; `relative_precision` is optional and defaults to
+  the existing Weil-bound formula. `relative_precision` accepts an integer for
+  all Hodge pieces or a vector in the order returned by
+  `calculate_relative_precision`; its length must match the Hodge polygon.
+  `series_precision` accepts an integer for all pole orders or a vector in
+  ascending pole-order order. `algorithm_precision` is an integer. Boolean
+  values are not accepted for any explicit precision keyword.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
 
@@ -63,7 +79,9 @@ The returned coefficients can be passed to [`L_polynomial`](@ref),
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(3, 3, 7);
 
-julia> DeRham.zeta_coefficients(f)
+julia> fe = DeRham.ProjectiveHypersurface(f);
+
+julia> DeRham.zeta_coefficients(fe)
 3-element Vector{ZZRingElem}:
  7
  1
@@ -71,7 +89,7 @@ julia> DeRham.zeta_coefficients(f)
 ```
 """
 function zeta_coefficients(
-    f;
+    fe::ZetaFrontend;
     S = [-1],
     verbose = 0,
     changef = true,
@@ -85,13 +103,59 @@ function zeta_coefficients(
     use_threads = false,
     context = nothing,
     precision_info = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
 )
+    if !(fe isa ProjectiveHypersurface)
+        if algorithm in (:pchunk, :varbyvar, :akr)
+            throw(
+                ArgumentError(
+                    "algorithm $algorithm is not yet supported for $(typeof(fe))",
+                ),
+            )
+        elseif use_gpu
+            throw(ArgumentError("GPU execution is not yet supported for $(typeof(fe))"))
+        elseif context !== nothing
+            throw(
+                ArgumentError(
+                    "custom reduction contexts are not yet supported for $(typeof(fe))",
+                ),
+            )
+        end
+        if algorithm == :default
+            algorithm = :depthfirst
+        end
+    end
+
+    if fe isa ProjectiveHypersurface
+        if relative_precision !== nothing ||
+           series_precision !== nothing ||
+           algorithm_precision !== nothing
+            throw(
+                ArgumentError(
+                    "explicit precision keywords are not supported for $(typeof(fe))",
+                ),
+            )
+        end
+    else
+        precision_info === nothing ||
+            throw(ArgumentError("precision_info is not accepted for $(typeof(fe))"))
+        series_precision === nothing &&
+            throw(ArgumentError("series_precision is required for $(typeof(fe))"))
+        algorithm_precision === nothing &&
+            throw(ArgumentError("algorithm_precision is required for $(typeof(fe))"))
+    end
+
+    check_input(fe)
+    f = polynomial(fe)
+    P = presentation(fe)
     PR = parent(f)
     R = coefficient_ring(PR)
     p = Int64(characteristic(PR))
     q = p
-    n = nvars(PR) - 1
-    d = total_degree(f)
+    n = P.n
+    d = P.d
 
     if S == [-1]
         S = collect(0:n)
@@ -106,7 +170,7 @@ function zeta_coefficients(
             algorithm = :varbyvar
         elseif n > 4
             for i = 0:n
-                if is_Ssmooth(f, [n-i])
+                if is_Ssmooth(f, P, [n-i])
                     algorithm = :varbyvar
                     S = [n]
                     vars = gens(PR)
@@ -144,20 +208,31 @@ function zeta_coefficients(
         use_threads,
     )
 
-    cache = controlled_reduction_cache(n, d, S, params)
+    cache = controlled_reduction_cache(n, d, S, params, P)
 
     (0 < verbose) && println("p = $p")
     (9 < verbose) && println("Working with a degree $d hypersurface in P^$n")
 
-    (basis, Basis) = get_basis_of_cohomology_twoflavors(f, S, params, cache)
+    (basis, Basis) = get_basis_of_cohomology_twoflavors(f, P, S, params, cache)
 
     #println("Basis of cohomology is $Basis")
     (9 < verbose) && println("Basis of cohomology is $Basis")
 
-    if precision_info === nothing
-        (hodge_polygon, r_m, N_m, M) = calculate_precision_information(f, Basis, verbose)
-    else
+    if precision_info !== nothing
         (hodge_polygon, r_m, N_m, M) = precision_info
+    elseif fe isa ProjectiveHypersurface
+        (hodge_polygon, r_m, N_m, M) = calculate_precision_information(fe, Basis, verbose)
+    else
+        hodge_polygon = _hodge_polygon(Basis, P)
+        (hodge_polygon, r_m, N_m, M) = _explicit_precision_information(
+            P,
+            hodge_polygon,
+            weight(fe),
+            p;
+            relative_precision = relative_precision,
+            series_precision = series_precision,
+            algorithm_precision = algorithm_precision,
+        )
     end
 
     (1 < verbose) && println("N_m=$N_m")
@@ -184,10 +259,10 @@ function zeta_coefficients(
     if (0 < verbose)
         println("Computing the relations matrix...")
         @time f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, M, S, params, changef, cache)
+            find_Ssmooth_model(f, P, M, S, params, changef, cache)
     else
         f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, M, S, params, changef, cache)
+            find_Ssmooth_model(f, P, M, S, params, changef, cache)
     end
 
     # For large examples, force a GC here; Julia's GC doesn't seem to automatically cause the
@@ -211,14 +286,25 @@ function zeta_coefficients(
     # recomputes basis if f is different
     if f_changed
         (0 < verbose) && println("New model is $f")
-        basis = compute_monomial_bases(f, params, cache) # basis of cohomology
+        fe = typeof(fe)(f)
+        f = polynomial(fe)
+        P = presentation(fe)
+        basis = compute_monomial_bases(f, P, params, cache) # basis of cohomology
         Basis = []
-        for i = 1:n
+        for (i, m) in enumerate(pole_orders(P))
             for j in basis[i]
-                push!(Basis, [j, i])
+                push!(Basis, [j, m])
             end
         end
         (9 < verbose) && println("New basis of cohomology is $Basis")
+    end
+
+    if isempty(Basis)
+        coefficients = ZZRingElem[ZZ(1)]
+        if givefrobmat
+            return (matrix_space(precisionring, 0, 0)(), coefficients)
+        end
+        return coefficients
     end
 
     for i = 1:length(Basis)
@@ -231,9 +317,9 @@ function zeta_coefficients(
     fLift = liftCoefficients(precisionring, precisionringpoly, f)
     if (0 < verbose)
         println("\nApplying Frobenius to basis elements")
-        @time FBasis = applyFrobeniusToBasis(Basis, fLift, N_m, p, params)
+        @time FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     else
-        FBasis = applyFrobeniusToBasis(Basis, fLift, N_m, p, params)
+        FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     end
 
     l = d * n - n + d - length(S)
@@ -248,9 +334,9 @@ function zeta_coefficients(
 
     if (0 < verbose)
         println("Computing T matrix...")
-        @time T = computeT(f, basis, M, params, cache)
+        @time T = computeT(fe, basis, M, params, cache)
     else
-        T = computeT(f, basis, M, params, cache)
+        T = computeT(fe, basis, M, params, cache)
     end
     (9 < verbose) && println("T matrix is $T")
 
@@ -267,6 +353,7 @@ function zeta_coefficients(
         N_m,
         S,
         fLift,
+        P,
         pseudo_inverse_mat,
         p,
         params,
@@ -275,16 +362,92 @@ function zeta_coefficients(
     )
     (2 < verbose) && println(Reductions)
 
-    ev = cache[n*d-n-1]
+    ev = cache[numerator_degree(P, terminal_pole_order(P))]
     (9 < verbose) && println(convert_p_to_m([Reductions[1][1][1], Reductions[2][1][1]], ev))
-    FM = compute_frobenius_matrix(n, p, d, N_m, Reductions, T, Basis, params, cache)
+    FM = compute_frobenius_matrix(fe, p, N_m, Reductions, T, Basis, params, cache)
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
-        (FM, zeta_coefficients_from_frobenius(FM, n, q, hodge_polygon, r_m, verbose))
+        (
+            FM,
+            zeta_coefficients_from_frobenius(
+                FM,
+                weight(fe),
+                q,
+                hodge_polygon,
+                r_m,
+                verbose,
+            ),
+        )
     else
-        zeta_coefficients_from_frobenius(FM, n, q, hodge_polygon, r_m, verbose)
+        zeta_coefficients_from_frobenius(FM, weight(fe), q, hodge_polygon, r_m, verbose)
     end
+end
+
+"""
+    zeta_coefficients(f; S=[-1], verbose=0, changef=true, givefrobmat=false,
+                      algorithm=:default, use_gpu=false, use_threads=false)
+
+Computes the zeta coefficients for the projective hypersurface defined by the
+homogeneous Oscar polynomial ``f`` over a finite field of characteristic ``p``.
+This polynomial convenience method wraps ``f`` in a ``ProjectiveHypersurface``
+and forwards the options to the frontend method. For descriptions of its keyword
+options, see [`zeta_coefficients`](@ref). The returned vector contains
+the coefficients of the middle-cohomology L-polynomial in descending powers of
+``T``, as `ZZRingElem`s, with constant coefficient `1` last. If the polynomial
+is not smooth, this method returns `false`. Explicit precision keywords are
+not supported for projective hypersurfaces.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> DeRham.zeta_coefficients(f)
+3-element Vector{ZZRingElem}:
+ 7
+ 1
+ 1
+```
+"""
+function zeta_coefficients(
+    f;
+    S = [-1],
+    verbose = 0,
+    changef = true,
+    givefrobmat = false,
+    algorithm = :default,
+    termorder = :invlex,
+    vars_reversed = false,
+    fastevaluation = true,
+    always_use_bigints = false,
+    use_gpu = false,
+    use_threads = false,
+    context = nothing,
+    precision_info = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
+)
+    return zeta_coefficients(
+        ProjectiveHypersurface(f);
+        S = S,
+        verbose = verbose,
+        changef = changef,
+        givefrobmat = givefrobmat,
+        algorithm = algorithm,
+        termorder = termorder,
+        vars_reversed = vars_reversed,
+        fastevaluation = fastevaluation,
+        always_use_bigints = always_use_bigints,
+        use_gpu = use_gpu,
+        use_threads = use_threads,
+        context = context,
+        precision_info = precision_info,
+        relative_precision = relative_precision,
+        series_precision = series_precision,
+        algorithm_precision = algorithm_precision,
+    )
 end
 
 """
@@ -295,6 +458,49 @@ INPUTS:
 * "p" -- a prime number, integer
 
 """
+function zeta_coefficients(
+    fe::ZetaFrontend,
+    p;
+    S = [-1],
+    verbose = 0,
+    changef = true,
+    givefrobmat = false,
+    algorithm = :default,
+    termorder = :invlex,
+    vars_reversed = false,
+    fastevaluation = false,
+    always_use_bigints = false,
+    use_gpu = false,
+    use_threads = false,
+    context = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
+)
+    @assert is_prime(p) "p must be prime"
+    f = polynomial(fe)
+    PR = parent(f)
+    _, hom = change_base_ring(GF(p), PR)
+    return zeta_coefficients(
+        typeof(fe)(hom(f));
+        S = S,
+        verbose = verbose,
+        changef = changef,
+        givefrobmat = givefrobmat,
+        algorithm = algorithm,
+        termorder = termorder,
+        vars_reversed = vars_reversed,
+        fastevaluation = fastevaluation,
+        always_use_bigints = always_use_bigints,
+        use_gpu = use_gpu,
+        use_threads = use_threads,
+        context = context,
+        relative_precision = relative_precision,
+        series_precision = series_precision,
+        algorithm_precision = algorithm_precision,
+    )
+end
+
 function zeta_coefficients(
     f,
     p;
@@ -310,39 +516,13 @@ function zeta_coefficients(
     use_gpu = false,
     use_threads = false,
     context = nothing,
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
 )
-    @assert is_prime(p) "p must be prime"
-    PR = parent(f)
-    PRmodp, hom = change_base_ring(GF(p), PR)
-
-    if algorithm == :default
-        if S == [n]
-            algorithm = :varbyvar
-        elseif n > 4
-            for i = 0:n
-                if is_Ssmooth(f, [n-i])
-                    algorithm = :varbyvar
-                    S = [n]
-                    vars = gens(PR)
-                    new_vars = copy(vars)
-                    for j = 0:n
-                        if j == i
-                            new_vars[i+1] = vars[n+1]
-                        end
-                    end
-                    new_vars[n+1] = vars[i+1]
-                    break
-                elseif i == n
-                    algorithm = :depthfirst
-                end
-            end
-        else
-            algorithm = :depthfirst
-        end
-    end
-
     return zeta_coefficients(
-        hom(f);
+        ProjectiveHypersurface(f),
+        p;
         S = S,
         verbose = verbose,
         changef = changef,
@@ -355,6 +535,9 @@ function zeta_coefficients(
         use_gpu = use_gpu,
         use_threads = use_threads,
         context = context,
+        relative_precision = relative_precision,
+        series_precision = series_precision,
+        algorithm_precision = algorithm_precision,
     )
 end
 
@@ -388,16 +571,32 @@ julia> length(DeRham.zeta_coefficients_with_precision(f, 1))
 ```
 """
 function zeta_coefficients_with_precision(
+    fe::ZetaFrontend,
+    r::Integer;
+    basis = nothing,
+    verbose = 0,
+    kwargs...,
+)
+    r_m = fill(Int(r), nvars(parent(polynomial(fe))) - 1)
+    return zeta_coefficients_with_precision(
+        fe,
+        r_m;
+        basis = basis,
+        verbose = verbose,
+        kwargs...,
+    )
+end
+
+function zeta_coefficients_with_precision(
     f,
     r::Integer;
     basis = nothing,
     verbose = 0,
     kwargs...,
 )
-    r_m = fill(Int(r), nvars(parent(f)) - 1)
     return zeta_coefficients_with_precision(
-        f,
-        r_m;
+        ProjectiveHypersurface(f),
+        r;
         basis = basis,
         verbose = verbose,
         kwargs...,
@@ -425,17 +624,37 @@ julia> length(DeRham.zeta_coefficients_with_precision(f, [1, 1]))
 ```
 """
 function zeta_coefficients_with_precision(
+    fe::ZetaFrontend,
+    r::AbstractVector;
+    basis = nothing,
+    verbose = 0,
+    kwargs...,
+)
+    precision_info = precision_information_max_auto_r_m(
+        polynomial(fe),
+        r;
+        basis = basis,
+        verbose = verbose,
+    )
+    return zeta_coefficients(
+        fe;
+        precision_info = precision_info,
+        verbose = verbose,
+        kwargs...,
+    )
+end
+
+function zeta_coefficients_with_precision(
     f,
     r::AbstractVector;
     basis = nothing,
     verbose = 0,
     kwargs...,
 )
-    precision_info =
-        precision_information_max_auto_r_m(f, r; basis = basis, verbose = verbose)
-    return zeta_coefficients(
-        f;
-        precision_info = precision_info,
+    return zeta_coefficients_with_precision(
+        ProjectiveHypersurface(f),
+        r;
+        basis = basis,
         verbose = verbose,
         kwargs...,
     )
@@ -451,7 +670,7 @@ the current precision calculation. Returns the same value as
 [`zeta_coefficients`](@ref).
 """
 function zeta_coefficients_with_precision(
-    f,
+    fe::ZetaFrontend,
     hodge_numbers::AbstractVector,
     r_m::AbstractVector,
     N_m::AbstractVector,
@@ -462,8 +681,30 @@ function zeta_coefficients_with_precision(
 )
     precision_info = (SlopesPolygon(hodge_numbers), r_m, N_m, M)
     return zeta_coefficients(
-        f;
+        fe;
         precision_info = precision_info,
+        verbose = verbose,
+        kwargs...,
+    )
+end
+
+function zeta_coefficients_with_precision(
+    f,
+    hodge_numbers::AbstractVector,
+    r_m::AbstractVector,
+    N_m::AbstractVector,
+    M::Integer;
+    basis = nothing,
+    verbose = 0,
+    kwargs...,
+)
+    return zeta_coefficients_with_precision(
+        ProjectiveHypersurface(f),
+        hodge_numbers,
+        r_m,
+        N_m,
+        M;
+        basis = basis,
         verbose = verbose,
         kwargs...,
     )

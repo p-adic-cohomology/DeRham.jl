@@ -12,7 +12,7 @@ pseudoInverseMat - output of pseudo_inverse_controlled_lifted
 cache - the GradedExpCache used for this controlled reduction
 params - the ControlledReductionParamaters
 """
-function computeRuvS(V, S, f, pseudoInverseMat, cache, params)
+function computeRuvS(V, S, f, P, pseudoInverseMat, cache, params)
     vars_reversed = params.vars_reversed
     termorder = params.termorder
     n = nvars(parent(f)) - 1
@@ -20,15 +20,16 @@ function computeRuvS(V, S, f, pseudoInverseMat, cache, params)
     #R = coefficient_ring(parent(f))
     R = base_ring(pseudoInverseMat)
 
-    g_length = binomial(n*d, n*d-n)
+    g = _reduction_g_degree(P)
+    g_length = binomial(g+n, n)
 
 
-    ev1 = (cache[n*d-n])#gen_exp_vec(n+1,n*d-n,termorder)
-    ev2 = (cache[n*d-n+d-length(S)])#gen_exp_vec(n+1,n*d-n+d-length(S),termorder)
-    ev3 = (cache[n*d-n-length(S)+1])#gen_exp_vec(n+1,n*d-n-length(S)+1,termorder)
-    ev4 = (cache[n*d-n-length(S)])#gen_exp_vec(n+1,n*d-n-length(S),termorder)
-    explookup = cache[n*d-n, :reverse]
-    explookup2 = cache[n*d-n+d-length(S), :reverse]
+    ev1 = cache[g]
+    ev2 = cache[g+d-length(S)]
+    ev3 = cache[g-length(S)+1]
+    ev4 = cache[g-length(S)]
+    explookup = cache[g, :reverse]
+    explookup2 = cache[g+d-length(S), :reverse]
 
     temp = Vector{Int64}(undef, n+1)
     #MS2 = matrix_space(R, length(ev2),1)
@@ -117,4 +118,11 @@ function computeRuvS(V, S, f, pseudoInverseMat, cache, params)
     end
 
     return result
+end
+
+function computeRuvS(V, S, f, pseudoInverseMat, cache, params)
+    n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    P = HypersurfacePresentation(n, d)
+    return computeRuvS(V, S, f, P, pseudoInverseMat, cache, params)
 end

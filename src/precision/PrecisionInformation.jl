@@ -1,5 +1,5 @@
 """
-    calculate_precision_information(f,basis)
+    calculate_precision_information(fe,basis)
 
 returns all the precision information
 related to f
@@ -7,23 +7,93 @@ related to f
 basis -- the basis of cohomology, in the format of
          polynomials with pole
 """
-function calculate_precision_information(f, basis, verbose = 0)
+function calculate_precision_information(fe::ZetaFrontend, basis, verbose = 0)
+    f = polynomial(fe)
     p = Int64(characteristic(parent(f)))
     n = nvars(parent(f)) - 1
     d = total_degree(f)
+    P = presentation(fe)
 
-    hodge_polygon = _hodge_polygon(basis, n)
+    hodge_polygon = _hodge_polygon(basis, P)
     hodge_numbers = hodge_polygon.slopelengths
 
     k = sum(hodge_numbers)
-    (0 < verbose) && println("There are $k basis total elements in H^$n to be reduced")
+    (0 < verbose) &&
+        println("There are $k basis total elements in H^$(weight(fe)) to be reduced")
 
-    r_m = calculate_relative_precision(hodge_polygon, n - 1, p)
+    r_m = calculate_relative_precision(hodge_polygon, weight(fe), p)
     N_m = series_precision(p, n, d, r_m)
     N_m[N_m .== 0] .= 1
     M = algorithm_precision(p, n, d, r_m, N_m)
 
     (hodge_polygon, r_m, N_m, M)
+end
+
+calculate_precision_information(f, basis, verbose = 0) =
+    calculate_precision_information(ProjectiveHypersurface(f), basis, verbose)
+
+"""
+    _explicit_precision_information(P, polygon, weight, p; ...)
+
+Build the uncertified precision tuple from explicit relative, series, and
+algorithm precision inputs.
+"""
+function _explicit_precision_information(
+    P::CohomologyPresentation,
+    polygon,
+    weight,
+    p;
+    relative_precision = nothing,
+    series_precision = nothing,
+    algorithm_precision = nothing,
+)
+    _reject_boolean_precision_values(:relative_precision, relative_precision)
+    _reject_boolean_precision_values(:series_precision, series_precision)
+    _reject_boolean_precision_values(:algorithm_precision, algorithm_precision)
+
+    relative_length = length(polygon.slopelengths)
+    r_m = if relative_precision === nothing
+        if iszero(sum(polygon.slopelengths))
+            zeros(Int, relative_length)
+        else
+            calculate_relative_precision(polygon, weight, p)
+        end
+    elseif relative_precision isa Integer
+        fill(Int(relative_precision), relative_length)
+    elseif relative_precision isa AbstractVector{<:Integer}
+        length(relative_precision) == relative_length ||
+            throw(ArgumentError("relative_precision must have length $relative_length"))
+        Int.(relative_precision)
+    else
+        throw(ArgumentError("relative_precision must be an integer or a vector of integers"))
+    end
+
+    orders = collect(pole_orders(P))
+    N_m = if series_precision === nothing
+        throw(ArgumentError("series_precision is required"))
+    elseif series_precision isa Integer
+        fill(Int(series_precision), length(orders))
+    elseif series_precision isa AbstractVector{<:Integer}
+        length(series_precision) == length(orders) ||
+            throw(ArgumentError("series_precision must have length $(length(orders))"))
+        Int.(series_precision)
+    else
+        throw(ArgumentError("series_precision must be an integer or a vector of integers"))
+    end
+    N_m[N_m .== 0] .= 1
+
+    algorithm_precision isa Integer ||
+        throw(ArgumentError("algorithm_precision must be an integer"))
+    M = Int(algorithm_precision)
+
+    (polygon, r_m, N_m, M)
+end
+
+function _reject_boolean_precision_values(name, value)
+    if value isa Bool || (value isa AbstractVector && any(entry -> entry isa Bool, value))
+        throw(ArgumentError("$name does not accept Bool values"))
+    end
+    return nothing
 end
 
 """
@@ -119,24 +189,30 @@ related to f
 basis -- the basis of cohomology, in the format of
          polynomials with pole
 """
-function precision_information(f, basis, verbose = 0)
+function precision_information(fe::ZetaFrontend, basis, verbose = 0)
+    f = polynomial(fe)
     p = Int64(characteristic(parent(f)))
     n = nvars(parent(f)) - 1
     d = total_degree(f)
+    P = presentation(fe)
 
-    hodge_polygon = _hodge_polygon(basis, n)
+    hodge_polygon = _hodge_polygon(basis, P)
     hodge_numbers = hodge_polygon.slopelengths
 
     k = sum(hodge_numbers) # dimension of H^n
-    (0 < verbose) && println("There are $k basis total elements in H^$n to be reduced")
+    (0 < verbose) &&
+        println("There are $k basis total elements in H^$(weight(fe)) to be reduced")
 
-    r_m = calculate_relative_precision(hodge_polygon, n-1, p)
+    r_m = calculate_relative_precision(hodge_polygon, weight(fe), p)
     N_m = series_precision(p, n, d, r_m)
     N_m[N_m .== 0] .= 1 #TODO: understand the meaning of zero precision better
     M = algorithm_precision(p, n, d, r_m, N_m)
 
     (hodge_polygon, r_m, N_m, M)
 end
+
+precision_information(f, basis, verbose = 0) =
+    precision_information(ProjectiveHypersurface(f), basis, verbose)
 
 """
     precision_information(f)

@@ -26,6 +26,7 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "Getting started" => "getting_started.md",
+        "Double covers (experimental)" => "double_covers.md",
         "Invariants" => [
             "Zeta function" => "invariants/zeta.md",
             "Frobenius matrix" => "invariants/frobenius_matrix.md",

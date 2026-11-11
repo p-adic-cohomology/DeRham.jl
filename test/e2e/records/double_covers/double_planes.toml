@@ -1,0 +1,8 @@
+[[test]]
+name = "double_cover_P2_d4_fermat_p3"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.972
+example = "double_plane_d4_fermat_p3"
+p = 3
+parameters = { algorithm = "depthfirst", relative_precision = [1, 2, 1], series_precision = [1, 1, 1], algorithm_precision = 2 }

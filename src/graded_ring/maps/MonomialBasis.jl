@@ -1,11 +1,9 @@
-function compute_basis_matrix(f, l, m, params, cache)
+function compute_basis_matrix(f, l, params, cache)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     PR = parent(f)
     vars = gens(PR)
     R = base_ring(PR)
-
-    @assert(0 <= m && m <= n)
 
     section = binomial(n + l - (d-1), n)
     domain_mons = compute_monomials(n+1, l - (d - 1), PR, params.termorder, cache)#, vars_reversed=cache.vars_reversed)
@@ -42,13 +40,11 @@ end
 # Computes the monomial basis of $H_{dR}^n(U_{\QQ_p})$. In particular, we find the monomials
 # of degree $l = dm - n - 1$ in $F_p[x_0, \dots, x_n]$ that project onto a basis of the cokernel
 # of the map computed in `compute_classical_mat()`.
-function compute_monomial_basis(f, m, params, cache)
+function monomial_basis_in_degree(f, l, params, cache)
     n = nvars(parent(f)) - 1
-    d = total_degree(f)
     PR = parent(f)
-    vars = gens(PR)
 
-    ev = cache[m*d-n-1]#gen_exp_vec(n + 1, m*d - n - 1, params.termorder)
+    ev = cache[l]
 
     if cache.vars_reversed
         reverse!.(ev)
@@ -60,7 +56,7 @@ function compute_monomial_basis(f, m, params, cache)
         reverse!.(ev)
     end
 
-    M = compute_basis_matrix(f, d*m - n - 1, m, params, cache)
+    M = compute_basis_matrix(f, l, params, cache)
     if M == nothing
         return nothing
     end
@@ -82,15 +78,24 @@ function compute_monomial_basis(f, m, params, cache)
     return map((i) -> row_monomials[i], non_pivot_rows)
 end
 
+function compute_monomial_basis(f, P::CohomologyPresentation, m, params, cache)
+    monomial_basis_in_degree(f, numerator_degree(P, m), params, cache)
+end
+
 # Computes the the monomial bases for different `m`. That is,
 # `compute_monomial_bases(f, R, PR)[m]` will give the `m`-th case.
 function compute_monomial_bases(f, params, cache)
     n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    P = HypersurfacePresentation(n, d)
+    compute_monomial_bases(f, P, params, cache)
+end
 
+function compute_monomial_bases(f, P::CohomologyPresentation, params, cache)
     res = []
 
-    for m = 1:n
-        b = compute_monomial_basis(f, m, params, cache)
+    for m in pole_orders(P)
+        b = compute_monomial_basis(f, P, m, params, cache)
         if b == nothing
             return nothing
         end
@@ -105,8 +110,13 @@ end
 
 function get_basis_of_cohomology_twoflavors(f, S, params, cache)
     n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    P = HypersurfacePresentation(n, d)
+    get_basis_of_cohomology_twoflavors(f, P, S, params, cache)
+end
 
-    basis = compute_monomial_bases(f, params, cache) # basis of cohomology
+function get_basis_of_cohomology_twoflavors(f, P::CohomologyPresentation, S, params, cache)
+    basis = compute_monomial_bases(f, P, params, cache) # basis of cohomology
 
     if basis == nothing
         (0 < verbose) &&
@@ -115,9 +125,9 @@ function get_basis_of_cohomology_twoflavors(f, S, params, cache)
     end
 
     Basis = []
-    for i = 1:n
+    for (i, m) in enumerate(pole_orders(P))
         for j in basis[i]
-            push!(Basis, [j, i])
+            push!(Basis, [j, m])
         end
     end
 
@@ -126,4 +136,8 @@ end
 
 function get_basis_of_cohomology(f, S, params, cache)
     get_basis_of_cohomology_twoflavors(f, S, params, cache)[2]
+end
+
+function get_basis_of_cohomology(f, P::CohomologyPresentation, S, params, cache)
+    get_basis_of_cohomology_twoflavors(f, P, S, params, cache)[2]
 end

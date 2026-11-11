@@ -328,6 +328,98 @@ function test_user_relative_precision_bypasses_default_table()
     @test all(max_auto_info[3] .>= calculated_max)
 end
 
+function test_explicit_precision_information()
+    P = DeRham.HypersurfacePresentation(2, 3)
+    polygon = DeRham.SlopesPolygon([1, 1])
+
+    scalar_info = DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = 3,
+        algorithm_precision = 7,
+    )
+    @test scalar_info == (polygon, [4, 4], [3, 3], 7)
+
+    vector_info = DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = [2, 3],
+        series_precision = [0, 2],
+        algorithm_precision = 8,
+    )
+    @test vector_info == (polygon, [2, 3], [1, 2], 8)
+
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = true,
+        series_precision = 3,
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = Bool[true, false],
+        series_precision = 3,
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = true,
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = Bool[true, false],
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = 3,
+        algorithm_precision = true,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = 3,
+        algorithm_precision = Any[8, true],
+    )
+
+    automatic_relative = DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        series_precision = 1,
+        algorithm_precision = 5,
+    )
+    @test automatic_relative[2] == DeRham.calculate_relative_precision(polygon, 1, 2)
+end
+
 function test_max_auto_precision_without_default_table()
     p = 5
     _, (x, y, z, w) = polynomial_ring(GF(p), 4)
@@ -525,6 +617,7 @@ function test_certified_series_precision()
         S = [3],
     )
     frobenius = regression[1]
+    @test regression[2][1] == -5
     @test frobenius isa MatElem
     entry = lift(ZZ, frobenius[1, 1])
     @test modulus(base_ring(frobenius)) == 25

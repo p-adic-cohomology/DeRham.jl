@@ -88,6 +88,10 @@ using GPUFiniteFieldMatrices:
 
 include("Utils.jl")
 include("ZetaFunctionParams.jl")
+include("presentations/CohomologyPresentation.jl")
+include("frontends/ZetaFrontend.jl")
+include("frontends/ProjectiveHypersurface.jl")
+include("frontends/DoubleCover.jl")
 include("graded_ring/GradedExpCache.jl")
 include("recurrence/backend/NemoDerivedWrappers.jl")
 include("recurrence/backend/LinearAlgebraWrappers.jl")

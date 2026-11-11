@@ -1,0 +1,17 @@
+[[test]]
+name = "double_cover_hyperelliptic_g1_p3"
+type = "zeta_coefficients"
+tags = []
+runtime = 2.951
+example = "g1_d4_a"
+p = 3
+parameters = { algorithm = "depthfirst", series_precision = 2, algorithm_precision = 5 }
+
+[[test]]
+name = "double_cover_P2_sextic_sparse_p5"
+type = "zeta_coefficients"
+tags = ["sextic_k3"]
+runtime = 1.307
+example = "p5_dc_sextic_sparse_fk_001"
+p = 5
+parameters = { algorithm = "depthfirst", series_precision = 3, algorithm_precision = 8 }
