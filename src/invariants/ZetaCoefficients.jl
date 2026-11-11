@@ -361,7 +361,8 @@ end
 Computes the zeta coefficients for the projective hypersurface defined by the
 homogeneous Oscar polynomial ``f`` over a finite field of characteristic ``p``.
 This polynomial convenience method wraps ``f`` in a ``ProjectiveHypersurface``
-and forwards the options to the frontend method. The returned vector contains
+and forwards the options to the frontend method. For descriptions of its keyword
+options, see [`zeta_coefficients`](@ref). The returned vector contains
 the coefficients of the middle-cohomology L-polynomial in descending powers of
 ``T``, as `ZZRingElem`s, with constant coefficient `1` last. If the polynomial
 is not smooth, this method returns `false`. Explicit precision keywords are
