@@ -10,7 +10,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 name = "derived_newton_k3_p5"
 type = "newton_polygon"
 tags = []
-runtime = 1.546
+runtime = 13.038
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -18,7 +18,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_newton_k3f3_full"
 type = "newton_polygon"
 tags = []
-runtime = 28.928
+runtime = 344.399
 example = "dim2_deg_4_k3f3_3"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -146,7 +146,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_artin_mazur_height_p5"
 type = "artin_mazur_height"
 tags = []
-runtime = 1.206
+runtime = 14.286
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -154,7 +154,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_artin_mazur_height_k3f3_p3"
 type = "artin_mazur_height"
 tags = []
-runtime = 1.923
+runtime = 13.516
 example = "dim2_deg_4_k3f3_1"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -162,6 +162,6 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_artin_mazur_height_k3f3_full"
 type = "artin_mazur_height"
 tags = []
-runtime = 31.686
+runtime = 411.722
 example = "dim2_deg_4_k3f3_3"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }

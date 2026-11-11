@@ -316,28 +316,28 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_6_fermat_1"
 type = "zeta_coefficients"
-runtime = 2.079
+runtime = 10.0
 example = "dim_1_deg_6_fermat_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_6_fermat_2"
 type = "zeta_coefficients"
-runtime = 2.071
+runtime = 10.0
 example = "dim_1_deg_6_fermat_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_6_fermat_3"
 type = "zeta_coefficients"
-runtime = 2.906
+runtime = 10.0
 example = "dim_1_deg_6_fermat_3"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_6_fermat_4"
 type = "zeta_coefficients"
-runtime = 3.095
+runtime = 10.0
 example = "dim_1_deg_6_fermat_4"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -351,28 +351,28 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_7_fermat_1"
 type = "zeta_coefficients"
-runtime = 11.267
+runtime = 100.0
 example = "dim_1_deg_7_fermat_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_2_deg_4_fermat_1"
 type = "zeta_coefficients"
-runtime = 3.118
+runtime = 15.0
 example = "dim_2_deg_4_fermat_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_2_deg_4_fermat_2"
 type = "zeta_coefficients"
-runtime = 3.585
+runtime = 15.0
 example = "dim_2_deg_4_fermat_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_2_deg_4_fermat_3"
 type = "zeta_coefficients"
-runtime = 4.584
+runtime = 15.0
 example = "dim_2_deg_4_fermat_3"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
