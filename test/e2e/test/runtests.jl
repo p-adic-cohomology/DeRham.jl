@@ -153,19 +153,20 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         @test presubmit.broad && ci.broad && full.broad
 
         ci_config = E2E.load_config(joinpath(@__DIR__, "..", "config.toml"))
-        slowest_zenodo_ci_record = mk("zenodo_p7_slowest", 69.074)
-        slowest_zenodo_ci = E2E.select_records(
-            [slowest_zenodo_ci_record],
+        @test ci_config.ci_seconds == 30.0
+        zenodo_full_only_record = mk("zenodo_p7_full_only", 69.074)
+        zenodo_full_only_ci = E2E.select_records(
+            [zenodo_full_only_record],
             ci_config,
             E2E.Selection(:workflow, :ci),
         )
-        slowest_zenodo_full = E2E.select_records(
-            [slowest_zenodo_ci_record],
+        zenodo_full_only_full = E2E.select_records(
+            [zenodo_full_only_record],
             ci_config,
             E2E.Selection(:workflow, :full),
         )
-        @test [record.name for record in slowest_zenodo_ci.records] == ["zenodo_p7_slowest"]
-        @test [record.name for record in slowest_zenodo_full.records] == ["zenodo_p7_slowest"]
+        @test isempty(zenodo_full_only_ci.records)
+        @test [record.name for record in zenodo_full_only_full.records] == ["zenodo_p7_full_only"]
 
         name_sel = E2E.select_records(recs, cfg, E2E.Selection(:name, "slow"))
         @test length(name_sel.records) == 1 && name_sel.records[1].name == "slow"
