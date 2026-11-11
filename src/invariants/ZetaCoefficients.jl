@@ -24,15 +24,14 @@ end
 
 
 """
-    zeta_coefficients(f; S=[-1], verbose=0, changef=true, givefrobmat=false,
-                      algorithm=:default, use_gpu=false, use_threads=false)
+    zeta_coefficients(fe::ZetaFrontend; ...)
 
-Computes zeta coefficients for the projective hypersurface defined by the
-homogeneous Oscar polynomial ``f`` over a finite field of characteristic ``p``.
+Computes the zeta coefficients for a supported ``ZetaFrontend`` over a finite
+field. Supported frontends are ``ProjectiveHypersurface`` and ``DoubleCover``.
 The returned vector contains the coefficients of the middle-cohomology
 L-polynomial in descending powers of ``T``, as `ZZRingElem`s, with constant
-coefficient `1` last. If ``f`` is not smooth, the polynomial-based method
-returns `false`.
+coefficient `1` last. If the frontend is not smooth, this method returns
+`false`.
 
 Keyword arguments:
 - `S=[-1]`: controls the S-smooth model used by the reduction; the default
@@ -49,12 +48,14 @@ Keyword arguments:
   chooses automatically.
 - `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
   uncertified precision inputs for non-hypersurface frontends. Hypersurface
-  frontends reject these keywords; other frontends require series and algorithm
-  precision. `relative_precision` accepts an integer for all Hodge pieces or a
-  vector in the order returned by `calculate_relative_precision`; its length
-  must match the Hodge polygon. `series_precision` accepts an integer for all
-  pole orders or a vector in ascending pole-order order.
-  `algorithm_precision` is an integer.
+  frontends reject these keywords. ``DoubleCover`` requires `series_precision`
+  and `algorithm_precision`; `relative_precision` is optional and defaults to
+  the existing Weil-bound formula. `relative_precision` accepts an integer for
+  all Hodge pieces or a vector in the order returned by
+  `calculate_relative_precision`; its length must match the Hodge polygon.
+  `series_precision` accepts an integer for all pole orders or a vector in
+  ascending pole-order order. `algorithm_precision` is an integer. Boolean
+  values are not accepted for any explicit precision keyword.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
 
@@ -71,7 +72,9 @@ The returned coefficients can be passed to [`L_polynomial`](@ref),
 ```jldoctest
 julia> f = DeRham.fermat_hypersurface(3, 3, 7);
 
-julia> DeRham.zeta_coefficients(f)
+julia> fe = DeRham.ProjectiveHypersurface(f);
+
+julia> DeRham.zeta_coefficients(fe)
 3-element Vector{ZZRingElem}:
  7
  1
@@ -351,6 +354,31 @@ function zeta_coefficients(
     end
 end
 
+"""
+    zeta_coefficients(f; S=[-1], verbose=0, changef=true, givefrobmat=false,
+                      algorithm=:default, use_gpu=false, use_threads=false)
+
+Computes the zeta coefficients for the projective hypersurface defined by the
+homogeneous Oscar polynomial ``f`` over a finite field of characteristic ``p``.
+This polynomial convenience method wraps ``f`` in a ``ProjectiveHypersurface``
+and forwards the options to the frontend method. The returned vector contains
+the coefficients of the middle-cohomology L-polynomial in descending powers of
+``T``, as `ZZRingElem`s, with constant coefficient `1` last. If the polynomial
+is not smooth, this method returns `false`. Explicit precision keywords are
+not supported for projective hypersurfaces.
+
+### Examples
+
+```jldoctest
+julia> f = DeRham.fermat_hypersurface(3, 3, 7);
+
+julia> DeRham.zeta_coefficients(f)
+3-element Vector{ZZRingElem}:
+ 7
+ 1
+ 1
+```
+"""
 function zeta_coefficients(
     f;
     S = [-1],

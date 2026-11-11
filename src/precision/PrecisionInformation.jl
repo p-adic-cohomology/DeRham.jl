@@ -46,6 +46,10 @@ function _explicit_precision_information(
     series_precision = nothing,
     algorithm_precision = nothing,
 )
+    _reject_boolean_precision_values(:relative_precision, relative_precision)
+    _reject_boolean_precision_values(:series_precision, series_precision)
+    _reject_boolean_precision_values(:algorithm_precision, algorithm_precision)
+
     relative_length = length(polygon.slopelengths)
     r_m = if relative_precision === nothing
         if iszero(sum(polygon.slopelengths))
@@ -81,6 +85,14 @@ function _explicit_precision_information(
     M = Int(algorithm_precision)
 
     (polygon, r_m, N_m, M)
+end
+
+function _reject_boolean_precision_values(name, value)
+    if value isa Bool ||
+       (value isa AbstractVector && any(entry -> entry isa Bool, value))
+        throw(ArgumentError("$name does not accept Bool values"))
+    end
+    return nothing
 end
 
 """

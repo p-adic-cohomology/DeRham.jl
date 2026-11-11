@@ -354,6 +354,61 @@ function test_explicit_precision_information()
     )
     @test vector_info == (polygon, [2, 3], [1, 2], 8)
 
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = true,
+        series_precision = 3,
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = Any[4, true],
+        series_precision = 3,
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = true,
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = Any[3, true],
+        algorithm_precision = 7,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = 3,
+        algorithm_precision = true,
+    )
+    @test_throws ArgumentError DeRham._explicit_precision_information(
+        P,
+        polygon,
+        1,
+        2;
+        relative_precision = 4,
+        series_precision = 3,
+        algorithm_precision = Any[8, true],
+    )
+
     automatic_relative = DeRham._explicit_precision_information(
         P,
         polygon,
