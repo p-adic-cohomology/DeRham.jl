@@ -1,6 +1,6 @@
 [thresholds]
 presubmit_seconds = 5.0
-ci_seconds = 90.0
+ci_seconds = 30.0
 
 [priming]
 records = [
@@ -12,7 +12,6 @@ records = [
     "derived_point_counts_curve_p7_k2",
     "a_number_p3_d5_a3_fermat",
     "s012__dim_2_deg_3_fermat_1",
-    "s012__dim_3_deg_3_fermat_1",
     "gpu_s012__dim_2_deg_3_fermat_1",
     "derived_point_counts_cubic_surface_p11_k2",
     "artin_invariant_original_sigma_two_p3",
