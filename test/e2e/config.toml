@@ -13,6 +13,7 @@ records = [
     "a_number_p3_d5_a3_fermat",
     "s012__dim_2_deg_3_fermat_1",
     "gpu_s012__dim_2_deg_3_fermat_1",
+    "gpu_p7_depthfirst__dim_1_deg_4_random_1",
     "derived_point_counts_cubic_surface_p11_k2",
     "artin_invariant_original_sigma_two_p3",
     "derived_k3_realization_k3f3_p3",
