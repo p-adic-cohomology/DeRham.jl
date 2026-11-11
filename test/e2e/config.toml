@@ -1,6 +1,6 @@
 [thresholds]
 presubmit_seconds = 5.0
-ci_seconds = 90.0
+ci_seconds = 30.0
 
 [priming]
 records = [
