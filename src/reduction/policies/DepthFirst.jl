@@ -90,7 +90,13 @@ function reducechain_depthfirst(u, g, m, S, f, P, p, context, cache, params)
                 if params.verbose == 11
                     A = context.A
                     B = context.B
-                    g = vector_to_polynomial(gMat, n, reduction_degree, PR, params.termorder)
+                    g = vector_to_polynomial(
+                        gMat,
+                        n,
+                        reduction_degree,
+                        PR,
+                        params.termorder,
+                    )
                     println("gMat after $i is $gMat = $g")
                 end
             end
@@ -110,7 +116,8 @@ function reducechain_depthfirst(u, g, m, S, f, P, p, context, cache, params)
         (4 < params.verbose) && print("After $(lpad(K,4,' ')) steps,")
         (4 < params.verbose) && println("J = $J")
         if (5 < params.verbose)
-            CUDA.@allowscalar g = vector_to_polynomial(gMat, n, reduction_degree, PR, params.termorder)
+            CUDA.@allowscalar g =
+                vector_to_polynomial(gMat, n, reduction_degree, PR, params.termorder)
             if params.always_use_bigints || params.use_gpu
                 println("g = $((gMat)) = $g")
             elseif params.fastevaluation
@@ -221,7 +228,8 @@ function reducetransform_depthfirst(
                     @time reduction =
                         reducepoly_depthfirst(pol, S, f, P, p, context, cache, params)
                 else
-                    reduction = reducepoly_depthfirst(pol, S, f, P, p, context, cache, params)
+                    reduction =
+                        reducepoly_depthfirst(pol, S, f, P, p, context, cache, params)
                 end
                 result[i] = reduction
 
@@ -236,7 +244,8 @@ function reducetransform_depthfirst(
                     @time reduction =
                         reducepoly_depthfirst(pol, S, f, P, p, context, cache, params)
                 else
-                    reduction = reducepoly_depthfirst(pol, S, f, P, p, context, cache, params)
+                    reduction =
+                        reducepoly_depthfirst(pol, S, f, P, p, context, cache, params)
                 end
                 result[i] = reduction
 

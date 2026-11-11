@@ -8,12 +8,8 @@ import ..ExampleCase
 import ..ExecutionRecord
 import ..Common
 
-const SUPPORTED_MODEL_KINDS = Set([
-    "plane_curve",
-    "projective_hypersurface",
-    "hyperelliptic",
-    "double_cover_P2",
-])
+const SUPPORTED_MODEL_KINDS =
+    Set(["plane_curve", "projective_hypersurface", "hyperelliptic", "double_cover_P2"])
 const INVARIANT_NAME = "zeta_coefficients"
 const EXPECTED_SOURCE = :lpoly
 

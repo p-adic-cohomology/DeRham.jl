@@ -36,14 +36,7 @@ P - cohomology presentation; defaults to the hypersurface presentation for n and
 function controlled_reduction_cache(n, d, S, params, P = HypersurfacePresentation(n, d))
     g = _reduction_g_degree(P)
     s = length(S)
-    degsforward = [
-        g,
-        g - 1,
-        g - s,
-        g - s + 1,
-        g + d - s,
-        d,
-    ]
+    degsforward = [g, g - 1, g - s, g - s + 1, g + d - s, d]
     for h in pole_orders(P)
         numerator = numerator_degree(P, h)
         if 0 ≤ numerator

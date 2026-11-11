@@ -18,7 +18,8 @@ function calculate_precision_information(fe::ZetaFrontend, basis, verbose = 0)
     hodge_numbers = hodge_polygon.slopelengths
 
     k = sum(hodge_numbers)
-    (0 < verbose) && println("There are $k basis total elements in H^$(weight(fe)) to be reduced")
+    (0 < verbose) &&
+        println("There are $k basis total elements in H^$(weight(fe)) to be reduced")
 
     r_m = calculate_relative_precision(hodge_polygon, weight(fe), p)
     N_m = series_precision(p, n, d, r_m)
@@ -81,15 +82,15 @@ function _explicit_precision_information(
     end
     N_m[N_m .== 0] .= 1
 
-    algorithm_precision isa Integer || throw(ArgumentError("algorithm_precision must be an integer"))
+    algorithm_precision isa Integer ||
+        throw(ArgumentError("algorithm_precision must be an integer"))
     M = Int(algorithm_precision)
 
     (polygon, r_m, N_m, M)
 end
 
 function _reject_boolean_precision_values(name, value)
-    if value isa Bool ||
-       (value isa AbstractVector && any(entry -> entry isa Bool, value))
+    if value isa Bool || (value isa AbstractVector && any(entry -> entry isa Bool, value))
         throw(ArgumentError("$name does not accept Bool values"))
     end
     return nothing
@@ -199,7 +200,8 @@ function precision_information(fe::ZetaFrontend, basis, verbose = 0)
     hodge_numbers = hodge_polygon.slopelengths
 
     k = sum(hodge_numbers) # dimension of H^n
-    (0 < verbose) && println("There are $k basis total elements in H^$(weight(fe)) to be reduced")
+    (0 < verbose) &&
+        println("There are $k basis total elements in H^$(weight(fe)) to be reduced")
 
     r_m = calculate_relative_precision(hodge_polygon, weight(fe), p)
     N_m = series_precision(p, n, d, r_m)

@@ -7,7 +7,10 @@
     @test DeRham.weight(cubic_frontend) == 1
     @test DeRham.check_input(cubic_frontend) === nothing
     @test DeRham.check_smoothness(cubic)
-    @test_throws ArgumentError DeRham.zeta_coefficients(cubic_frontend; series_precision = 3)
+    @test_throws ArgumentError DeRham.zeta_coefficients(
+        cubic_frontend;
+        series_precision = 3,
+    )
     @test DeRham.zeta_coefficients(cubic_frontend) == DeRham.zeta_coefficients(cubic)
     @test typeof(DeRham.frobenius_term_pole_order(cubic_frontend, 1, 0)) == Int
 
@@ -17,23 +20,23 @@
     @test DeRham.check_smoothness(quartic)
     @test DeRham.zeta_coefficients(quartic_frontend) == DeRham.zeta_coefficients(quartic)
 
-    for p in (2, 3, 5), N in 1:3, m in 1:3
+    for p in (2, 3, 5), N = 1:3, m = 1:3
         @test DeRham.reduction_prescale(cubic_frontend, p * (N + m - 1)) ==
               factorial(ZZ(p * (N + m - 1) - 1))
-        for e in 1:(N + m - 1)
+        for e = 1:(N+m-1)
             @test DeRham.reduction_prescale(cubic_frontend, p * e) ==
                   factorial(ZZ(p * e - 1))
         end
     end
 
-    for N in 1:4, m in 1:4
+    for N = 1:4, m = 1:4
         @test DeRham.frobenius_series(cubic_frontend, N, m) == DeRham.computeD(N, m)
-        for j in 0:(N - 1)
+        for j = 0:(N-1)
             @test DeRham.frobenius_term_pole_order(cubic_frontend, m, j) == 2 * (m + j)
         end
     end
 
-    for n in 2:5, i in 0:(n - 1)
+    for n = 2:5, i = 0:(n-1)
         @test DeRham.reduction_prescale(cubic_frontend, n - i) == factorial(ZZ(n - 1 - i))
     end
 
@@ -43,7 +46,8 @@
     scale_basis = [[nothing, m] for m in orders]
     N_m = [1, 2]
     expected_scale_exponents = [
-        dimension - 1 - DeRham._ibm_vp_factorial(p * (m + N_m[m] - 1) - 1, p) for m in orders
+        dimension - 1 - DeRham._ibm_vp_factorial(p * (m + N_m[m] - 1) - 1, p) for
+        m in orders
     ]
     @test DeRham._frobenius_column_scale_exponents(cubic_frontend, p, N_m, scale_basis) ==
           expected_scale_exponents

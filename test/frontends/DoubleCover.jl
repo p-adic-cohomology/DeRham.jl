@@ -1,6 +1,6 @@
 function _reference_generalized_binomial(a::Rational{BigInt}, i::Integer)
     value = BigInt(1) // BigInt(1)
-    for t in 0:(i-1)
+    for t = 0:(i-1)
         value *= (a - BigInt(t)) / BigInt(t + 1)
     end
     return value
@@ -10,18 +10,19 @@ function _reference_computeD_half_integral(N::Integer, k::Integer)
     a = -BigInt(k) // BigInt(2)
     return [
         sum(
-            (-1)^(i+j) * _reference_generalized_binomial(a, i) * binomial(i, j) for i = j:(N-1);
+            (-1)^(i+j) * _reference_generalized_binomial(a, i) * binomial(i, j) for
+            i = j:(N-1);
             init = zero(a),
         ) for j = 0:(N-1)
     ]
 end
 
 @testset "Double cover frontend" begin
-    for N in 0:6, m in 1:4
+    for N = 0:6, m = 1:4
         @test DeRham.computeD_half_integral(N, 2m) == QQ.(DeRham.computeD(N, m))
     end
 
-    for k in (1, 3, 5), N in 0:5
+    for k in (1, 3, 5), N = 0:5
         expected = _reference_computeD_half_integral(N, k)
         @test DeRham.computeD_half_integral(N, k) == QQ.(expected)
     end
@@ -37,7 +38,7 @@ end
     @test typeof(DeRham.frobenius_term_pole_order(curve, 1, 0)) == Int
 
     scale = QQ(1)
-    for m in 1:6
+    for m = 1:6
         @test DeRham.reduction_prescale(curve, m) == scale
         @test DeRham.reduction_prescale(curve, m) isa Oscar.QQFieldElem
         if m < 6
@@ -46,9 +47,9 @@ end
             scale *= inv(DeRham.reduction_scalar(P, m))
         end
     end
-    @test [DeRham.reduction_prescale(curve, m) for m in 1:3] == [QQ(1), QQ(1, 2), QQ(3, 4)]
+    @test [DeRham.reduction_prescale(curve, m) for m = 1:3] == [QQ(1), QQ(1, 2), QQ(3, 4)]
 
-    for N in 1:5, m in 1:4
+    for N = 1:5, m = 1:4
         terminal_scale = DeRham.reduction_prescale(
             curve,
             DeRham.frobenius_term_pole_order(curve, m, N - 1),
@@ -57,15 +58,15 @@ end
             terminal_scale / DeRham.reduction_prescale(
                 curve,
                 DeRham.frobenius_term_pole_order(curve, m, j),
-            ) for j in 0:(N-1)
+            ) for j = 0:(N-1)
         ]
         @test DeRham._frobenius_prescale_factors(curve, m, N) == expected
     end
 
-    for N in 1:5, m in 1:4
+    for N = 1:5, m = 1:4
         @test DeRham.frobenius_series(curve, N, m) ==
               DeRham.computeD_half_integral(N, DeRham.pole_exponent(P, m))
-        for j in 0:(N-1)
+        for j = 0:(N-1)
             @test DeRham.frobenius_term_pole_order(curve, m, j) ==
                   (5 * (2m - 1 + 2j) + 1) ÷ 2
         end
@@ -112,14 +113,7 @@ end
     R3, (x3, z3) = polynomial_ring(GF(3), ["x", "z"])
     R7, (x7, z7) = polynomial_ring(GF(7), ["x", "z"])
     suite_cases = (
-        (
-            "g1_d4_a",
-            DeRham.DoubleCover(x3^4 - x3*z3^3 + z3^4),
-            3,
-            [1, 3, 3],
-            0,
-            (2, 5),
-        ),
+        ("g1_d4_a", DeRham.DoubleCover(x3^4 - x3*z3^3 + z3^4), 3, [1, 3, 3], 0, (2, 5)),
         (
             "g2_d6_a",
             DeRham.DoubleCover(4*x7^6 - 4*x7*z7^5 + 4*z7^6),
@@ -141,7 +135,8 @@ end
     for (id, fe, p, expected_ascending, precision_increment, expected_pair) in suite_cases
         basis = DeRham.get_basis_of_cohomology(fe)
         polygon = DeRham._hodge_polygon(basis, DeRham.presentation(fe))
-        relative_precision = DeRham.calculate_relative_precision(polygon, DeRham.weight(fe), p)
+        relative_precision =
+            DeRham.calculate_relative_precision(polygon, DeRham.weight(fe), p)
         N = 2 + precision_increment
         M = maximum(relative_precision) + 3 + precision_increment
         @test (N, M) == expected_pair
@@ -240,10 +235,7 @@ end
 
 @testset "Double cover conic Frobenius scaling" begin
     R3, (x, y, z) = polynomial_ring(GF(3), ["x", "y", "z"])
-    conics = (
-        (x^2 + y^2 + z^2, -3),
-        (x^2 + y^2 + 2*z^2, 3),
-    )
+    conics = ((x^2 + y^2 + z^2, -3), (x^2 + y^2 + 2*z^2, 3))
 
     for (F, expected_entry) in conics
         FM, _ = DeRham.zeta_coefficients(

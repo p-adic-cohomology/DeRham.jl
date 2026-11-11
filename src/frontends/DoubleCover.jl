@@ -25,10 +25,12 @@ function check_input(fe::DoubleCover)
     iseven(total_degree(F)) || throw(ArgumentError("the branch degree must be even"))
     is_homogeneous(F) || throw(ArgumentError("the branch polynomial must be homogeneous"))
     p = characteristic(parent(F))
-    p == 0 &&
-        throw(ArgumentError("double covers must be defined over a finite field of odd characteristic"))
-    p == 2 &&
-        throw(ArgumentError("double covers are not supported in characteristic 2"))
+    p == 0 && throw(
+        ArgumentError(
+            "double covers must be defined over a finite field of odd characteristic",
+        ),
+    )
+    p == 2 && throw(ArgumentError("double covers are not supported in characteristic 2"))
     return nothing
 end
 
@@ -36,7 +38,7 @@ function reduction_prescale(fe::DoubleCover, m::Integer)
     m >= 1 || throw(ArgumentError("the pole order must be positive"))
     scale = QQ(1)
     P = presentation(fe)
-    for j in 1:(m-1)
+    for j = 1:(m-1)
         scale *= inv(reduction_scalar(P, j))
     end
     return scale

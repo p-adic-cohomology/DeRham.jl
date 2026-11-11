@@ -49,14 +49,22 @@ function sign_fe(weight, d, p, prec_vec, cp_coeffs)
         k = div(dimension, 2)
         required_precision = k + (p == 2 ? 2 : 1)
         if prec_vec[1] < required_precision
-            throw(ArgumentError("not enough p-adic precision to determine the sign of a degree-one L-polynomial (need c_0 mod p^$required_precision)"))
+            throw(
+                ArgumentError(
+                    "not enough p-adic precision to determine the sign of a degree-one L-polynomial (need c_0 mod p^$required_precision)",
+                ),
+            )
         end
 
         p = ZZ(p)
         p_power = p^k
         c0 = ZZ(cp[1])
         if !iszero(mod(c0, p_power))
-            throw(ArgumentError("constant coefficient is not divisible by p^k for a degree-one L-polynomial"))
+            throw(
+                ArgumentError(
+                    "constant coefficient is not divisible by p^k for a degree-one L-polynomial",
+                ),
+            )
         end
 
         unit_modulus = p == 2 ? ZZ(4) : p
@@ -66,7 +74,11 @@ function sign_fe(weight, d, p, prec_vec, cp_coeffs)
         elseif unit == unit_modulus - 1
             return -1
         end
-        throw(ArgumentError("constant coefficient does not determine a sign of ±1 for a degree-one L-polynomial"))
+        throw(
+            ArgumentError(
+                "constant coefficient does not determine a sign of ±1 for a degree-one L-polynomial",
+            ),
+        )
     end
 
     if dimension % 2 == 0

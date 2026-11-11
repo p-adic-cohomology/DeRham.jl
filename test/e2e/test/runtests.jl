@@ -690,7 +690,12 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         @test exec.expected(primitive_curve, record()) == BigInt[7, 1, 1]
 
         hyperelliptic_curve = example(
-            good_variety("hyperelliptic", ["x", "z"]; dim = 1, middle_factor_content = "full"),
+            good_variety(
+                "hyperelliptic",
+                ["x", "z"];
+                dim = 1,
+                middle_factor_content = "full",
+            ),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
         @test exec.expected(hyperelliptic_curve, record()) == BigInt[7, 1, 1]
@@ -1742,7 +1747,8 @@ end
         "genus" => 1,
         "model" => degree_drop_model,
     )
-    degree_drop = E2E.ExampleCase("degree_drop", "synthetic.json", degree_drop_variety, Any[], "")
+    degree_drop =
+        E2E.ExampleCase("degree_drop", "synthetic.json", degree_drop_variety, Any[], "")
     @test_throws r"singular at infinity" E2E.DoubleCoverModels.build_input(degree_drop, 3)
     @test_throws r"p=2" E2E.DoubleCoverModels.build_input(hyperelliptic, 2)
 
@@ -1755,17 +1761,18 @@ end
     @test DeRham.check_smoothness(surface)
     @test_throws r"p=2" E2E.DoubleCoverModels.build_input(double_sextic, 2)
 
-    p2_example = (model, dim) -> E2E.ExampleCase(
-        "synthetic_p2",
-        "synthetic.json",
-        Dict{String,Any}(
-            "coeff_domain" => Dict("kind" => "integer"),
-            "dim" => dim,
-            "model" => model,
-        ),
-        Any[],
-        "",
-    )
+    p2_example =
+        (model, dim) -> E2E.ExampleCase(
+            "synthetic_p2",
+            "synthetic.json",
+            Dict{String,Any}(
+                "coeff_domain" => Dict("kind" => "integer"),
+                "dim" => dim,
+                "model" => model,
+            ),
+            Any[],
+            "",
+        )
     p2_model = Dict{String,Any}(
         "kind" => "double_cover_P2",
         "branch_vars" => ["x", "y", "z"],
@@ -1783,7 +1790,10 @@ end
     )
     @test_throws ArgumentError E2E.DoubleCoverModels.build_input(
         p2_example(
-            merge(copy(p2_model), Dict("branch_monomials" => [[3, 0, 0]], "branch_coeffs" => [1])),
+            merge(
+                copy(p2_model),
+                Dict("branch_monomials" => [[3, 0, 0]], "branch_coeffs" => [1]),
+            ),
             2,
         ),
         7,
@@ -1792,7 +1802,10 @@ end
         p2_example(
             merge(
                 copy(p2_model),
-                Dict("branch_monomials" => [[6, 0, 0], [0, 5, 0]], "branch_coeffs" => [1, 1]),
+                Dict(
+                    "branch_monomials" => [[6, 0, 0], [0, 5, 0]],
+                    "branch_coeffs" => [1, 1],
+                ),
             ),
             2,
         ),

@@ -11,7 +11,14 @@ INPUTS:
 
 """
 
-function zeta_coefficients_from_frobenius(FM, weight, q, polygon, relative_precision, verbose)
+function zeta_coefficients_from_frobenius(
+    FM,
+    weight,
+    q,
+    polygon,
+    relative_precision,
+    verbose,
+)
     @assert size(FM, 1) == size(FM, 2) "FM is not a square matrix"
 
     P, T = polynomial_ring(ZZ, "T")
@@ -102,11 +109,19 @@ function zeta_coefficients(
 )
     if !(fe isa ProjectiveHypersurface)
         if algorithm in (:pchunk, :varbyvar, :akr)
-            throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
+            throw(
+                ArgumentError(
+                    "algorithm $algorithm is not yet supported for $(typeof(fe))",
+                ),
+            )
         elseif use_gpu
             throw(ArgumentError("GPU execution is not yet supported for $(typeof(fe))"))
         elseif context !== nothing
-            throw(ArgumentError("custom reduction contexts are not yet supported for $(typeof(fe))"))
+            throw(
+                ArgumentError(
+                    "custom reduction contexts are not yet supported for $(typeof(fe))",
+                ),
+            )
         end
         if algorithm == :default
             algorithm = :depthfirst
@@ -114,9 +129,14 @@ function zeta_coefficients(
     end
 
     if fe isa ProjectiveHypersurface
-        if relative_precision !== nothing || series_precision !== nothing ||
+        if relative_precision !== nothing ||
+           series_precision !== nothing ||
            algorithm_precision !== nothing
-            throw(ArgumentError("explicit precision keywords are not supported for $(typeof(fe))"))
+            throw(
+                ArgumentError(
+                    "explicit precision keywords are not supported for $(typeof(fe))",
+                ),
+            )
         end
     else
         precision_info === nothing ||
@@ -348,7 +368,17 @@ function zeta_coefficients(
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
-        (FM, zeta_coefficients_from_frobenius(FM, weight(fe), q, hodge_polygon, r_m, verbose))
+        (
+            FM,
+            zeta_coefficients_from_frobenius(
+                FM,
+                weight(fe),
+                q,
+                hodge_polygon,
+                r_m,
+                verbose,
+            ),
+        )
     else
         zeta_coefficients_from_frobenius(FM, weight(fe), q, hodge_polygon, r_m, verbose)
     end
@@ -600,13 +630,12 @@ function zeta_coefficients_with_precision(
     verbose = 0,
     kwargs...,
 )
-    precision_info =
-        precision_information_max_auto_r_m(
-            polynomial(fe),
-            r;
-            basis = basis,
-            verbose = verbose,
-        )
+    precision_info = precision_information_max_auto_r_m(
+        polynomial(fe),
+        r;
+        basis = basis,
+        verbose = verbose,
+    )
     return zeta_coefficients(
         fe;
         precision_info = precision_info,

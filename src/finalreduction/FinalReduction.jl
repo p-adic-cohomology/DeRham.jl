@@ -85,10 +85,15 @@ function computeT(fe::ZetaFrontend, Basis, M, params, cache)
                 tmp = zero_matrix(precisionring, len_basis, len)
                 for j = 1:len # indexing over monomials
                     for k = 1:length(basis)
-                        tmp[k, j] = scale * coeff(
-                            monomials[j],
-                            liftCoefficients(precisionring, precisionringpoly, basis[k]),
-                        )
+                        tmp[k, j] =
+                            scale * coeff(
+                                monomials[j],
+                                liftCoefficients(
+                                    precisionring,
+                                    precisionringpoly,
+                                    basis[k],
+                                ),
+                            )
                     end
                 end
                 T = vcat(tmp, T)
@@ -229,7 +234,16 @@ INPUTS:
 * "params" -- the ControlledReductionParamaters
 * "cache" -- the GradedExpCache used for this controlled reduction
 """
-function compute_frobenius_matrix(fe::ZetaFrontend, p, N_m, Reductions, T, Basis, params, cache)
+function compute_frobenius_matrix(
+    fe::ZetaFrontend,
+    p,
+    N_m,
+    Reductions,
+    T,
+    Basis,
+    params,
+    cache,
+)
     verbose = params.verbose
     termorder = params.termorder
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")

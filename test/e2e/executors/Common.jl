@@ -83,16 +83,17 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
             valid_array =
                 value isa AbstractVector &&
                 all(entry -> entry isa Integer && !(entry isa Bool), value)
-            valid_scalar || valid_array || error(
-                "execution record $(repr(name)): $(key) must be an integer or an array of integers",
-            )
+            valid_scalar ||
+                valid_array ||
+                error(
+                    "execution record $(repr(name)): $(key) must be an integer or an array of integers",
+                )
         end
     end
     if haskey(params, "algorithm_precision")
         value = params["algorithm_precision"]
-        value isa Integer && !(value isa Bool) || error(
-            "execution record $(repr(name)): algorithm_precision must be an integer",
-        )
+        value isa Integer && !(value isa Bool) ||
+            error("execution record $(repr(name)): algorithm_precision must be an integer")
     end
     return nothing
 end

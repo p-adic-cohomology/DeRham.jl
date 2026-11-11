@@ -331,7 +331,8 @@ function poly_of_end_costadata(costadata, PR, P, p, d, n, params)
     vars = gens(PR)
     cpu_g = Array(g_vec)
     reduction_degree = _reduction_g_degree(P)
-    CUDA.@allowscalar g = vector_to_polynomial(cpu_g, n, reduction_degree, PR, params.termorder)
+    CUDA.@allowscalar g =
+        vector_to_polynomial(cpu_g, n, reduction_degree, PR, params.termorder)
 
     return [prod(vars .^ u) * g, terminal_pole_order(P)]
 end

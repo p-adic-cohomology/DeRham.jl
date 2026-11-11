@@ -71,7 +71,7 @@ end
 
 Return the pole orders that carry basis elements for the double cover `P`.
 """
-pole_orders(P::DoubleCoverPresentation) = 1:(P.n + 1)
+pole_orders(P::DoubleCoverPresentation) = 1:(P.n+1)
 
 """
     terminal_pole_order(P::DoubleCoverPresentation)
@@ -85,8 +85,7 @@ terminal_pole_order(P::DoubleCoverPresentation) = P.n + 1
 
 Return the degree of the numerator at pole order `m` for `P`.
 """
-numerator_degree(P::DoubleCoverPresentation, m::Integer) =
-    P.d * m - (P.n + 1 + P.d ÷ 2)
+numerator_degree(P::DoubleCoverPresentation, m::Integer) = P.d * m - (P.n + 1 + P.d ÷ 2)
 
 """
     pole_exponent(P::DoubleCoverPresentation, m)

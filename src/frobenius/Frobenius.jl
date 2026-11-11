@@ -18,7 +18,7 @@ end
 
 function _generalized_binomial(a::QQFieldElem, i::Integer)
     value = QQ(1)
-    for t in 0:(i-1)
+    for t = 0:(i-1)
         value *= (a - t) / QQ(t + 1)
     end
     return value
@@ -37,7 +37,8 @@ function computeD_half_integral(N, k::Integer)
     generalized_binomial_coefficients = [_generalized_binomial(a, i) for i = 0:(N-1)]
     for j = 0:(N-1)
         D[j+1] = sum(
-            (-1)^(i+j) * generalized_binomial_coefficients[i+1] * binomial(i, j) for i = j:(N-1);
+            (-1)^(i+j) * generalized_binomial_coefficients[i+1] * binomial(i, j) for
+            i = j:(N-1);
             init = QQ(0),
         )
     end
@@ -138,10 +139,10 @@ function _frobenius_prescale_factors(fe::DoubleCover, m, N)
     pole_orders = BigInt[frobenius_term_pole_order(fe, m, j) for j = 0:(N-1)]
     factors = Vector{QQFieldElem}(undef, N)
     scale = QQ(1)
-    for i in N:-1:1
+    for i = N:-1:1
         factors[i] = scale
         if i > 1
-            for pole_order in pole_orders[i-1]:(pole_orders[i]-1)
+            for pole_order = pole_orders[i-1]:(pole_orders[i]-1)
                 scale *= inv(reduction_scalar(P, pole_order))
             end
         end
@@ -173,7 +174,9 @@ function applyFrobeniusToMon(
     end
     terminal_index = frobenius_term_pole_order(fe, m, N - 1)
     (9 < verbose) && println("Scaling by prescale at pole order: $terminal_index")
-    rescaling = prescale_factors === nothing ? _frobenius_prescale_factors(fe, m, N) : prescale_factors
+    rescaling =
+        prescale_factors === nothing ? _frobenius_prescale_factors(fe, m, N) :
+        prescale_factors
     o = ones(Int64, n + 1)
     B = MPolyBuildCtx(PR)
     push_term!(B, R(1), o)
