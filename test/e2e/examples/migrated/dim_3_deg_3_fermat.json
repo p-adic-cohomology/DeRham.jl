@@ -89,6 +89,95 @@
         }
       ],
       "notes": "migrated from test/varieties/dim_3_deg_3_fermat.csv (mcp-ttb.6)"
+    },
+    {
+      "id": "dim_3_deg_3_fermat_2",
+      "variety": {
+        "coeff_domain": {
+          "kind": "integer"
+        },
+        "dim": 3,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "full"
+        },
+        "model": {
+          "kind": "projective_hypersurface",
+          "pretty": "x1^3 + x2^3 + x3^3 + x4^3 + x5^3 = 0",
+          "vars": [
+            "x1",
+            "x2",
+            "x3",
+            "x4",
+            "x5"
+          ],
+          "monomials": [
+            [
+              3,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              3,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              3,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              3,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              3
+            ]
+          ],
+          "coeffs": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      },
+      "results": [
+        {
+          "p": 7,
+          "Lpoly": {
+            "coeffs_asc": [
+              1,
+              35,
+              2205,
+              51450,
+              1692705,
+              27076077,
+              580597815,
+              6053041050,
+              88979703435,
+              484445052035,
+              4747561509943
+            ]
+          }
+        }
+      ],
+      "notes": "CPU DeRham varbyvar reference with S=[4], fastevaluation=true, changef=false; independently recovered from direct point counts over F_{7^k}, k=1..5: 435, 123285, 40437300, 13846202049, 4747861733385."
     }
   ]
 }
