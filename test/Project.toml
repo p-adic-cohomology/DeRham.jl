@@ -21,3 +21,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [sources]
 ReLint = {rev = "main", url = "https://github.com/RelationalAI-oss/ReLint.jl"}
+
+[compat]
+Aqua = "0.8.19"
