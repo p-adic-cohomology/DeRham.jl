@@ -31,8 +31,8 @@ end
 
 
 function _default_reduction_selection(fe::ZetaFrontend, S)
-    algorithm, selected_S, selected_variable, _ = varbyvar_reduction_setup(fe, S)
-    return algorithm, selected_S, selected_variable
+    configuration = reduction_setup(fe, S, :default)
+    return configuration.policy, configuration.S, configuration.selected_variable
 end
 
 function _default_reduction_selection(f, P, S)
@@ -118,22 +118,7 @@ function zeta_coefficients(
     series_precision = nothing,
     algorithm_precision = nothing,
 )
-    if !_supports_reduction_algorithm(fe, algorithm)
-        throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
-    end
-
-    if !(fe isa ProjectiveHypersurface)
-        if use_gpu
-            throw(ArgumentError("GPU execution is not yet supported for $(typeof(fe))"))
-        elseif context !== nothing
-            throw(
-                ArgumentError(
-                    "custom reduction contexts are not yet supported for $(typeof(fe))",
-                ),
-            )
-        end
-    end
-
+    _validate_reduction_setup(fe, algorithm; use_gpu = use_gpu, context = context)
     if fe isa ProjectiveHypersurface
         if relative_precision !== nothing ||
            series_precision !== nothing ||
@@ -171,25 +156,28 @@ function zeta_coefficients(
         error("Length of S must be <= $d")
     end
 
-    if algorithm == :default
-        algorithm, S, selected_variable = _default_reduction_selection(fe, S)
-        if selected_variable !== nothing
-            vars = gens(PR)
-            new_vars = copy(vars)
-            for j = 0:n
-                if j == selected_variable
-                    new_vars[selected_variable+1] = vars[n+1]
-                end
+    configuration = reduction_setup(
+        fe,
+        S,
+        algorithm;
+        use_gpu = use_gpu,
+        use_threads = use_threads,
+        always_use_bigints = always_use_bigints,
+        fastevaluation = fastevaluation,
+        context = context,
+    )
+    algorithm = configuration.policy
+    S = configuration.S
+    if configuration.selected_variable !== nothing
+        selected_variable = configuration.selected_variable
+        vars = gens(PR)
+        new_vars = copy(vars)
+        for j = 0:n
+            if j == selected_variable
+                new_vars[selected_variable+1] = vars[n+1]
             end
-            new_vars[n+1] = vars[selected_variable+1]
         end
-    end
-
-    if algorithm == :varbyvar
-        _, _, _, required_S = varbyvar_reduction_setup(fe, S)
-        if S != required_S
-            throw("S must be $required_S for varbyvar")
-        end
+        new_vars[n+1] = vars[selected_variable+1]
     end
 
     # vars_reversed = false
@@ -357,6 +345,7 @@ function zeta_coefficients(
         params,
         cache,
         context,
+        setup = configuration,
     )
     (2 < verbose) && println(Reductions)
 

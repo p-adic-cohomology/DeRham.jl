@@ -38,6 +38,16 @@ struct ControlledReductionContext{MatrixType,VectorType}
     g_temp::VectorType
 end
 
+"""
+    PreconfiguredReductionEngine(context)
+
+Wrap reusable controlled-reduction buffers and R_uv storage for constructing a
+matrix engine for one frontend polynomial.
+"""
+struct PreconfiguredReductionEngine{C<:ControlledReductionContext}
+    context::C
+end
+
 function default_context(matspace, Ruv, params)
     g_length = number_of_rows(matspace)
     B = base_ring(matspace)
