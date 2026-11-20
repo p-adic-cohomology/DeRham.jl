@@ -63,7 +63,7 @@ using Oscar:
     zero_matrix,
     zzModMatrix
 using BitIntegers: BitIntegers
-using LinearAlgebra: LinearAlgebra, I, nullspace, rank
+using LinearAlgebra: LinearAlgebra, nullspace, rank
 using Combinatorics: Combinatorics
 using Memoize: Memoize
 using LRUCache: LRUCache, LRU

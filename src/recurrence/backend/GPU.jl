@@ -1,24 +1,4 @@
 
-function remove_duplicates_gpu!(costadata_arr)
-    i = 1
-    while i <= (length(costadata_arr)-1)
-        j = i+1
-        while j <= length(costadata_arr)
-            if all(costadata_arr[i][1][1] .== costadata_arr[j][1][1])
-                my_add!(
-                    costadata_arr[i][1][2],
-                    costadata_arr[i][1][2],
-                    costadata_arr[j][1][2],
-                )
-                deleteat!(costadata_arr, j)
-            else
-                j = j + 1
-            end
-        end
-        i = i + 1
-    end
-end
-
 function cuMod(A::zzModMatrix)
     m = modulus(base_ring(parent(A)))
     # if this conversion is illegal,

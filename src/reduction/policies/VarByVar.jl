@@ -15,148 +15,6 @@ function _varbyvar_evaluation_kernel(params, d, n, modulus)
     return eval_to_linear!
 end
 
-function reducechain_varbyvar(u, g, m, S, f, P, p, context, cache, params, kernel = nothing)
-    n = nvars(parent(f)) - 1
-    d = total_degree(f)
-    terminal = terminal_pole_order(P)
-    PR = parent(f)
-    R = coefficient_ring(parent(f))
-
-    J = copy(u)
-
-    modm = Integer(modulus(base_ring(parent(f))))
-    if kernel === nothing
-        kernel = _varbyvar_evaluation_kernel(params, d, n, modm)
-    end
-
-    gMat = g
-    mins = copy(J)
-    tempv = copy(J)
-
-    (4 < params.verbose) && println("Starting: J = $J")
-
-    l = 1
-    for i in eachindex(J)
-        if J[n+1-i+1] > 0
-            l = n+1-i+1
-            break
-        end
-    end
-
-    highpole = true
-    if m == terminal
-        highpole == false
-    end
-    while highpole && J[l] > 0
-        V = varbyvar_chooseV(J, d)
-
-        (4 < params.verbose) && print("Chose V = $V; ")
-        (6 < params.verbose) && begin end
-
-        K = 0
-        while true
-            @. tempv = mins - V
-            isLessThanZero = false
-            for j in tempv
-                if j < 0
-                    isLessThanZero = true
-                    break
-                end
-            end
-            if isLessThanZero == true
-                break
-            end
-            if m - K == terminal
-                break
-            end
-            @. mins = tempv
-            K = K+1
-        end
-
-        (4 < params.verbose) && println("Getting Ruv matrices; ")
-        matrices = context.Ruvs[V]
-        (4 < params.verbose) && println("Computing A and B; ")
-        kernel(context.B, context.A, context.temp, matrices, mins, V)
-        (4 < params.verbose) && println("Starting the reduction steps; ")
-        gMat = finitediff_prodeval_linear!(
-            context.B,
-            context.A,
-            0,
-            K-1,
-            gMat,
-            context.temp,
-            context.g_temp,
-        )
-        @. J = J - K*V
-        m = m - K
-        if m == terminal
-            highpole = false
-        end
-
-        (4 < params.verbose) && print("After $(lpad(K,4,' ')) steps,")
-        (4 < params.verbose) && println("J = $J")
-
-    end
-
-    return ((J, gMat), m)
-end
-
-function reducepoly_varbyvar(pol, S, f, P, fe, p, context, cache, params, kernel = nothing)
-    terminal = terminal_pole_order(P)
-    PR = parent(f)
-
-    vectype = typeof(context.g)
-    allcostadata = Vector{Tuple{Tuple{Vector{Int},vectype},Int}}()
-    for (_, inputs) in reduction_input_keys(fe, pol, S)
-        for input in inputs
-            u, order = input.key
-            g = reduction_input_vector!(
-                _zero_reduction_vector(context.g),
-                fe,
-                input,
-                S,
-                cache,
-                params,
-            )
-            push!(allcostadata, ((u, g), order))
-        end
-    end
-
-    notallred = true
-    # TODO: prime the jitter here?
-
-    while notallred
-        for i in eachindex(allcostadata)
-            allcostadata[i] = reducechain_varbyvar(
-                allcostadata[i][1]...,
-                allcostadata[i][2],
-                S,
-                f,
-                P,
-                p,
-                context,
-                cache,
-                params,
-                kernel,
-            )
-        end
-        if params.use_gpu == true
-            remove_duplicates_gpu!(allcostadata)
-        else
-            remove_duplicates!(allcostadata)
-        end
-        for i = 1:length(allcostadata)
-            if allcostadata[i][2] > terminal
-                break
-            elseif i == length(allcostadata)
-                notallred = false
-            end
-        end
-    end
-    terminal_chains = [entry[1] for entry in allcostadata]
-    return reduction_terminal_polynomial(fe, terminal_chains, PR, S, params)
-end
-
 struct VarByVarEngineState{E}
     engine::E
 end
@@ -197,15 +55,16 @@ function _reducepoly_varbyvar!(
 )
     keys_by_order = reduction_input_keys(fe, pol, S)
     terminal_polynomial = Ref(PR())
-    on_terminal = chain -> begin
-        terminal_polynomial[] = reduction_add_terminal_chain(
-            fe,
-            terminal_polynomial[],
-            chain,
-            PR,
-            params,
-        )
-    end
+    on_terminal =
+        chain -> begin
+            terminal_polynomial[] = reduction_add_terminal_chain(
+                fe,
+                terminal_polynomial[],
+                chain,
+                PR,
+                params,
+            )
+        end
     run_reduction_policy!(policy, runtime.engine, keys_by_order, directions, on_terminal)
     return _finish_reduction_terminal_polynomial(fe, terminal_polynomial[], PR, S)
 end
@@ -410,13 +269,13 @@ function run_reduction_policy!(
             maximum_chunk = key.order - terminal_order
             chunk = _varbyvar_chunk_length(key.u, direction, maximum_chunk)
             chunk >= 1 || throw(ArgumentError("varbyvar selected an empty chunk"))
-            directions(key.u, chunk, direction) || throw(
-                ArgumentError("varbyvar selected an invalid reduction direction"),
-            )
+            directions(key.u, chunk, direction) ||
+                throw(ArgumentError("varbyvar selected an invalid reduction direction"))
             reduce!(engine, chain, direction, chunk)
         end
 
-        orders = sort!(unique([reduction_chain_key(engine, chain).order for chain in chains]))
+        orders =
+            sort!(unique([reduction_chain_key(engine, chain).order for chain in chains]))
         next_chains = AbstractReductionChainHandle[]
         for order in orders
             survivors = combine!(engine, order)
