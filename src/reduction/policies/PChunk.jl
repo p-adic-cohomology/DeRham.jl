@@ -1,6 +1,13 @@
 
+function _pchunk_choose_direction(key::ReductionChainKey, degree, S)
+    exponents = collect(key.u)
+    sum(exponents) >= degree ||
+        throw(ArgumentError("pchunk has no direction for the chain key"))
+    return rev_chooseV(exponents, degree, S)
+end
+
 """
-    reducechain_pchunk(u, g, m, S, f, P, pseudoInverseMat, p, Ruv, cache, A, B, temp, g_temp, params)
+    reducechain_pchunk(key, g, S, f, P, pseudoInverseMat, p, Ruv, cache, A, B, temp, g_temp, params)
 
 takes a single monomial in Frobenius and reduces one chunk toward
 `terminal_pole_order(P)`.
@@ -11,9 +18,8 @@ if the reduction hits the end, returns u as the "true" value, otherwise returns 
 
 fields
 ------
-u -  vector of ints
+key - chain key containing the exponent vector and current pole order
 g - vector
-m - pole order
 S - vector of ints
 f - polynomial
 P - cohomology quotient
@@ -28,9 +34,8 @@ g_temp - preallocated storage vector
 params - the ControlledReductionParamaters
 """
 function reducechain_pchunk(
-    u,
+    key::ReductionChainKey,
     g,
-    m,
     S,
     f,
     P,
@@ -43,103 +48,49 @@ function reducechain_pchunk(
     temp,
     g_temp,
     params,
+    directions,
 )
     verbose = params.verbose
-    n = nvars(parent(f)) - 1
     d = total_degree(f)
-    g_degree = _reduction_g_degree(P)
     terminal = terminal_pole_order(P)
-    PR = parent(f)
-    R = coefficient_ring(parent(f))
 
-
-
-    #I = u
-
-    (4 < verbose) && println("Expanded U: $u")
+    (4 < verbose) && println("Expanded U: $(key.u)")
 
     gMat = g
-    J = copy(u)
+    (4 < verbose) && println("Before reduction chunk, U is $(key.u)")
+    maximum_chunk = min(key.order - terminal, p)
+    maximum_chunk <= 0 && return (key, gMat)
 
-    #TODO?
-    V = rev_chooseV(Array{Int}(divexact.(u, p)), d, S)
-    (4 < verbose) && println("LOOK! U=$u, V = $V")
+    direction = _pchunk_choose_direction(key, d, S)
+    chunk = _depthfirst_chunk_length(collect(key.u), direction, maximum_chunk)
+    chunk >= 1 || throw(ArgumentError("pchunk selected an empty chunk"))
+    directions(key.u, chunk, direction) ||
+        throw(ArgumentError("pchunk selected an invalid reduction direction"))
+    (4 < verbose) && println("Reducing with V = $direction for $chunk steps")
 
-    gVec = u .- tweak(u, g_degree)
+    matrices = Ruv[direction]
+    next_u = collect(key.u) .- chunk .* direction
+    B, A = eval_to_linear!(B, A, temp, matrices, next_u, direction)
 
-    @. u = u - gVec
-    if m - terminal < p
-        nend = m - terminal
+    if params.fastevaluation
+        gMat = finitediff_prodeval_linear!(B, A, 0, chunk - 1, gMat, temp, g_temp)
     else
-        nend = p
-    end
-
-    i = 1
-
-    (4 < verbose) && println("Before reduction chunk, U is $u")
-    if 0 < nend-g_degree
-        matrices = Ruv[V]#computeRuvS(V,S,f,pseudoInverseMat,Ruvs,cache,params)
-
-        #TODO: the following was changed to use reverse! so
-        #    it doesn't allocate as much, but I realized that
-        #    this isn't our bottleneck. If it ever does
-        #    become the bottleneck, fix the rest of this method
-        #    so it doesn't allocate.
-        mins = u .- (nend-g_degree)*V
-
-        B, A = eval_to_linear!(B, A, temp, matrices, mins, V)
-
-        # TODO: test how much of a difference the fast evaluation actually makes
-        if params.fastevaluation
-            gMat = finitediff_prodeval_linear!(B, A, 0, nend-g_degree-1, gMat, temp, g_temp)
-            i = nend-g_degree + 1
-        else
-            while i <= (nend-g_degree)
-                my_mul!(temp, B, nend-g_degree-i)
-                my_add!(temp, temp, A)
-                gMat = temp*gMat
-
-                i = i+1
-            end
+        for i = 1:chunk
+            my_mul!(temp, B, chunk - i)
+            my_add!(temp, temp, A)
+            my_matvecmul!(g_temp, temp, gMat)
+            my_copy!(gMat, g_temp)
         end
-        @. u = u - (nend-g_degree)*V
-    end
-    (4 < verbose) && println("After steps 1-$i, I is $I")
-    i = i-1
-    while i <= nend-1
-        y = tweak(J - i*V, g_degree) .- tweak(J - (i+1)*V, g_degree)
-        (4 < verbose) && println("Getting y direction reduction matrix for V = $(y)")
-
-        matrices1 = Ruv[y]#computeRuvS(y,S,f,pseudoInverseMat,Ruvs,cache,params)
-
-        B, A = eval_to_linear!(B, A, temp, matrices1, tweak(J - (i+1)*V, g_degree) - y, y)
-
-        my_add!(temp, A, B)
-        my_matvecmul!(g_temp, temp, gMat)
-        my_copy!(gMat, g_temp)
-
-        (4 < verbose) && println("After step $(i+1): $(gMat))")
-
-
-        i = i+1
-        @. u = u - y
-        (4 < verbose) && println("After step $(i+1), U is $u")
     end
 
-    if nend == p
-        newu = J .- p*V
-
-        return (newu, gMat)
-    else
-        return (u, gMat) # gives the "true" u
-    end
+    return (ReductionChainKey(next_u, key.order - chunk), gMat)
 end
 
 """
     reducepoly_pchunk(pol,S,f,pseudoInverseMat,p,Ruvs,termorder)
 
 Implements Costa's algorithm for controlled reduction,
-sweeping down the terms of the series expansion by the pole order.
+reducing each chain in chunks of at most `p` steps.
 
 fields
 ------
@@ -168,38 +119,44 @@ function reducepoly_pchunk(
     B,
     temp,
     params,
+    directions,
 )
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     PR = parent(f)
-    R = coefficient_ring(parent(f))
+    reduction_degree = _reduction_g_degree(P)
     g_length = binomial(_reduction_g_degree(P)+n, n)
     terminal = terminal_pole_order(P)
 
-    i = pol
-    highpoleorder = i[length(i)][2]
-
-    # this is the omega from section 1.5.5 of Costa's thesis.
-    allcostadata = [] # this will be an array of costa data
+    allcostadata = []
+    key_indices = Dict{ReductionChainKey,Int}()
     g_temp = zeros(UInt, g_length)
 
-    poleorder = highpoleorder
-    while terminal <= poleorder
-        (9 < params.verbose) && println("pole order is $poleorder")
-        # this is an array of polynomials
-        costadatatemp = termsoforder(pol, poleorder)
-
-        for term in costadatatemp
+    for polpol in pol
+        for term_with_order in wholeterms(polpol)
+            order = term_with_order[2]
+            order < terminal && continue
             g = zeros(UInt, g_length)
             term_costadata =
-                costadata_of_initial_term!(term, g, n, d, P, p, S, cache, params)
-            incorporate_initial_term!(allcostadata, term_costadata)
+                costadata_of_initial_term!(term_with_order, g, n, d, P, p, S, cache, params)
+            key = ReductionChainKey(tweak(term_costadata[1], reduction_degree), order)
+            existing_index = get(key_indices, key, nothing)
+            if existing_index === nothing
+                push!(allcostadata, (key, term_costadata[2]))
+                key_indices[key] = length(allcostadata)
+            else
+                allcostadata[existing_index] =
+                    (key, allcostadata[existing_index][2] .+ term_costadata[2])
+            end
         end
+    end
 
-        for i in eachindex(allcostadata)
-            allcostadata[i] = reducechain_pchunk(
-                allcostadata[i]...,
-                poleorder,
+    for i in eachindex(allcostadata)
+        key, gMat = allcostadata[i]
+        while key.order > terminal
+            key, gMat = reducechain_pchunk(
+                key,
+                gMat,
                 S,
                 f,
                 P,
@@ -212,10 +169,10 @@ function reducepoly_pchunk(
                 temp,
                 g_temp,
                 params,
+                directions,
             )
         end
-
-        poleorder = poleorder - p
+        allcostadata[i] = (collect(key.u), gMat)
     end
 
     return poly_of_end_costadatas(allcostadata, PR, P, p, d, n, S, params)
@@ -256,6 +213,7 @@ function reducetransform_pchunk(FT, N_m, S, f, P, pseudoInverseMat, p, cache, pa
         ruv_function
     end
     Ruv = LazyPEP{typeof(MS1())}(computeRuv)
+    directions = ReductionDirectionSet(reduction_directions(fe, S))
 
     result = []
     i = 1
@@ -276,6 +234,7 @@ function reducetransform_pchunk(FT, N_m, S, f, P, pseudoInverseMat, p, cache, pa
                 B,
                 temp,
                 params,
+                directions,
             )
         else
             reduction = reducepoly_pchunk(
@@ -291,6 +250,7 @@ function reducetransform_pchunk(FT, N_m, S, f, P, pseudoInverseMat, p, cache, pa
                 B,
                 temp,
                 params,
+                directions,
             )
         end
 
