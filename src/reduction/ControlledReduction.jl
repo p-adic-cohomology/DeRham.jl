@@ -26,7 +26,20 @@ function reducetransform(
         )
     )
     if setup.policy == :pchunk
-        reducetransform_pchunk(FT, N_m, S, f, P, pseudoInverseMat, p, cache, params, fe)
+        reducetransform_pchunk(
+            FT,
+            N_m,
+            S,
+            f,
+            P,
+            pseudoInverseMat,
+            p,
+            cache,
+            params,
+            context,
+            fe,
+            setup,
+        )
     elseif setup.policy == :depthfirst
         reducetransform_depthfirst(
             FT,

@@ -32,6 +32,14 @@ function _validate_reduction_setup(fe, algorithm; use_gpu = false, context = not
         throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
     end
 
+    if algorithm == :pchunk
+        use_gpu && throw(
+            ArgumentError("pchunk currently supports only small-modulus CPU execution"),
+        )
+        context === nothing ||
+            throw(ArgumentError("custom reduction contexts are not supported for pchunk"))
+    end
+
     if !(fe isa ProjectiveHypersurface)
         if use_gpu
             throw(ArgumentError("GPU execution is not yet supported for $(typeof(fe))"))
@@ -169,6 +177,11 @@ function reduction_execution_setup(
     g_length = binomial(g + n, n)
     MS1 = matrix_space(coefficient_ring(parent(f)), g_length, g_length)
     m = Integer(modulus(base_ring(MS1)))
+
+    if configuration.policy == :pchunk &&
+       (params.use_gpu || params.always_use_bigints || context !== nothing || m >= ZZ(2)^64)
+        throw(ArgumentError("pchunk currently supports only small-modulus CPU execution"))
+    end
 
     ruv_function =
         reduction_ruv_function(fe, configuration.S, f, pseudoInverseMat, cache, params)
