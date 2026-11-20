@@ -39,7 +39,7 @@ end
     @test DeRham.varbyvar_reduction_setup(curve, [P.n]) ==
           (:depthfirst, [P.n], nothing, [P.n])
 
-    for algorithm in (:pchunk, :akr)
+    for algorithm in (:akr,)
         @test_throws ArgumentError DeRham.zeta_coefficients(
             curve;
             algorithm,
@@ -200,6 +200,18 @@ end
             @test varbyvar_result !== false
             @test varbyvar_result == depthfirst_result
             @test reverse(varbyvar_result) == expected_ascending
+        end
+
+        if id == "g1_d4_a"
+            pchunk_result = DeRham.zeta_coefficients(
+                fe;
+                algorithm = :pchunk,
+                series_precision = N,
+                algorithm_precision = M,
+            )
+            @test pchunk_result !== false
+            @test pchunk_result == depthfirst_result
+            @test reverse(pchunk_result) == expected_ascending
         end
 
         if id == "g1_d4_a"

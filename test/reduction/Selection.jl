@@ -73,7 +73,22 @@
     double_cover_terminal = DeRham.cohomology_quotient(double_cover).n
     @test DeRham._supports_reduction_algorithm(hypersurface, :varbyvar)
     @test DeRham._supports_reduction_algorithm(double_cover, :varbyvar)
-    @test !DeRham._supports_reduction_algorithm(double_cover, :pchunk)
+    @test DeRham._supports_reduction_algorithm(double_cover, :pchunk)
+    double_cover_pchunk_setup = DeRham.reduction_setup(double_cover, [1], :pchunk)
+    @test double_cover_pchunk_setup.policy == :pchunk
+    @test :pchunk in double_cover_pchunk_setup.allowed_policies
+    @test_throws ArgumentError DeRham.reduction_setup(
+        double_cover,
+        [1],
+        :pchunk;
+        use_gpu = true,
+    )
+    @test_throws ArgumentError DeRham.reduction_setup(
+        double_cover,
+        [1],
+        :pchunk;
+        context = :custom,
+    )
     @test DeRham.varbyvar_reduction_setup(double_cover, [double_cover_terminal]) ==
           (:depthfirst, [double_cover_terminal], nothing, [double_cover_terminal])
 

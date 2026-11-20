@@ -34,7 +34,7 @@ function check_input(fe::DoubleCover)
     return nothing
 end
 
-_reduction_allowed_policies(::DoubleCover) = (:depthfirst, :varbyvar)
+_reduction_allowed_policies(::DoubleCover) = (:depthfirst, :pchunk, :varbyvar)
 
 reduction_prescale(fe::DoubleCover, m::Integer) = reduction_prescale(fe.P, m)
 
