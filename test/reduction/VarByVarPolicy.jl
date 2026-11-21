@@ -8,20 +8,24 @@
     )
     engine = DeRham.AccountingReductionEngine(geometry, directions)
     policy = DeRham.VarByVarPolicy(3)
-    inputs = [
-        (key = ([4, 3, 2], 5), terms = []),
-        (key = ([4, 3, 2], 5), terms = []),
-    ]
+    inputs = [(key = ([4, 3, 2], 5), terms = []), (key = ([4, 3, 2], 5), terms = [])]
     terminal_chains = DeRham.ReductionChainKey[]
-    on_terminal = chain -> begin
-        @test count(event -> event.operation == :finish, engine.events) ==
-              length(terminal_chains) + 1
-        @test DeRham.accounting_result(engine).live_chains == 0
-        push!(terminal_chains, chain)
-    end
+    on_terminal =
+        chain -> begin
+            @test count(event -> event.operation == :finish, engine.events) ==
+                  length(terminal_chains) + 1
+            @test DeRham.accounting_result(engine).live_chains == 0
+            push!(terminal_chains, chain)
+        end
 
     @test isnothing(
-        DeRham.run_reduction_policy!(policy, engine, [(5, inputs)], directions, on_terminal),
+        DeRham.run_reduction_policy!(
+            policy,
+            engine,
+            [(5, inputs)],
+            directions,
+            on_terminal,
+        ),
     )
 
     result = DeRham.accounting_result(engine)
@@ -41,14 +45,10 @@
     @test reductions[1].key_before.order == reductions[2].key_before.order == 5
     @test reductions[3].key_before.order == 4
     @test reductions[4].key_before.order == 3
-    @test [event.direction for event in reductions] ==
-          [(0, 1, 2), (0, 1, 2), (1, 2, 0), (3, 0, 0)]
+    @test [event.direction for event in reductions] == [(0, 1, 2), (0, 1, 2), (1, 2, 0), (3, 0, 0)]
     @test [event.order for event in combinations] == [4]
     @test combinations[1].duplicates == 1
-    @test count(
-        event -> event.operation == :reduce,
-        engine.events[1:first_combine],
-    ) == 2
+    @test count(event -> event.operation == :reduce, engine.events[1:first_combine]) == 2
     @test all(
         event -> directions(event.key_before.u, event.chunk_length, event.direction),
         reductions,

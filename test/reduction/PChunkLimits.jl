@@ -4,12 +4,8 @@ function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
     f = sum(variable^3 for variable in variables)
     fe = DeRham.ProjectiveHypersurface(f)
     P = DeRham.cohomology_quotient(fe)
-    configuration = DeRham.reduction_setup(
-        fe,
-        [2],
-        :pchunk;
-        always_use_bigints = always_use_bigints,
-    )
+    configuration =
+        DeRham.reduction_setup(fe, [2], :pchunk; always_use_bigints = always_use_bigints)
     params = DeRham.ZetaFunctionParams(
         0,
         false,
