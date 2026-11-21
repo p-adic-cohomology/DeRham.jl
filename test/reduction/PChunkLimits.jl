@@ -34,6 +34,10 @@ function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
 end
 
 @testset "pchunk representation limits" begin
+    oversized_chunk = BigInt(typemax(Int)) + 1
+    policy = DeRham.PChunkPolicy(3, [2], oversized_chunk)
+    @test policy.maximum_chunk == typemax(Int)
+
     largest_allowed_modulus = BigInt(2)^64 - 1
     setup = _pchunk_execution_setup_at_modulus(largest_allowed_modulus)
     @test setup.backend == :cpu_uint

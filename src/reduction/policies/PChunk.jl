@@ -4,6 +4,18 @@ function _pchunk_choose_direction(key::ReductionChainKey, degree, S)
     return rev_chooseV(collect(key.u), degree, S)
 end
 
+"""
+    PChunkPolicy(degree, S, maximum_chunk)
+
+Experimental controlled-reduction policy that reduces pole chains in chunks.
+`degree` is the defining polynomial degree, `S` is the selected set of reduction
+variables, and `maximum_chunk` caps the number of steps in each chunk. Values
+larger than `typemax(Int)` are capped because chain orders and executed chunks
+use `Int`.
+
+Select this policy through `algorithm=:pchunk` in `zeta_coefficients` or a
+related coefficient-based entry point.
+"""
 struct PChunkPolicy <: AbstractReductionPolicy
     degree::Int
     S::Vector{Int}
@@ -12,7 +24,8 @@ end
 
 function PChunkPolicy(degree::Integer, S, maximum_chunk::Integer)
     maximum_chunk >= 1 || throw(ArgumentError("pchunk size must be positive"))
-    return PChunkPolicy(Int(degree), Int.(collect(S)), Int(maximum_chunk))
+    bounded_maximum_chunk = min(maximum_chunk, typemax(Int))
+    return PChunkPolicy(Int(degree), Int.(collect(S)), Int(bounded_maximum_chunk))
 end
 
 function _pchunk_chunk_length(u, direction, maximum)

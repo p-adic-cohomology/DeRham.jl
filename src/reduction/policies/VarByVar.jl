@@ -75,6 +75,16 @@ function varbyvar_chooseV(I, d)
     return varbyvar_chooseV!(zeros(Int, length(I)), I, d)
 end
 
+"""
+    VarByVarPolicy(degree)
+
+Experimental controlled-reduction policy that chooses reduction directions
+one variable at a time. `degree` is the defining polynomial degree used to
+select each direction.
+
+Select this policy through `algorithm=:varbyvar` in `zeta_coefficients` or a
+related coefficient-based entry point.
+"""
 struct VarByVarPolicy <: AbstractReductionPolicy
     degree::Int
 end
