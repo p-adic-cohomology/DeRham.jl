@@ -250,16 +250,21 @@ function run_reduction_policy!(
     on_terminal,
 )
     terminal_order = reduction_engine_geometry(engine).terminal_order
-    chains = AbstractReductionChainHandle[]
+    chains = nothing
 
     for (_, inputs) in keys_by_order
         for input in inputs
             key = ReductionChainKey(input.key[1], input.key[2])
-            push!(chains, materialize(engine, key, input))
+            chain = materialize(engine, key, input)
+            if chains === nothing
+                chains = [chain]
+            else
+                push!(chains, chain)
+            end
         end
     end
 
-    isempty(chains) && return nothing
+    chains === nothing && return nothing
 
     first_key = reduction_chain_key(engine, first(chains))
     seen_keys = Set{Tuple{typeof(first_key.u),Int}}()
@@ -267,7 +272,7 @@ function run_reduction_policy!(
     direction = zeros(Int, length(first_key.u))
     chain_orders = Int[]
     sizehint!(chain_orders, length(chains))
-    next_chains = AbstractReductionChainHandle[]
+    next_chains = similar(chains, 0)
     sizehint!(next_chains, length(chains))
 
     while !isempty(chains)

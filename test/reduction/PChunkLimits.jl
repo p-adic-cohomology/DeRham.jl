@@ -1,5 +1,5 @@
 @testset "pchunk representation limits" begin
-    modulus = BigInt(5)^30
+    modulus = BigInt(2)^64
     ring, = residue_ring(ZZ, modulus)
     _, variables = polynomial_ring(ring, ["x0", "x1", "x2"])
     f = sum(variable^3 for variable in variables)
