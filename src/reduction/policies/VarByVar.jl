@@ -207,24 +207,25 @@ function reducetransform_varbyvar(
     )
 end
 
-function varbyvar_chooseV(I, d)
-    v = zeros(Int, length(I))
-    n = length(I)
-    J = copy(I)
-    i = 0
-    while i < d
-        for j in eachindex(J)
-            if J[n-j+1] > 0
-                J[n-j+1] = J[n-j+1] - 1
-                v[n-j+1] = v[n-j+1] + 1
-                i = i + 1
-                break
-            elseif j == n
-                throw(ArgumentError("varbyvar could not choose a reduction direction"))
-            end
+function varbyvar_chooseV!(v, I, d)
+    fill!(v, 0)
+    remaining = d
+    remaining <= 0 && return v
+
+    for index in reverse(eachindex(I))
+        if I[index] > 0
+            amount = min(I[index], remaining)
+            v[index] = amount
+            remaining -= amount
+            remaining == 0 && return v
         end
     end
-    return v
+
+    throw(ArgumentError("varbyvar could not choose a reduction direction"))
+end
+
+function varbyvar_chooseV(I, d)
+    return varbyvar_chooseV!(zeros(Int, length(I)), I, d)
 end
 
 struct VarByVarPolicy <: AbstractReductionPolicy
@@ -263,6 +264,7 @@ function run_reduction_policy!(
     first_key = reduction_chain_key(engine, first(chains))
     seen_keys = Set{Tuple{typeof(first_key.u),Int}}()
     duplicate_orders = Set{Int}()
+    direction = zeros(Int, length(first_key.u))
     chain_orders = Int[]
     sizehint!(chain_orders, length(chains))
     next_chains = AbstractReductionChainHandle[]
@@ -275,7 +277,7 @@ function run_reduction_policy!(
             key.order > terminal_order ||
                 throw(ArgumentError("varbyvar chain is below the terminal order"))
 
-            direction = varbyvar_chooseV(collect(key.u), policy.degree)
+            varbyvar_chooseV!(direction, key.u, policy.degree)
             maximum_chunk = key.order - terminal_order
             chunk = _varbyvar_chunk_length(key.u, direction, maximum_chunk)
             chunk >= 1 || throw(ArgumentError("varbyvar selected an empty chunk"))
