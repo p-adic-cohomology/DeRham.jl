@@ -1,11 +1,15 @@
-@testset "pchunk representation limits" begin
-    modulus = BigInt(2)^64
-    ring, = residue_ring(ZZ, modulus)
+function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
+    ring, = residue_ring(ZZ, BigInt(modulus))
     _, variables = polynomial_ring(ring, ["x0", "x1", "x2"])
     f = sum(variable^3 for variable in variables)
     fe = DeRham.ProjectiveHypersurface(f)
     P = DeRham.cohomology_quotient(fe)
-    configuration = DeRham.reduction_setup(fe, [2], :pchunk)
+    configuration = DeRham.reduction_setup(
+        fe,
+        [2],
+        :pchunk;
+        always_use_bigints = always_use_bigints,
+    )
     params = DeRham.ZetaFunctionParams(
         0,
         false,
@@ -13,15 +17,14 @@
         :invlex,
         false,
         true,
-        false,
+        always_use_bigints,
         false,
         false,
     )
     cache = DeRham.controlled_reduction_cache(2, 3, [2], params, P)
     g_length = binomial(DeRham._reduction_g_degree(P) + P.n, P.n)
     matrix_space = Oscar.matrix_space(ring, g_length, g_length)
-
-    @test_throws ArgumentError DeRham.reduction_execution_setup(
+    return DeRham.reduction_execution_setup(
         configuration,
         fe,
         f,
@@ -32,37 +35,29 @@
         params,
         nothing,
     )
+end
 
-    small_ring, = residue_ring(ZZ, 5)
-    _, small_variables = polynomial_ring(small_ring, ["x0", "x1", "x2"])
-    small_f = sum(variable^3 for variable in small_variables)
-    small_fe = DeRham.ProjectiveHypersurface(small_f)
-    small_P = DeRham.cohomology_quotient(small_fe)
-    small_configuration = DeRham.reduction_setup(small_fe, [2], :pchunk)
-    bigint_params = DeRham.ZetaFunctionParams(
-        0,
-        false,
-        :pchunk,
-        :invlex,
-        false,
-        true,
-        true,
-        false,
-        false,
-    )
-    small_cache = DeRham.controlled_reduction_cache(2, 3, [2], bigint_params, small_P)
-    small_g_length = binomial(DeRham._reduction_g_degree(small_P) + small_P.n, small_P.n)
-    small_matrix_space = Oscar.matrix_space(small_ring, small_g_length, small_g_length)
+@testset "pchunk representation limits" begin
+    largest_allowed_modulus = BigInt(2)^64 - 1
+    setup = _pchunk_execution_setup_at_modulus(largest_allowed_modulus)
+    @test setup.backend == :cpu_uint
 
-    @test_throws ArgumentError DeRham.reduction_execution_setup(
-        small_configuration,
-        small_fe,
-        small_f,
-        small_P,
-        small_matrix_space(),
-        5,
-        small_cache,
-        bigint_params,
-        nothing,
+    rejected_setup = try
+        _pchunk_execution_setup_at_modulus(BigInt(2)^64)
+        nothing
+    catch err
+        err
+    end
+    @test rejected_setup isa ArgumentError
+    if rejected_setup isa ArgumentError
+        @test occursin(
+            "pchunk currently supports only small-modulus CPU execution",
+            sprint(showerror, rejected_setup),
+        )
+    end
+
+    @test_throws ArgumentError _pchunk_execution_setup_at_modulus(
+        5;
+        always_use_bigints = true,
     )
 end
