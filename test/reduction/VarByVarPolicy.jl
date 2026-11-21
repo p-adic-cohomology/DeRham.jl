@@ -43,7 +43,7 @@
     @test reductions[4].key_before.order == 3
     @test [event.direction for event in reductions] ==
           [(0, 1, 2), (0, 1, 2), (1, 2, 0), (3, 0, 0)]
-    @test [event.order for event in combinations] == [4, 3, 2]
+    @test [event.order for event in combinations] == [4]
     @test combinations[1].duplicates == 1
     @test count(
         event -> event.operation == :reduce,

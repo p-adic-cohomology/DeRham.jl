@@ -258,6 +258,16 @@ function run_reduction_policy!(
         end
     end
 
+    isempty(chains) && return nothing
+
+    first_key = reduction_chain_key(engine, first(chains))
+    seen_keys = Set{Tuple{typeof(first_key.u),Int}}()
+    duplicate_orders = Set{Int}()
+    chain_orders = Int[]
+    sizehint!(chain_orders, length(chains))
+    next_chains = AbstractReductionChainHandle[]
+    sizehint!(next_chains, length(chains))
+
     while !isempty(chains)
         for chain in chains
             key = reduction_chain_key(engine, chain)
@@ -274,10 +284,31 @@ function run_reduction_policy!(
             reduce!(engine, chain, direction, chunk)
         end
 
-        orders =
-            sort!(unique([reduction_chain_key(engine, chain).order for chain in chains]))
-        next_chains = AbstractReductionChainHandle[]
-        for order in orders
+        empty!(seen_keys)
+        empty!(duplicate_orders)
+        empty!(chain_orders)
+        for chain in chains
+            key = reduction_chain_key(engine, chain)
+            push!(chain_orders, key.order)
+            key_signature = (key.u, key.order)
+            if key_signature in seen_keys
+                push!(duplicate_orders, key.order)
+            else
+                push!(seen_keys, key_signature)
+            end
+        end
+
+        empty!(next_chains)
+        for (chain, order) in zip(chains, chain_orders)
+            order in duplicate_orders && continue
+            if order == terminal_order
+                on_terminal(finish!(engine, chain))
+            else
+                push!(next_chains, chain)
+            end
+        end
+
+        for order in duplicate_orders
             survivors = combine!(engine, order)
             if order == terminal_order
                 for chain in survivors
@@ -287,7 +318,7 @@ function run_reduction_policy!(
                 append!(next_chains, survivors)
             end
         end
-        chains = next_chains
+        chains, next_chains = next_chains, chains
     end
 
     return nothing
