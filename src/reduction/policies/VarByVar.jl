@@ -15,169 +15,6 @@ function _varbyvar_evaluation_kernel(params, d, n, modulus)
     return eval_to_linear!
 end
 
-struct VarByVarEngineState{E}
-    engine::E
-end
-
-function _varbyvar_engine_factory(execution_setup, fe, P, S, cache, params, directions)
-    return () -> begin
-        fill_vector! =
-            (vector, key, input) ->
-                reduction_input_vector!(vector, fe, input, S, cache, params)
-        preconfigured = if execution_setup.preconfigured_engine === nothing
-            PreconfiguredReductionEngine(execution_setup.context_factory())
-        else
-            execution_setup.preconfigured_engine
-        end
-        engine = MatrixReductionEngine(
-            ReductionEngineGeometry(P),
-            directions,
-            preconfigured,
-            fill_vector!;
-            evaluation_kernel = execution_setup.kernel,
-            fastevaluation = params.fastevaluation,
-        )
-        return VarByVarEngineState(engine)
-    end
-end
-
-function _reducepoly_varbyvar!(
-    runtime::VarByVarEngineState,
-    pol,
-    S,
-    P,
-    fe,
-    PR,
-    cache,
-    params,
-    policy,
-    directions,
-)
-    keys_by_order = reduction_input_keys(fe, pol, S)
-    terminal_polynomial = Ref(PR())
-    on_terminal =
-        chain -> begin
-            terminal_polynomial[] = reduction_add_terminal_chain(
-                fe,
-                terminal_polynomial[],
-                chain,
-                PR,
-                params,
-            )
-        end
-    run_reduction_policy!(policy, runtime.engine, keys_by_order, directions, on_terminal)
-    return _finish_reduction_terminal_polynomial(fe, terminal_polynomial[], PR, S)
-end
-
-function _reducetransform_varbyvar_engine(
-    FT,
-    S,
-    f,
-    P,
-    pseudoInverseMat,
-    p,
-    cache,
-    params,
-    context,
-    fe,
-    configuration,
-)
-    execution_setup = reduction_execution_setup(
-        configuration,
-        fe,
-        f,
-        P,
-        pseudoInverseMat,
-        p,
-        cache,
-        params,
-        context,
-    )
-    directions = ReductionDirectionSet(reduction_directions(fe, S))
-    policy = VarByVarPolicy(P.d)
-    engine_factory =
-        _varbyvar_engine_factory(execution_setup, fe, P, S, cache, params, directions)
-    result = similar(FT)
-
-    if execution_setup.threads
-        runtime_tlv = OhMyThreads.TaskLocalValue{VarByVarEngineState}(engine_factory)
-        Threads.@threads for i in eachindex(FT)
-            local runtime = runtime_tlv[]
-            if 0 < params.verbose
-                println("Reducing vector $i in thread $(Threads.threadid())")
-                @time result[i] = _reducepoly_varbyvar!(
-                    runtime,
-                    FT[i],
-                    S,
-                    P,
-                    fe,
-                    parent(f),
-                    cache,
-                    params,
-                    policy,
-                    directions,
-                )
-            else
-                result[i] = _reducepoly_varbyvar!(
-                    runtime,
-                    FT[i],
-                    S,
-                    P,
-                    fe,
-                    parent(f),
-                    cache,
-                    params,
-                    policy,
-                    directions,
-                )
-            end
-        end
-    else
-        runtime = engine_factory()
-        for i in eachindex(FT)
-            if 0 < params.verbose
-                println("Reducing vector $i")
-                @time result[i] = _reducepoly_varbyvar!(
-                    runtime,
-                    FT[i],
-                    S,
-                    P,
-                    fe,
-                    parent(f),
-                    cache,
-                    params,
-                    policy,
-                    directions,
-                )
-            else
-                result[i] = _reducepoly_varbyvar!(
-                    runtime,
-                    FT[i],
-                    S,
-                    P,
-                    fe,
-                    parent(f),
-                    cache,
-                    params,
-                    policy,
-                    directions,
-                )
-            end
-        end
-    end
-
-    if params.verbose > 0
-        println(
-            "Created $(length(allpoints(execution_setup.Ruv))) of $(length(cache[P.d])) possible V",
-        )
-    end
-    if params.verbose > 1
-        println("V that were created: \n$(allpoints(execution_setup.Ruv))")
-    end
-
-    return result
-end
-
 function reducetransform_varbyvar(
     FT,
     N_m,
@@ -192,7 +29,7 @@ function reducetransform_varbyvar(
     fe,
     configuration,
 )
-    return _reducetransform_varbyvar_engine(
+    result, execution_setup = _reducetransform_matrix_policy(
         FT,
         S,
         f,
@@ -204,7 +41,17 @@ function reducetransform_varbyvar(
         context,
         fe,
         configuration,
+        VarByVarPolicy(P.d),
     )
+    if params.verbose > 0
+        println(
+            "Created $(length(allpoints(execution_setup.Ruv))) of $(length(cache[P.d])) possible V",
+        )
+    end
+    if params.verbose > 1
+        println("V that were created: \n$(allpoints(execution_setup.Ruv))")
+    end
+    return result
 end
 
 function varbyvar_chooseV!(v, I, d)
