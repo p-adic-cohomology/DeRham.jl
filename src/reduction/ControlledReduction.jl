@@ -10,11 +10,24 @@ function reducetransform(
     p,
     params,
     cache,
-    context,
+    context;
+    setup = nothing,
 )
-    if params.algorithm == :pchunk
+    setup === nothing && (
+        setup = reduction_setup(
+            fe,
+            S,
+            params.algorithm;
+            use_gpu = params.use_gpu,
+            use_threads = params.use_threads,
+            always_use_bigints = params.always_use_bigints,
+            fastevaluation = params.fastevaluation,
+            context = context,
+        )
+    )
+    if setup.policy == :pchunk
         reducetransform_pchunk(FT, N_m, S, f, P, pseudoInverseMat, p, cache, params, fe)
-    elseif params.algorithm == :depthfirst
+    elseif setup.policy == :depthfirst
         reducetransform_depthfirst(
             FT,
             N_m,
@@ -27,8 +40,9 @@ function reducetransform(
             cache,
             params,
             context,
+            setup,
         )
-    elseif params.algorithm == :varbyvar
+    elseif setup.policy == :varbyvar
         reducetransform_varbyvar(
             FT,
             N_m,
@@ -41,11 +55,12 @@ function reducetransform(
             params,
             context,
             fe,
+            setup,
         )
-    elseif params.algorithm == :akr
+    elseif setup.policy == :akr
         reducetransform_akr(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
     else
-        println(params.algorithm)
+        println(setup.policy)
         throw(ArgumentError("Unsupported Algorithm: "))
     end
 end
@@ -60,7 +75,8 @@ function reducetransform(
     p,
     params,
     cache,
-    context,
+    context;
+    setup = nothing,
 )
     return reducetransform(
         FT,
@@ -73,7 +89,8 @@ function reducetransform(
         p,
         params,
         cache,
-        context,
+        context;
+        setup = setup,
     )
 end
 
@@ -87,7 +104,8 @@ function reducetransform(
     p,
     params,
     cache,
-    context,
+    context;
+    setup = nothing,
 )
     return reducetransform(
         FT,
@@ -100,11 +118,23 @@ function reducetransform(
         p,
         params,
         cache,
-        context,
+        context;
+        setup = setup,
     )
 end
 
-function reducetransform(FT, N_m, S, f, pseudoInverseMat, p, params, cache, context)
+function reducetransform(
+    FT,
+    N_m,
+    S,
+    f,
+    pseudoInverseMat,
+    p,
+    params,
+    cache,
+    context;
+    setup = nothing,
+)
     fe = ProjectiveHypersurface(f)
     P = cohomology_quotient(fe)
     return reducetransform(
@@ -118,10 +148,22 @@ function reducetransform(FT, N_m, S, f, pseudoInverseMat, p, params, cache, cont
         p,
         params,
         cache,
-        context,
+        context;
+        setup = setup,
     )
 end
 
-function reducetransform(FT, N_m, S, f, pseudoInverseMat, p, params, cache)
-    return reducetransform(FT, N_m, S, f, pseudoInverseMat, p, params, cache, nothing)
+function reducetransform(FT, N_m, S, f, pseudoInverseMat, p, params, cache; setup = nothing)
+    return reducetransform(
+        FT,
+        N_m,
+        S,
+        f,
+        pseudoInverseMat,
+        p,
+        params,
+        cache,
+        nothing;
+        setup = setup,
+    )
 end

@@ -22,8 +22,8 @@ weight(fe::ProjectiveHypersurface) = fe.P.n - 1
 
 check_input(::ProjectiveHypersurface) = nothing
 
-_supports_reduction_algorithm(::ProjectiveHypersurface, algorithm) =
-    algorithm in (:default, :depthfirst, :pchunk, :varbyvar, :akr)
+_reduction_allowed_policies(::ProjectiveHypersurface) =
+    (:depthfirst, :pchunk, :varbyvar, :akr)
 
 function varbyvar_reduction_setup(fe::ProjectiveHypersurface, S)
     f = polynomial(fe)
