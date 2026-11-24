@@ -273,4 +273,22 @@ end
         [-1];
         interval_product_min_length = true,
     )
+
+    context = DeRham.pregen_default_context(
+        1,
+        3,
+        7,
+        [-1];
+        interval_product_algorithm = :sqrt,
+        interval_product_min_length = 12,
+        lazy = true,
+    )
+    @test context.interval_product_algorithm === :sqrt
+    @test context.interval_product_min_length == 12
+    @test DeRham._resolve_interval_product_options(context, nothing, nothing) ==
+          (:sqrt, 12)
+    @test DeRham._resolve_interval_product_options(context, :finitediff, 64) ==
+          (:finitediff, 64)
+    @test DeRham._resolve_interval_product_options(nothing, nothing, nothing) ==
+          (:finitediff, 64)
 end

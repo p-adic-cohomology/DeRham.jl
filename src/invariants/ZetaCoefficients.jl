@@ -82,6 +82,9 @@ Keyword arguments:
 - `interval_product_min_length=64`: minimum interval length for selecting the
   experimental method.
 
+When a pre-generated `context` is supplied, omitted interval-product keywords
+use the settings stored in that context. Explicit keywords override them.
+
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `interval_product_algorithm`, `interval_product_min_length`, `context`, and
 `precision_info` keywords are internal or experimental and may change. Their
@@ -118,8 +121,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = :finitediff,
-    interval_product_min_length = 64,
+    interval_product_algorithm = nothing,
+    interval_product_min_length = nothing,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -129,12 +132,6 @@ function zeta_coefficients(
     if !_supports_reduction_algorithm(fe, algorithm)
         throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
     end
-
-    interval_product_algorithm, interval_product_min_length =
-        _validate_interval_product_options(
-            interval_product_algorithm,
-            interval_product_min_length,
-        )
 
     if !(fe isa ProjectiveHypersurface)
         if use_gpu
@@ -147,6 +144,13 @@ function zeta_coefficients(
             )
         end
     end
+
+    interval_product_algorithm, interval_product_min_length =
+        _resolve_interval_product_options(
+            context,
+            interval_product_algorithm,
+            interval_product_min_length,
+        )
 
     if fe isa ProjectiveHypersurface
         if relative_precision !== nothing ||
@@ -437,8 +441,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = :finitediff,
-    interval_product_min_length = 64,
+    interval_product_algorithm = nothing,
+    interval_product_min_length = nothing,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -490,8 +494,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = :finitediff,
-    interval_product_min_length = 64,
+    interval_product_algorithm = nothing,
+    interval_product_min_length = nothing,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -537,8 +541,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = :finitediff,
-    interval_product_min_length = 64,
+    interval_product_algorithm = nothing,
+    interval_product_min_length = nothing,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,

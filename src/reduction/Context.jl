@@ -21,6 +21,8 @@ B - the matrix which will store B in Ay + B
 temp - temporary matrix used for intermediate calculations
 g - the vector g which contains the vector which is being reduced
 g_temp - temporary vector used for intermediate calculations
+interval_product_algorithm - default interval product method for reductions
+interval_product_min_length - shortest interval evaluated by that method
 
 Current examples that are in use:
 
@@ -36,6 +38,42 @@ struct ControlledReductionContext{MatrixType,VectorType}
     temp::MatrixType
     g::VectorType
     g_temp::VectorType
+    interval_product_algorithm::Symbol
+    interval_product_min_length::Int
+end
+
+ControlledReductionContext(Ruv, A, B, temp, g, g_temp) =
+    ControlledReductionContext(Ruv, A, B, temp, g, g_temp, :finitediff, 64)
+
+function ControlledReductionContext{MatrixType,VectorType}(
+    Ruv,
+    A,
+    B,
+    temp,
+    g,
+    g_temp,
+) where {MatrixType,VectorType}
+    return ControlledReductionContext{MatrixType,VectorType}(
+        Ruv,
+        A,
+        B,
+        temp,
+        g,
+        g_temp,
+        :finitediff,
+        64,
+    )
+end
+
+function _resolve_interval_product_options(context, algorithm, min_length)
+    if context isa ControlledReductionContext
+        algorithm = something(algorithm, context.interval_product_algorithm)
+        min_length = something(min_length, context.interval_product_min_length)
+    else
+        algorithm = something(algorithm, :finitediff)
+        min_length = something(min_length, 64)
+    end
+    return _validate_interval_product_options(algorithm, min_length)
 end
 
 function default_context(matspace, Ruv, params)
@@ -95,6 +133,8 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
+            params.interval_product_algorithm,
+            params.interval_product_min_length,
         )
     elseif params.use_gpu == true
 
@@ -113,6 +153,8 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
+            params.interval_product_algorithm,
+            params.interval_product_min_length,
         )
     else # use the CPU
         A = matspace()
@@ -130,7 +172,16 @@ function default_context(matspace, Ruv, params)
             g_temp = similar(g)
         end
 
-        return ControlledReductionContext(Ruv, A, B, temp, g, g_temp)
+        return ControlledReductionContext(
+            Ruv,
+            A,
+            B,
+            temp,
+            g,
+            g_temp,
+            params.interval_product_algorithm,
+            params.interval_product_min_length,
+        )
     end
 end
 
@@ -147,6 +198,10 @@ Keyword arguments and defaults:
 `always_use_bigints = false`, `use_gpu = false`, `use_threads = false`,
 `interval_product_algorithm = :finitediff`,
 `interval_product_min_length = 64`, and `lazy = false`.
+
+The interval-product settings are retained in the context and supply the
+defaults for `zeta_coefficients` when a context is passed and those keywords are
+omitted.
 """
 function pregen_default_context(
     n,
@@ -242,6 +297,8 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
+            params.interval_product_algorithm,
+            params.interval_product_min_length,
         )
     elseif params.use_gpu == true
 
@@ -259,6 +316,8 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
+            params.interval_product_algorithm,
+            params.interval_product_min_length,
         )
     else # use the CPU
         A = matspace()
@@ -276,7 +335,16 @@ function pregen_default_context(
             g_temp = similar(g)
         end
 
-        return ControlledReductionContext(Ruv, A, B, temp, g, g_temp)
+        return ControlledReductionContext(
+            Ruv,
+            A,
+            B,
+            temp,
+            g,
+            g_temp,
+            params.interval_product_algorithm,
+            params.interval_product_min_length,
+        )
     end
 end
 

@@ -91,6 +91,11 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     return g
 end
 
+"""
+Backend boundary for modular polynomial evaluation. The interval algorithm uses
+the backend methods below; concrete implementations own FLINT calls and raw
+value storage.
+"""
 abstract type _IntervalProductEvaluationBackend end
 
 struct _NmodIntervalProductEvaluationBackend <: _IntervalProductEvaluationBackend end

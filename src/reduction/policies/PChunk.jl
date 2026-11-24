@@ -135,6 +135,13 @@ function reducechain_pchunk(
     end
 end
 
+function _pchunk_zero_vector(R, vector_length, params)
+    if params.always_use_bigints || ZZ(2)^64 < ZZ(modulus(R))
+        return [ZZ(0) for _ = 1:vector_length]
+    end
+    return zeros(UInt, vector_length)
+end
+
 """
     reducepoly_pchunk(pol,S,f,pseudoInverseMat,p,Ruvs,termorder)
 
@@ -181,7 +188,7 @@ function reducepoly_pchunk(
 
     # this is the omega from section 1.5.5 of Costa's thesis.
     allcostadata = [] # this will be an array of costa data
-    g_temp = zeros(UInt, g_length)
+    g_temp = _pchunk_zero_vector(R, g_length, params)
 
     poleorder = highpoleorder
     while terminal <= poleorder
@@ -190,7 +197,7 @@ function reducepoly_pchunk(
         costadatatemp = termsoforder(pol, poleorder)
 
         for term in costadatatemp
-            g = zeros(UInt, g_length)
+            g = _pchunk_zero_vector(R, g_length, params)
             term_costadata =
                 costadata_of_initial_term!(term, g, n, d, P, p, S, cache, params)
             incorporate_initial_term!(allcostadata, term_costadata)

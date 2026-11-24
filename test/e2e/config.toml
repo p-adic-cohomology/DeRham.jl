@@ -11,6 +11,7 @@ records = [
     "sqrt_depthfirst__dim_1_deg_3_fermat_1",
     "sqrt_pchunk__dim_1_deg_3_fermat_1",
     "sqrt_bigints_depthfirst__dim_1_deg_3_fermat_1",
+    "sqrt_bigints_pchunk__dim_1_deg_3_fermat_1",
     "varbyvar__dim_1_deg_3_fermat_1",
     "derived_point_counts_curve_p7_k2",
     "a_number_p3_d5_a3_fermat",
