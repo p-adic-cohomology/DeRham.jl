@@ -60,13 +60,9 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     block_polynomial = factors[1]
 
     points = Int[start + i * block_length for i = 0:(blocks-1)]
-    evaluation_points = _interval_product_evaluation_points(
-        backend,
-        ring,
-        points,
-        block_polynomial[1, 1],
-    )
     evaluated_blocks = [matrix_space(ring, rows, cols)() for _ = 1:blocks]
+    evaluation_points =
+        _interval_product_evaluation_points(backend, ring, points, block_polynomial[1, 1])
     try
         for j = 1:cols, i = 1:rows
             values = _evaluate_interval_product_polynomial(
@@ -135,7 +131,7 @@ function _nmod_interval_product_evaluation_points(
     isempty(values) && return _NmodIntervalProductEvaluationPoints(C_NULL, 0, modulus)
 
     tree = @ccall Oscar.Nemo.libflint._nmod_poly_tree_alloc(
-        length(values)::Int
+        length(values)::Int,
     )::Ptr{Ptr{UInt}}
     tree == C_NULL && throw(OutOfMemoryError())
     try
@@ -191,7 +187,7 @@ function _interval_product_evaluation_points(
             end
         end
         tree = @ccall Oscar.Nemo.libflint._fmpz_mod_poly_tree_alloc(
-            length(points)::Int
+            length(points)::Int,
         )::Ptr{Ptr{Cvoid}}
         tree == C_NULL && throw(OutOfMemoryError())
         GC.@preserve ring raw_points tree begin
