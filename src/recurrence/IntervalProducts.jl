@@ -25,6 +25,12 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
             "square-root interval products require compatible CPU modular arrays",
         ),
     )
+    nrows(temp) == rows && ncols(temp) == cols ||
+        throw(DimensionMismatch("interval product temporary matrix must match the inputs"))
+    length(g) == cols ||
+        throw(DimensionMismatch("interval product vector must match the matrix columns"))
+    length(g_temp) == rows ||
+        throw(DimensionMismatch("interval product temporary vector must match the matrix rows"))
 
     backend =
         small_modulus ? _NmodIntervalProductEvaluationBackend() :
@@ -61,12 +67,14 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
 
     points = Int[start + i * block_length for i = 0:(blocks-1)]
     evaluated_blocks = [matrix_space(ring, rows, cols)() for _ = 1:blocks]
+    evaluation_buffer = _interval_product_evaluation_buffer(backend, blocks)
     evaluation_points =
         _interval_product_evaluation_points(backend, ring, points, block_polynomial[1, 1])
     try
         for j = 1:cols, i = 1:rows
-            values = _evaluate_interval_product_polynomial(
+            values = _evaluate_interval_product_polynomial!(
                 backend,
+                evaluation_buffer,
                 block_polynomial[i, j],
                 evaluation_points,
             )
@@ -224,6 +232,31 @@ _evaluate_interval_product_polynomial(
     points::_FmpzModEvaluationPoints,
 ) = _fast_fmpz_mod_evaluate(poly, points)
 
+_interval_product_evaluation_buffer(::_NmodIntervalProductEvaluationBackend, count::Int) =
+    Vector{UInt}(undef, count)
+
+_interval_product_evaluation_buffer(::_FmpzModIntervalProductEvaluationBackend, count::Int) =
+    (zeros(Int, count), ZZRingElem[ZZ(0) for _ = 1:count])
+
+function _evaluate_interval_product_polynomial!(
+    ::_NmodIntervalProductEvaluationBackend,
+    values::Vector{UInt},
+    poly::Oscar.Nemo.zzModPolyRingElem,
+    points::_NmodIntervalProductEvaluationPoints,
+)
+    return _fast_nmod_evaluate!(values, poly, points)
+end
+
+function _evaluate_interval_product_polynomial!(
+    ::_FmpzModIntervalProductEvaluationBackend,
+    buffers::Tuple{Vector{Int},Vector{ZZRingElem}},
+    poly::Oscar.Nemo.ZZModPolyRingElem,
+    points::_FmpzModEvaluationPoints,
+)
+    raw_values, values = buffers
+    return _fast_fmpz_mod_evaluate!(values, raw_values, poly, points)
+end
+
 function _release_interval_product_evaluation_points!(
     ::_NmodIntervalProductEvaluationBackend,
     points::_NmodIntervalProductEvaluationPoints,
@@ -254,9 +287,22 @@ function _fast_nmod_evaluate(
     poly::Oscar.Nemo.zzModPolyRingElem,
     points::_NmodIntervalProductEvaluationPoints,
 )
-    points.count == 0 && return UInt[]
-    poly.length == 0 && return zeros(UInt, points.count)
     values = Vector{UInt}(undef, points.count)
+    return _fast_nmod_evaluate!(values, poly, points)
+end
+
+function _fast_nmod_evaluate!(
+    values::Vector{UInt},
+    poly::Oscar.Nemo.zzModPolyRingElem,
+    points::_NmodIntervalProductEvaluationPoints,
+)
+    length(values) == points.count ||
+        throw(DimensionMismatch("evaluation buffer must match the evaluation points"))
+    points.count == 0 && return values
+    if poly.length == 0
+        fill!(values, 0)
+        return values
+    end
     GC.@preserve poly points values begin
         @ccall Oscar.Nemo.libflint._nmod_poly_evaluate_nmod_vec_fast_precomp(
             values::Ptr{UInt},
@@ -295,10 +341,31 @@ function _fast_fmpz_mod_evaluate(
     poly::Oscar.Nemo.ZZModPolyRingElem,
     points::_FmpzModEvaluationPoints,
 )
-    points.count == 0 && return ZZRingElem[]
-    poly.length == 0 && return ZZRingElem[ZZ(0) for _ = 1:points.count]
     raw_values = zeros(Int, points.count)
-    values = Vector{ZZRingElem}(undef, points.count)
+    values = ZZRingElem[ZZ(0) for _ = 1:points.count]
+    return _fast_fmpz_mod_evaluate!(values, raw_values, poly, points)
+end
+
+function _fast_fmpz_mod_evaluate!(
+    values::Vector{ZZRingElem},
+    raw_values::Vector{Int},
+    poly::Oscar.Nemo.ZZModPolyRingElem,
+    points::_FmpzModEvaluationPoints,
+)
+    length(values) == points.count && length(raw_values) == points.count ||
+        throw(DimensionMismatch("evaluation buffers must match the evaluation points"))
+    points.count == 0 && return values
+    if poly.length == 0
+        GC.@preserve values begin
+            for value in values
+                @ccall Oscar.Nemo.libflint.fmpz_set_si(
+                    value::Ref{ZZRingElem},
+                    0::Int,
+                )::Nothing
+            end
+        end
+        return values
+    end
     ring = base_ring(parent(poly))
     GC.@preserve poly points raw_values values ring begin
         try
@@ -311,16 +378,16 @@ function _fast_fmpz_mod_evaluate(
                 ring.ninv::Ref{Oscar.Nemo.fmpz_mod_ctx_struct},
             )::Nothing
             for i in eachindex(values)
-                value = ZZ(0)
+                value = values[i]
                 source = Ptr{ZZRingElem}(pointer(raw_values, i))
                 @ccall Oscar.Nemo.libflint.fmpz_set(
                     value::Ref{ZZRingElem},
                     source::Ptr{ZZRingElem},
                 )::Nothing
-                values[i] = value
             end
         finally
             _clear_fmpz_values!(raw_values, length(raw_values))
+            fill!(raw_values, 0)
         end
     end
     return values

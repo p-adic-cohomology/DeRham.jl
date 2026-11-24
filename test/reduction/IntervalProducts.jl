@@ -75,6 +75,44 @@ end
     end
 end
 
+@testset "square-root interval products validate buffer dimensions" begin
+    ring, = residue_ring(ZZ, 101)
+    matrixspace = matrix_space(ring, 2, 2)
+    a = matrixspace()
+    b = matrixspace()
+    temp = matrixspace()
+    g = UInt[1, 2]
+    g_temp = copy(g)
+
+    @test_throws DimensionMismatch DeRham.sqrt_interval_product!(
+        a,
+        b,
+        0,
+        0,
+        g,
+        matrix_space(ring, 1, 1)(),
+        g_temp,
+    )
+    @test_throws DimensionMismatch DeRham.sqrt_interval_product!(
+        a,
+        b,
+        0,
+        0,
+        g,
+        temp,
+        g_temp[1:1],
+    )
+    @test_throws DimensionMismatch DeRham.sqrt_interval_product!(
+        a,
+        b,
+        0,
+        0,
+        g[1:1],
+        temp,
+        g_temp,
+    )
+end
+
 @testset "big-modulus interval points are reduced" begin
     ring = Oscar.Nemo.ZZModRing(ZZ(49), false)
     matrixspace = matrix_space(ring, 3, 3)
@@ -505,6 +543,28 @@ end
         context = context,
         interval_product_algorithm = :invalid,
     )
+end
+
+@testset "square-root interval settings are ignored without fast evaluation" begin
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
+    for algorithm in (:depthfirst, :pchunk)
+        interval_product_calls = Ref(0)
+        coefficients = DeRham._with_interval_product_test_hook(
+            () -> (interval_product_calls[] += 1),
+        ) do
+            zeta_coefficients(
+                frontend;
+                algorithm,
+                changef = false,
+                fastevaluation = false,
+                interval_product_algorithm = :sqrt,
+                interval_product_min_length = 1,
+            )
+        end
+        @test coefficients == BigInt[7, 1, 1]
+        @test interval_product_calls[] == 0
+    end
 end
 
 @testset "square-root interval products run end to end" begin
