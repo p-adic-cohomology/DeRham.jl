@@ -102,20 +102,67 @@ end
         modular_ring, = residue_ring(ZZ, modulus)
         poly_ring, x = polynomial_ring(modular_ring, "x"; cached = false)
         polynomial = poly_ring(3) * x^3 + poly_ring(5) * x + poly_ring(7)
+        second_polynomial = poly_ring(2) * x^2 + poly_ring(11) * x + poly_ring(13)
         points = [-3, 0, 1, 104]
+        actual = nothing
+        actual_second = nothing
 
         if modulus <= ZZ(2)^64
             point_data = UInt[data(modular_ring(point)) for point in points]
-            actual = DeRham._fast_nmod_evaluate(polynomial, point_data)
-            expected =
-                UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
+            backend = DeRham._NmodIntervalProductEvaluationBackend()
+            evaluation_points = DeRham._nmod_interval_product_evaluation_points(
+                polynomial,
+                point_data,
+            )
+            try
+                actual = DeRham._evaluate_interval_product_polynomial(
+                    backend,
+                    polynomial,
+                    evaluation_points,
+                )
+                actual_second = DeRham._evaluate_interval_product_polynomial(
+                    backend,
+                    second_polynomial,
+                    evaluation_points,
+                )
+            finally
+                DeRham._release_interval_product_evaluation_points!(backend, evaluation_points)
+            end
+            expected = UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
+            expected_second = UInt[
+                data(evaluate(second_polynomial, modular_ring(point))) for point in points
+            ]
         else
-            actual = DeRham._fast_fmpz_mod_evaluate(polynomial, points)
+            backend = DeRham._FmpzModIntervalProductEvaluationBackend()
+            evaluation_points = DeRham._interval_product_evaluation_points(
+                backend,
+                modular_ring,
+                points,
+                polynomial,
+            )
+            try
+                actual = DeRham._evaluate_interval_product_polynomial(
+                    backend,
+                    polynomial,
+                    evaluation_points,
+                )
+                actual_second = DeRham._evaluate_interval_product_polynomial(
+                    backend,
+                    second_polynomial,
+                    evaluation_points,
+                )
+            finally
+                DeRham._release_interval_product_evaluation_points!(backend, evaluation_points)
+            end
             expected = ZZRingElem[
                 lift(evaluate(polynomial, modular_ring(point))) for point in points
             ]
+            expected_second = ZZRingElem[
+                lift(evaluate(second_polynomial, modular_ring(point))) for point in points
+            ]
         end
         @test actual == expected
+        @test actual_second == expected_second
     end
 end
 
@@ -270,6 +317,44 @@ end
     actual = copy(g)
     DeRham.prodeval_linear!(a, b, 0, 2, actual, matrixspace(), copy(g), sqrt_params)
     @test actual == expected
+
+    big_ring, = residue_ring(ZZ, ZZ(101)^25)
+    big_matrixspace = matrix_space(big_ring, 2, 2)
+    big_a = big_matrixspace()
+    big_b = big_matrixspace()
+    for j = 1:2, i = 1:2
+        big_a[i, j] = big_ring(i + j)
+        big_b[i, j] = big_ring(2i + j)
+    end
+    big_g = ZZRingElem[ZZ(i) for i = 1:2]
+    big_expected = copy(big_g)
+    DeRham.finitediff_prodeval_linear!(
+        big_a,
+        big_b,
+        0,
+        3,
+        big_expected,
+        big_matrixspace(),
+        copy(big_g),
+    )
+    big_actual = copy(big_g)
+    big_interval_product_calls = Ref(0)
+    DeRham._with_interval_product_test_hook(
+        () -> (big_interval_product_calls[] += 1),
+    ) do
+        DeRham.prodeval_linear!(
+            big_a,
+            big_b,
+            0,
+            3,
+            big_actual,
+            big_matrixspace(),
+            copy(big_g),
+            sqrt_params,
+        )
+    end
+    @test big_actual == big_expected
+    @test big_interval_product_calls[] > 0
 
     unsupported_a = [1 2; 0 1]
     unsupported_b = [1 0; 3 2]

@@ -60,7 +60,12 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     block_polynomial = factors[1]
 
     points = Int[start + i * block_length for i = 0:(blocks-1)]
-    evaluation_points = _interval_product_evaluation_points(backend, ring, points)
+    evaluation_points = _interval_product_evaluation_points(
+        backend,
+        ring,
+        points,
+        block_polynomial[1, 1],
+    )
     evaluated_blocks = [matrix_space(ring, rows, cols)() for _ = 1:blocks]
     try
         for j = 1:cols, i = 1:rows
@@ -105,23 +110,73 @@ struct _NmodIntervalProductEvaluationBackend <: _IntervalProductEvaluationBacken
 
 struct _FmpzModIntervalProductEvaluationBackend <: _IntervalProductEvaluationBackend end
 
-struct _FmpzModEvaluationPoints
-    values::Vector{Int}
+struct _NmodIntervalProductModulus
+    n::UInt
+    ninv::UInt
+    norm::UInt
 end
 
-_interval_product_evaluation_points(
+struct _NmodIntervalProductEvaluationPoints
+    tree::Ptr{Ptr{UInt}}
+    count::Int
+    modulus::_NmodIntervalProductModulus
+end
+
+struct _FmpzModEvaluationPoints
+    tree::Ptr{Ptr{Cvoid}}
+    count::Int
+end
+
+function _nmod_interval_product_evaluation_points(
+    poly::Oscar.Nemo.zzModPolyRingElem,
+    values::Vector{UInt},
+)
+    modulus = _NmodIntervalProductModulus(poly.mod_n, poly.mod_ninv, poly.mod_norm)
+    isempty(values) && return _NmodIntervalProductEvaluationPoints(C_NULL, 0, modulus)
+
+    tree = @ccall Oscar.Nemo.libflint._nmod_poly_tree_alloc(
+        length(values)::Int
+    )::Ptr{Ptr{UInt}}
+    tree == C_NULL && throw(OutOfMemoryError())
+    try
+        GC.@preserve values modulus begin
+            @ccall Oscar.Nemo.libflint._nmod_poly_tree_build(
+                tree::Ptr{Ptr{UInt}},
+                values::Ptr{UInt},
+                length(values)::Int,
+                modulus::_NmodIntervalProductModulus,
+            )::Nothing
+        end
+    catch
+        @ccall Oscar.Nemo.libflint._nmod_poly_tree_free(
+            tree::Ptr{Ptr{UInt}},
+            length(values)::Int,
+        )::Nothing
+        rethrow()
+    end
+    return _NmodIntervalProductEvaluationPoints(tree, length(values), modulus)
+end
+
+function _interval_product_evaluation_points(
     ::_NmodIntervalProductEvaluationBackend,
     ring,
     points::Vector{Int},
-) = UInt[data(ring(point)) for point in points]
+    poly::Oscar.Nemo.zzModPolyRingElem,
+)
+    values = UInt[data(ring(point)) for point in points]
+    return _nmod_interval_product_evaluation_points(poly, values)
+end
 
 function _interval_product_evaluation_points(
     ::_FmpzModIntervalProductEvaluationBackend,
     ring,
     points::Vector{Int},
+    ::Oscar.Nemo.ZZModPolyRingElem,
 )
+    isempty(points) && return _FmpzModEvaluationPoints(C_NULL, 0)
     reduced_points = ZZRingElem[lift(ring(point)) for point in points]
     raw_points = zeros(Int, length(points))
+    tree = Ptr{Ptr{Cvoid}}(C_NULL)
     initialized = 0
     try
         GC.@preserve ring reduced_points raw_points begin
@@ -135,17 +190,36 @@ function _interval_product_evaluation_points(
                 initialized = i
             end
         end
+        tree = @ccall Oscar.Nemo.libflint._fmpz_mod_poly_tree_alloc(
+            length(points)::Int
+        )::Ptr{Ptr{Cvoid}}
+        tree == C_NULL && throw(OutOfMemoryError())
+        GC.@preserve ring raw_points tree begin
+            @ccall Oscar.Nemo.libflint._fmpz_mod_poly_tree_build(
+                tree::Ptr{Ptr{Cvoid}},
+                raw_points::Ptr{Int},
+                length(points)::Int,
+                ring.ninv::Ref{Oscar.Nemo.fmpz_mod_ctx_struct},
+            )::Nothing
+        end
     catch
-        _clear_fmpz_values!(raw_points, initialized)
+        if tree != C_NULL
+            @ccall Oscar.Nemo.libflint._fmpz_mod_poly_tree_free(
+                tree::Ptr{Ptr{Cvoid}},
+                length(points)::Int,
+            )::Nothing
+        end
         rethrow()
+    finally
+        _clear_fmpz_values!(raw_points, initialized)
     end
-    return _FmpzModEvaluationPoints(raw_points)
+    return _FmpzModEvaluationPoints(tree, length(points))
 end
 
 _evaluate_interval_product_polynomial(
     ::_NmodIntervalProductEvaluationBackend,
     poly::Oscar.Nemo.zzModPolyRingElem,
-    points::Vector{UInt},
+    points::_NmodIntervalProductEvaluationPoints,
 ) = _fast_nmod_evaluate(poly, points)
 
 _evaluate_interval_product_polynomial(
@@ -154,36 +228,66 @@ _evaluate_interval_product_polynomial(
     points::_FmpzModEvaluationPoints,
 ) = _fast_fmpz_mod_evaluate(poly, points)
 
-_release_interval_product_evaluation_points!(
+function _release_interval_product_evaluation_points!(
     ::_NmodIntervalProductEvaluationBackend,
-    points,
-) = nothing
+    points::_NmodIntervalProductEvaluationPoints,
+)
+    if points.tree != C_NULL
+        @ccall Oscar.Nemo.libflint._nmod_poly_tree_free(
+            points.tree::Ptr{Ptr{UInt}},
+            points.count::Int,
+        )::Nothing
+    end
+    return nothing
+end
 
 function _release_interval_product_evaluation_points!(
     ::_FmpzModIntervalProductEvaluationBackend,
     points::_FmpzModEvaluationPoints,
 )
-    _clear_fmpz_values!(points.values, length(points.values))
+    if points.tree != C_NULL
+        @ccall Oscar.Nemo.libflint._fmpz_mod_poly_tree_free(
+            points.tree::Ptr{Ptr{Cvoid}},
+            points.count::Int,
+        )::Nothing
+    end
     return nothing
 end
 
-function _fast_nmod_evaluate(poly::Oscar.Nemo.zzModPolyRingElem, points::Vector{UInt})
-    values = Vector{UInt}(undef, length(points))
+function _fast_nmod_evaluate(
+    poly::Oscar.Nemo.zzModPolyRingElem,
+    points::_NmodIntervalProductEvaluationPoints,
+)
+    points.count == 0 && return UInt[]
+    poly.length == 0 && return zeros(UInt, points.count)
+    values = Vector{UInt}(undef, points.count)
     GC.@preserve poly points values begin
-        @ccall Oscar.Nemo.libflint.nmod_poly_evaluate_nmod_vec_fast(
+        @ccall Oscar.Nemo.libflint._nmod_poly_evaluate_nmod_vec_fast_precomp(
             values::Ptr{UInt},
-            poly::Ref{Oscar.Nemo.zzModPolyRingElem},
-            points::Ptr{UInt},
-            length(points)::Int,
+            poly.coeffs::Ptr{Nothing},
+            poly.length::Int,
+            points.tree::Ptr{Ptr{UInt}},
+            points.count::Int,
+            points.modulus::_NmodIntervalProductModulus,
         )::Nothing
     end
     return values
 end
 
+function _fast_nmod_evaluate(poly::Oscar.Nemo.zzModPolyRingElem, points::Vector{UInt})
+    backend = _NmodIntervalProductEvaluationBackend()
+    evaluation_points = _nmod_interval_product_evaluation_points(poly, points)
+    try
+        return _evaluate_interval_product_polynomial(backend, poly, evaluation_points)
+    finally
+        _release_interval_product_evaluation_points!(backend, evaluation_points)
+    end
+end
+
 function _fast_fmpz_mod_evaluate(poly::Oscar.Nemo.ZZModPolyRingElem, points::Vector{Int})
     backend = _FmpzModIntervalProductEvaluationBackend()
     evaluation_points =
-        _interval_product_evaluation_points(backend, base_ring(parent(poly)), points)
+        _interval_product_evaluation_points(backend, base_ring(parent(poly)), points, poly)
     try
         return _fast_fmpz_mod_evaluate(poly, evaluation_points)
     finally
@@ -195,20 +299,22 @@ function _fast_fmpz_mod_evaluate(
     poly::Oscar.Nemo.ZZModPolyRingElem,
     points::_FmpzModEvaluationPoints,
 )
-    raw_points = points.values
-    raw_values = zeros(Int, length(raw_points))
-    values = Vector{ZZRingElem}(undef, length(raw_points))
+    points.count == 0 && return ZZRingElem[]
+    poly.length == 0 && return ZZRingElem[ZZ(0) for _ = 1:points.count]
+    raw_values = zeros(Int, points.count)
+    values = Vector{ZZRingElem}(undef, points.count)
     ring = base_ring(parent(poly))
-    GC.@preserve poly points raw_points raw_values values ring begin
+    GC.@preserve poly points raw_values values ring begin
         try
-            @ccall Oscar.Nemo.libflint.fmpz_mod_poly_evaluate_fmpz_vec_fast(
+            @ccall Oscar.Nemo.libflint._fmpz_mod_poly_evaluate_fmpz_vec_fast_precomp(
                 raw_values::Ptr{Int},
-                poly::Ref{Oscar.Nemo.ZZModPolyRingElem},
-                raw_points::Ptr{Int},
-                length(raw_points)::Int,
+                poly.coeffs::Ptr{Nothing},
+                poly.length::Int,
+                points.tree::Ptr{Ptr{Cvoid}},
+                points.count::Int,
                 ring.ninv::Ref{Oscar.Nemo.fmpz_mod_ctx_struct},
             )::Nothing
-            for i in eachindex(raw_values)
+            for i in eachindex(values)
                 value = ZZ(0)
                 source = Ptr{ZZRingElem}(pointer(raw_values, i))
                 @ccall Oscar.Nemo.libflint.fmpz_set(
