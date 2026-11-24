@@ -23,3 +23,15 @@ expands to all ambient indices through the ordinary hypersurface setup. The
 policy does not support GPU execution, double covers, or custom reduction
 contexts. It has no proof of correctness, so compare its results with a proven
 policy such as `:depthfirst` for the varieties and primes of interest.
+
+## AKR pole reduction
+
+Projective hypersurfaces accept three experimental AKR algorithm symbols:
+`:akr`, `:akr_naive`, and `:akr_levelbylevel`. The first two select the
+original method, which reduces each monomial's pole-order chain separately.
+`:akr_levelbylevel` combines terms at each pole order before applying the
+reduction map. It reuses the original polynomial-vector conversions for
+derivatives.
+
+These algorithms are selected with `zeta_coefficients(...; algorithm=...)`.
+They are not part of the default reduction heuristic.

@@ -85,8 +85,10 @@ function reducetransform(
             fe,
             setup,
         )
-    elseif setup.policy == :akr
-        reducetransform_akr(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
+    elseif setup.policy == :akr || setup.policy == :akr_naive
+        reducetransform_akr_naive(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
+    elseif setup.policy == :akr_levelbylevel
+        reducetransform_akr_levelbylevel(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
     else
         println(setup.policy)
         throw(ArgumentError("Unsupported Algorithm: "))
