@@ -107,7 +107,7 @@ end
         actual = nothing
         actual_second = nothing
 
-        if modulus <= ZZ(2)^64
+        if modulus < ZZ(2)^64
             point_data = UInt[data(modular_ring(point)) for point in points]
             backend = DeRham._NmodIntervalProductEvaluationBackend()
             evaluation_points =
