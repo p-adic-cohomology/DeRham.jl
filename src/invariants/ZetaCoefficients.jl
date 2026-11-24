@@ -40,6 +40,14 @@ function _default_reduction_selection(f, P, S)
     return _default_reduction_selection(fe, S)
 end
 
+function _supportcone_default_S(fe, f, P, S, algorithm)
+    S == [-1] || return S
+    if algorithm == :supportcone && fe isa ProjectiveHypersurface && is_Ssmooth(f, P, Int[])
+        return Int[]
+    end
+    return collect(0:P.n)
+end
+
 """
     zeta_coefficients(fe::ZetaFrontend; ...)
 
@@ -150,9 +158,7 @@ function zeta_coefficients(
     n = P.n
     d = P.d
 
-    if S == [-1]
-        S = collect(0:n)
-    end
+    S = _supportcone_default_S(fe, f, P, S, algorithm)
 
     if length(S) > d
         error("Length of S must be <= $d")

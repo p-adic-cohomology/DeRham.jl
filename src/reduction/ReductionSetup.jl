@@ -40,6 +40,13 @@ function _validate_reduction_setup(fe, algorithm; use_gpu = false, context = not
             throw(ArgumentError("custom reduction contexts are not supported for pchunk"))
     end
 
+    if algorithm == :supportcone
+        use_gpu &&
+            throw(ArgumentError("supportcone currently supports only CPU execution"))
+        context === nothing ||
+            throw(ArgumentError("custom reduction contexts are not supported for supportcone"))
+    end
+
     if !(fe isa ProjectiveHypersurface)
         if use_gpu
             throw(ArgumentError("GPU execution is not yet supported for $(typeof(fe))"))
@@ -96,6 +103,8 @@ function reduction_setup(
         true
     elseif policy == :depthfirst
         length(selected_S) < d || d < n
+    elseif policy == :supportcone
+        true
     else
         policy == :pchunk
     end

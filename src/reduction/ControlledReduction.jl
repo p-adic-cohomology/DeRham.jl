@@ -70,6 +70,21 @@ function reducetransform(
             fe,
             setup,
         )
+    elseif setup.policy == :supportcone
+        reducetransform_supportcone(
+            FT,
+            N_m,
+            S,
+            f,
+            P,
+            pseudoInverseMat,
+            p,
+            cache,
+            params,
+            context,
+            fe,
+            setup,
+        )
     elseif setup.policy == :akr
         reducetransform_akr(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
     else
@@ -328,4 +343,36 @@ function _reducetransform_matrix_policy(
     end
 
     return result, execution_setup
+end
+
+function reducetransform_supportcone(
+    FT,
+    N_m,
+    S,
+    f,
+    P,
+    pseudoInverseMat,
+    p,
+    cache,
+    params,
+    context,
+    fe,
+    configuration,
+)
+    policy = SupportConePolicy(_supportcone_planner(f), P.d, configuration.S)
+    result, _ = _reducetransform_matrix_policy(
+        FT,
+        S,
+        f,
+        P,
+        pseudoInverseMat,
+        p,
+        cache,
+        params,
+        context,
+        fe,
+        configuration,
+        policy,
+    )
+    return result
 end

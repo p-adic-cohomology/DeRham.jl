@@ -177,3 +177,122 @@ function _supportcone_plan(
 
     return nothing
 end
+
+"""
+    SupportConePolicy(planner, degree, S)
+
+Experimental controlled-reduction policy using exact plans from the defining
+polynomial's support, with depth-first fallback for keys without a support plan.
+"""
+struct SupportConePolicy{N} <: AbstractReductionPolicy
+    planner::SupportConePlanner{N}
+    degree::Int
+    S::Vector{Int}
+end
+
+function SupportConePolicy(planner::SupportConePlanner{N}, degree::Integer, S) where {N}
+    degree >= 0 || throw(ArgumentError("the reduction degree must be nonnegative"))
+    return SupportConePolicy{N}(planner, Int(degree), Int.(collect(S)))
+end
+
+function _supportcone_planner(f)
+    return SupportConePlanner([Tuple(exponent_vector(monomial, 1)) for monomial in terms(f)])
+end
+
+function _supportcone_fallback_chunk(policy, key, terminal_order, directions)
+    maximum_chunk = key.order - terminal_order
+    direction = rev_chooseV(collect(key.u), policy.degree, policy.S)
+    chunk = _depthfirst_chunk_length(key.u, direction, maximum_chunk)
+    chunk >= 1 || throw(ArgumentError("supportcone fallback selected an empty chunk"))
+    directions(key.u, chunk, direction) ||
+        throw(ArgumentError("supportcone fallback selected an invalid reduction direction"))
+    return direction, chunk
+end
+
+function run_reduction_policy!(
+    policy::SupportConePolicy{N},
+    engine::AbstractReductionEngine,
+    keys_by_order,
+    directions::ReductionDirectionSet,
+    on_terminal,
+) where {N}
+    terminal_order = reduction_engine_geometry(engine).terminal_order
+    pending_by_order = Dict{Int,Vector{Any}}()
+    plan_suffixes = Dict{ReductionChainKey{N},Vector{SupportConeChunk{N}}}()
+
+    for (order, inputs) in sort(collect(keys_by_order); by = first, rev = true)
+        isempty(inputs) && continue
+        chains = get!(pending_by_order, order, Any[])
+        for input in inputs
+            key = ReductionChainKey(input.key[1], input.key[2])
+            chain = materialize(engine, key, input)
+            push!(chains, chain)
+        end
+    end
+
+    while !isempty(pending_by_order)
+        order = maximum(keys(pending_by_order))
+        chains = pop!(pending_by_order, order)
+        key_counts = Dict{Tuple,Int}()
+        for chain in chains
+            key = reduction_chain_key(engine, chain)
+            signature = (key.u, key.order)
+            key_counts[signature] = get(key_counts, signature, 0) + 1
+        end
+        duplicate_keys = Set(
+            signature for (signature, count) in key_counts if count > 1
+        )
+        survivors = combine!(engine, order)
+
+        for chain in survivors
+            key = reduction_chain_key(engine, chain)
+            key.order < terminal_order &&
+                throw(ArgumentError("supportcone chain is below the terminal order"))
+            if key.order == terminal_order
+                delete!(plan_suffixes, key)
+                on_terminal(finish!(engine, chain))
+                continue
+            end
+
+            signature = (key.u, key.order)
+            signature in duplicate_keys && delete!(plan_suffixes, key)
+            chunks = pop!(plan_suffixes, key, nothing)
+            if chunks === nothing
+                plan = _supportcone_plan(
+                    policy.planner,
+                    key,
+                    terminal_order,
+                    directions,
+                )
+                if plan === nothing
+                    direction, chunk = _supportcone_fallback_chunk(
+                        policy,
+                        key,
+                        terminal_order,
+                        directions,
+                    )
+                    record_fallback!(engine, key, chunk)
+                    reduce!(engine, chain, direction, chunk)
+                    next_key = reduction_chain_key(engine, chain)
+                    push!(get!(pending_by_order, next_key.order, Any[]), chain)
+                    continue
+                end
+                chunks = plan.chunks
+            end
+
+            isempty(chunks) &&
+                throw(ArgumentError("supportcone plan has no moves for a nonterminal key"))
+            next_chunk = first(chunks)
+            directions(key.u, next_chunk.steps, next_chunk.direction) ||
+                throw(ArgumentError("supportcone selected an invalid reduction direction"))
+            reduce!(engine, chain, next_chunk.direction, next_chunk.steps)
+            next_key = reduction_chain_key(engine, chain)
+            if length(chunks) > 1
+                plan_suffixes[next_key] = chunks[2:end]
+            end
+            push!(get!(pending_by_order, next_key.order, Any[]), chain)
+        end
+    end
+
+    return nothing
+end

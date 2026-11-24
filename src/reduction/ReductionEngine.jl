@@ -146,6 +146,11 @@ resulting live-chain bookkeeping.
 """
 function combine! end
 
+function record_fallback! end
+
+record_fallback!(engine::AbstractReductionEngine, key::ReductionChainKey, steps::Integer) =
+    nothing
+
 """
     finish!(engine, chain)
 

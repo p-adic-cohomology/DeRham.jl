@@ -72,8 +72,53 @@
     double_cover = DeRham.DoubleCover(s^4 + t^4)
     double_cover_terminal = DeRham.cohomology_quotient(double_cover).n
     @test DeRham._supports_reduction_algorithm(hypersurface, :varbyvar)
+    @test DeRham._supports_reduction_algorithm(hypersurface, :supportcone)
     @test DeRham._supports_reduction_algorithm(double_cover, :varbyvar)
     @test DeRham._supports_reduction_algorithm(double_cover, :pchunk)
+    @test !DeRham._supports_reduction_algorithm(double_cover, :supportcone)
+    supportcone_setup = DeRham.reduction_setup(hypersurface, [0], :supportcone)
+    @test supportcone_setup.policy == :supportcone
+    @test supportcone_setup.S == [0]
+    @test supportcone_setup.lazy_Ruv
+    @test :supportcone in supportcone_setup.allowed_policies
+    @test_throws ArgumentError DeRham.reduction_setup(
+        double_cover,
+        [1],
+        :supportcone,
+    )
+    @test_throws ArgumentError DeRham.reduction_setup(
+        hypersurface,
+        [0],
+        :supportcone;
+        use_gpu = true,
+    )
+    @test_throws ArgumentError DeRham.reduction_setup(
+        hypersurface,
+        [0],
+        :supportcone;
+        context = :custom,
+    )
+    @test DeRham._supportcone_default_S(
+        hypersurface,
+        cubic,
+        P,
+        [-1],
+        :supportcone,
+    ) == Int[]
+    @test DeRham._supportcone_default_S(
+        hypersurface,
+        cubic,
+        P,
+        [0],
+        :supportcone,
+    ) == [0]
+    @test DeRham._supportcone_default_S(
+        hypersurface,
+        cubic,
+        P,
+        [-1],
+        :default,
+    ) == collect(0:P.n)
     double_cover_pchunk_setup = DeRham.reduction_setup(double_cover, [1], :pchunk)
     @test double_cover_pchunk_setup.policy == :pchunk
     @test :pchunk in double_cover_pchunk_setup.allowed_policies
@@ -125,7 +170,8 @@
         setup_params,
         nothing,
     )
-    @test setup_configuration.allowed_policies == (:depthfirst, :pchunk, :varbyvar, :akr)
+    @test setup_configuration.allowed_policies ==
+          (:depthfirst, :pchunk, :varbyvar, :akr, :supportcone)
     @test setup_configuration.lazy_Ruv
     @test execution_setup.pep_type == DeRham.LazyPEP{typeof(setup_matspace())}
     @test execution_setup.backend == :cpu_uint

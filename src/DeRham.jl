@@ -184,6 +184,7 @@ public fermat_hypersurface,
     normalized_tate_twist,
     ibm_lattice_correction,
     pregen_default_context,
-    SupportConePlanner
+    SupportConePlanner,
+    SupportConePolicy
 
 end
