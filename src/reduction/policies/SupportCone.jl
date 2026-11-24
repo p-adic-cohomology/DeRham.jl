@@ -183,6 +183,8 @@ end
 
 Experimental controlled-reduction policy using exact plans from the defining
 polynomial's support, with depth-first fallback for keys without a support plan.
+Support vectors are sorted lexicographically, and full-rank subcones are tried
+in lexicographic support-index order; overlapping subcones are not triangulated.
 """
 struct SupportConePolicy{N} <: AbstractReductionPolicy
     planner::SupportConePlanner{N}

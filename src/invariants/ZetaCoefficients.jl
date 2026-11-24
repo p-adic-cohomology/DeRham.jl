@@ -40,11 +40,6 @@ function _default_reduction_selection(f, P, S)
     return _default_reduction_selection(fe, S)
 end
 
-function _supportcone_default_S(_fe, _f, P, S, _algorithm)
-    S == [-1] || return S
-    return collect(0:P.n)
-end
-
 """
     zeta_coefficients(fe::ZetaFrontend; ...)
 
@@ -70,7 +65,8 @@ Keyword arguments:
   chooses automatically. Double covers default to `:depthfirst` and also
   support explicit CPU execution with `:varbyvar` and `S=[n]`, or `:pchunk`
   when the working residue-ring modulus is below `2^64` with the default
-  integer representation.
+  integer representation. Projective hypersurfaces also support the
+  experimental CPU-only `:supportcone` policy.
 - `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
   uncertified precision inputs for non-hypersurface frontends. Hypersurface
   frontends reject these keywords. ``DoubleCover`` requires `series_precision`
@@ -155,7 +151,9 @@ function zeta_coefficients(
     n = P.n
     d = P.d
 
-    S = _supportcone_default_S(fe, f, P, S, algorithm)
+    if S == [-1]
+        S = collect(0:n)
+    end
 
     if length(S) > d
         error("Length of S must be <= $d")
