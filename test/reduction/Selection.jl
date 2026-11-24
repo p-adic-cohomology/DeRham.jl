@@ -146,7 +146,7 @@
         nothing,
     )
     @test setup_configuration.allowed_policies ==
-          (:depthfirst, :pchunk, :varbyvar, :akr, :supportcone)
+          (:depthfirst, :pchunk, :varbyvar, :akr, :akr_naive, :akr_levelbylevel, :supportcone)
     @test setup_configuration.lazy_Ruv
     @test execution_setup.pep_type == DeRham.LazyPEP{typeof(setup_matspace())}
     @test execution_setup.backend == :cpu_uint

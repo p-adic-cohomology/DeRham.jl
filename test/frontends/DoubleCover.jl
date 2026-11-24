@@ -39,7 +39,7 @@ end
     @test DeRham.varbyvar_reduction_setup(curve, [P.n]) ==
           (:depthfirst, [P.n], nothing, [P.n])
 
-    for algorithm in (:akr,)
+    for algorithm in (:akr, :akr_naive, :akr_levelbylevel)
         @test_throws ArgumentError DeRham.zeta_coefficients(
             curve;
             algorithm,
