@@ -5,22 +5,14 @@ function DeRham.my_mul!(output::Matrix{Int}, input::Matrix{Int}, scalar::Int)
     return output
 end
 
-function DeRham.my_add!(
-    output::Matrix{Int},
-    left::Matrix{Int},
-    right::Matrix{Int},
-)
+function DeRham.my_add!(output::Matrix{Int}, left::Matrix{Int}, right::Matrix{Int})
     for j in axes(output, 2), i in axes(output, 1)
         output[i, j] = left[i, j] + right[i, j]
     end
     return output
 end
 
-function DeRham.my_matvecmul!(
-    output::Vector{Int},
-    matrix::Matrix{Int},
-    vector::Vector{Int},
-)
+function DeRham.my_matvecmul!(output::Vector{Int}, matrix::Matrix{Int}, vector::Vector{Int})
     for i in axes(matrix, 1)
         output[i] = 0
         for j in axes(matrix, 2)
@@ -40,14 +32,15 @@ end
             b = matrixspace()
             a_values = [1 1 0; 0 1 1; 1 0 1]
             b_values = [1 0 0; 0 2 0; 0 0 3]
-            for j in 1:3, i in 1:3
+            for j = 1:3, i = 1:3
                 a[i, j] = ring(a_values[i, j])
                 b[i, j] = ring(b_values[i, j])
             end
 
             big_modulus = modulus > ZZ(2)^64
-            g = big_modulus ? ZZRingElem[ZZ(i + 1) for i in 1:3] :
-                UInt[data(ring(i + 1)) for i in 1:3]
+            g =
+                big_modulus ? ZZRingElem[ZZ(i + 1) for i = 1:3] :
+                UInt[data(ring(i + 1)) for i = 1:3]
             for interval_length in cases
                 start = 11
                 stop = start + interval_length - 1
@@ -89,34 +82,18 @@ end
     b = matrixspace()
     a_values = [1 1 0; 0 1 1; 1 0 1]
     b_values = [1 0 0; 0 2 0; 0 0 3]
-    for j in 1:3, i in 1:3
+    for j = 1:3, i = 1:3
         a[i, j] = ring(a_values[i, j])
         b[i, j] = ring(b_values[i, j])
     end
-    g = ZZRingElem[ZZ(i + 1) for i in 1:3]
+    g = ZZRingElem[ZZ(i + 1) for i = 1:3]
     start = 11
     stop = 138
     expected = copy(g)
     actual = copy(g)
 
-    DeRham.finitediff_prodeval_linear!(
-        a,
-        b,
-        start,
-        stop,
-        expected,
-        matrixspace(),
-        copy(g),
-    )
-    DeRham.sqrt_interval_product!(
-        a,
-        b,
-        start,
-        stop,
-        actual,
-        matrixspace(),
-        copy(g),
-    )
+    DeRham.finitediff_prodeval_linear!(a, b, start, stop, expected, matrixspace(), copy(g))
+    DeRham.sqrt_interval_product!(a, b, start, stop, actual, matrixspace(), copy(g))
     @test actual == expected
 end
 
@@ -130,9 +107,8 @@ end
         if modulus <= ZZ(2)^64
             point_data = UInt[data(modular_ring(point)) for point in points]
             actual = DeRham._fast_nmod_evaluate(polynomial, point_data)
-            expected = UInt[
-                data(evaluate(polynomial, modular_ring(point))) for point in points
-            ]
+            expected =
+                UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
         else
             actual = DeRham._fast_fmpz_mod_evaluate(polynomial, points)
             expected = ZZRingElem[
@@ -148,11 +124,11 @@ end
     matrixspace = matrix_space(ring, 2, 2)
     a = matrixspace()
     b = matrixspace()
-    for j in 1:2, i in 1:2
+    for j = 1:2, i = 1:2
         a[i, j] = ring(i + j)
         b[i, j] = ring(2i + j)
     end
-    g = UInt[data(ring(i)) for i in 1:2]
+    g = UInt[data(ring(i)) for i = 1:2]
     temp = matrixspace()
     g_temp = copy(g)
     sqrt_params = DeRham.ZetaFunctionParams(
@@ -197,7 +173,7 @@ end
     wide_matrixspace = matrix_space(ring, 28, 28)
     wide_a = wide_matrixspace()
     wide_b = wide_matrixspace()
-    wide_g = UInt[data(ring(i)) for i in 1:28]
+    wide_g = UInt[data(ring(i)) for i = 1:28]
     wide_temp = wide_matrixspace()
     wide_g_temp = copy(wide_g)
     wide_params = DeRham.ZetaFunctionParams(
@@ -286,7 +262,10 @@ end
         interval_product_algorithm = :invalid,
     )
     @test_throws ArgumentError zeta_coefficients(frontend; interval_product_min_length = 0)
-    @test_throws ArgumentError zeta_coefficients(frontend; interval_product_min_length = true)
+    @test_throws ArgumentError zeta_coefficients(
+        frontend;
+        interval_product_min_length = true,
+    )
     @test_throws ArgumentError zeta_coefficients(
         frontend;
         interval_product_min_length = big(typemax(Int)) + 1,
@@ -325,8 +304,7 @@ end
     )
     @test context.interval_product_algorithm === :sqrt
     @test context.interval_product_min_length == 12
-    @test DeRham._resolve_interval_product_options(context, nothing, nothing) ==
-          (:sqrt, 12)
+    @test DeRham._resolve_interval_product_options(context, nothing, nothing) == (:sqrt, 12)
     @test DeRham._resolve_interval_product_options(context, :finitediff, 64) ==
           (:finitediff, 64)
     @test DeRham._resolve_interval_product_options(nothing, nothing, nothing) ==

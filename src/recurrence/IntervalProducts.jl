@@ -20,12 +20,15 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     small_modulus = a isa zzModMatrix
     big_modulus = a isa ZZModMatrix
     (small_modulus || big_modulus) &&
-        _supports_sqrt_interval_product(a, b, g, temp, g_temp) ||
-        throw(ArgumentError("square-root interval products require compatible CPU modular arrays"))
+    _supports_sqrt_interval_product(a, b, g, temp, g_temp) || throw(
+        ArgumentError(
+            "square-root interval products require compatible CPU modular arrays",
+        ),
+    )
 
-    backend = small_modulus ?
-              _NmodIntervalProductEvaluationBackend() :
-              _FmpzModIntervalProductEvaluationBackend()
+    backend =
+        small_modulus ? _NmodIntervalProductEvaluationBackend() :
+        _FmpzModIntervalProductEvaluationBackend()
     ring = base_ring(parent(a))
     poly_ring, x = polynomial_ring(ring, "x"; cached = false)
     polynomial_matrix_space = matrix_space(poly_ring, rows, cols)
@@ -33,8 +36,8 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     block_length = isqrt(interval_length)
     blocks, _ = divrem(interval_length, block_length)
     factors = [polynomial_matrix_space() for _ = 1:block_length]
-    for offset = 0:(block_length - 1)
-        factor = factors[offset + 1]
+    for offset = 0:(block_length-1)
+        factor = factors[offset+1]
         ring_offset = ring(offset)
         for j = 1:cols, i = 1:rows
             linear = ring(a[i, j])
@@ -49,14 +52,14 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
             if i == Base.length(factors)
                 push!(next_level, factors[i])
             else
-                push!(next_level, factors[i] * factors[i + 1])
+                push!(next_level, factors[i] * factors[i+1])
             end
         end
         factors = next_level
     end
     block_polynomial = factors[1]
 
-    points = Int[start + i * block_length for i = 0:(blocks - 1)]
+    points = Int[start + i * block_length for i = 0:(blocks-1)]
     evaluation_points = _interval_product_evaluation_points(backend, ring, points)
     evaluated_blocks = [matrix_space(ring, rows, cols)() for _ = 1:blocks]
     try

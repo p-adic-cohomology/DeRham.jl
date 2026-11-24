@@ -6,14 +6,14 @@ function interval_case(r, modulus)
     matrixspace = matrix_space(ring, r, r)
     a = matrixspace()
     b = matrixspace()
-    for j in 1:r, i in 1:r
+    for j = 1:r, i = 1:r
         a[i, j] = ring(mod(13i + 7j + i * j, 101))
         b[i, j] = ring(mod(11i + 17j + i * j, 101))
     end
     if modulus > ZZ(2)^64
-        g = ZZRingElem[ZZ(i * i + 2) for i in 1:r]
+        g = ZZRingElem[ZZ(i * i + 2) for i = 1:r]
     else
-        g = UInt[data(ring(i * i + 2)) for i in 1:r]
+        g = UInt[data(ring(i * i + 2)) for i = 1:r]
     end
     return ring, matrixspace, a, b, g
 end
@@ -21,7 +21,7 @@ end
 function interval_time(method, case, interval_length; repetitions = 3)
     _, matrixspace, a, b, initial = case
     times = Float64[]
-    for _ in 1:repetitions
+    for _ = 1:repetitions
         g = copy(initial)
         temp = matrixspace()
         g_temp = copy(initial)
@@ -29,15 +29,7 @@ function interval_time(method, case, interval_length; repetitions = 3)
         elapsed = @elapsed if method === :sqrt
             DeRham.sqrt_interval_product!(a, b, 0, interval_length - 1, g, temp, g_temp)
         else
-            DeRham.finitediff_prodeval_linear!(
-                a,
-                b,
-                0,
-                interval_length - 1,
-                g,
-                temp,
-                g_temp,
-            )
+            DeRham.finitediff_prodeval_linear!(a, b, 0, interval_length - 1, g, temp, g_temp)
         end
         push!(times, elapsed)
     end
@@ -72,12 +64,22 @@ function run_interval_benchmarks()
                 expected = copy(case[5])
                 actual = copy(case[5])
                 DeRham.finitediff_prodeval_linear!(
-                    case[3], case[4], 0, interval_length - 1, expected,
-                    case[2](), copy(expected),
+                    case[3],
+                    case[4],
+                    0,
+                    interval_length - 1,
+                    expected,
+                    case[2](),
+                    copy(expected),
                 )
                 DeRham.sqrt_interval_product!(
-                    case[3], case[4], 0, interval_length - 1, actual,
-                    case[2](), copy(actual),
+                    case[3],
+                    case[4],
+                    0,
+                    interval_length - 1,
+                    actual,
+                    case[2](),
+                    copy(actual),
                 )
                 @assert actual == expected
                 finite_time = interval_time(
@@ -86,12 +88,8 @@ function run_interval_benchmarks()
                     interval_length;
                     repetitions = repetitions,
                 )
-                sqrt_time = interval_time(
-                    :sqrt,
-                    case,
-                    interval_length;
-                    repetitions = repetitions,
-                )
+                sqrt_time =
+                    interval_time(:sqrt, case, interval_length; repetitions = repetitions)
                 push!(finite, finite_time)
                 push!(square_root, sqrt_time)
                 push!(measured_lengths, interval_length)
@@ -100,10 +98,8 @@ function run_interval_benchmarks()
                 )
                 max(finite_time, sqrt_time) > 180 && break
             end
-            crossover = findfirst(
-                i -> square_root[i] < finite[i],
-                eachindex(measured_lengths),
-            )
+            crossover =
+                findfirst(i -> square_root[i] < finite[i], eachindex(measured_lengths))
             crossover_length =
                 crossover === nothing ? "none" : string(measured_lengths[crossover])
             if length(measured_lengths) >= 3
@@ -111,7 +107,8 @@ function run_interval_benchmarks()
                     fit_power_law(measured_lengths[2:end], finite[2:end])
                 sqrt_exponent, sqrt_intercept =
                     fit_power_law(measured_lengths[2:end], square_root[2:end])
-                fitted_crossover = finite_exponent > sqrt_exponent ?
+                fitted_crossover =
+                    finite_exponent > sqrt_exponent ?
                     exp(
                         (sqrt_intercept - finite_intercept) /
                         (finite_exponent - sqrt_exponent),
@@ -141,7 +138,7 @@ function run_interval_benchmarks()
         result = DeRham.zeta_coefficients(f; options...)
         results[method] = result
         samples = Float64[]
-        for _ in 1:3
+        for _ = 1:3
             GC.gc()
             push!(samples, @elapsed DeRham.zeta_coefficients(f; options...))
         end

@@ -30,7 +30,8 @@ const PRIMING_CODE_PATH_DEFAULTS = (
 )
 
 function _canonical_priming_option(key::String, value)
-    if key in ("algorithm", "termorder", "interval_product_algorithm") && value isa AbstractString
+    if key in ("algorithm", "termorder", "interval_product_algorithm") &&
+       value isa AbstractString
         return String(value)
     elseif key == "k" && value isa Integer
         return typeof(value)
