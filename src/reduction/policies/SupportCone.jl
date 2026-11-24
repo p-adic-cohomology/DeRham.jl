@@ -36,7 +36,7 @@ function _supportcone_determinant(matrix::AbstractMatrix{<:Integer})
     sign = BigInt(1)
     previous_pivot = BigInt(1)
 
-    for pivot_index in 1:(dimension-1)
+    for pivot_index = 1:(dimension-1)
         pivot_row = pivot_index
         while pivot_row <= dimension && iszero(work[pivot_row, pivot_index])
             pivot_row += 1
@@ -44,7 +44,7 @@ function _supportcone_determinant(matrix::AbstractMatrix{<:Integer})
         pivot_row > dimension && return BigInt(0)
 
         if pivot_row != pivot_index
-            for column in 1:dimension
+            for column = 1:dimension
                 work[pivot_index, column], work[pivot_row, column] =
                     work[pivot_row, column], work[pivot_index, column]
             end
@@ -52,8 +52,8 @@ function _supportcone_determinant(matrix::AbstractMatrix{<:Integer})
         end
 
         pivot = work[pivot_index, pivot_index]
-        for row in (pivot_index+1):dimension
-            for column in (pivot_index+1):dimension
+        for row = (pivot_index+1):dimension
+            for column = (pivot_index+1):dimension
                 numerator =
                     work[row, column] * pivot -
                     work[row, pivot_index] * work[pivot_index, column]
@@ -79,8 +79,8 @@ function _supportcone_planner(::Val{N}, raw_support) where {N}
     for selection in Combinatorics.combinations(1:length(support), N)
         indices = Tuple(selection)
         matrix = Matrix{BigInt}(undef, N, N)
-        for row in 1:N
-            for column in 1:N
+        for row = 1:N
+            for column = 1:N
                 matrix[row, column] = support[indices[column]][row]
             end
         end
@@ -109,16 +109,16 @@ function _supportcone_floors(
     length(u) == N || return nothing
 
     matrix = Matrix{BigInt}(undef, N, N)
-    for row in 1:N
-        for column in 1:N
+    for row = 1:N
+        for column = 1:N
             matrix[row, column] = planner.support[subcone.indices[column]][row]
         end
     end
 
     numerators = Vector{BigInt}(undef, N)
-    for column in 1:N
+    for column = 1:N
         replaced = copy(matrix)
-        for row in 1:N
+        for row = 1:N
             replaced[row, column] = u[row]
         end
         numerators[column] = _supportcone_determinant(replaced)
@@ -152,7 +152,7 @@ function _supportcone_plan(
         excess = sum(chunk_lengths) - required_steps
         while excess > 0
             largest = 1
-            for index in 2:N
+            for index = 2:N
                 chunk_lengths[index] > chunk_lengths[largest] && (largest = index)
             end
             chunk_lengths[largest] -= 1
@@ -167,7 +167,7 @@ function _supportcone_plan(
             direction = planner.support[support_index]
             directions(Tuple(current_u), steps, direction) || return nothing
             push!(chunks, SupportConeChunk(direction, steps))
-            for index in 1:N
+            for index = 1:N
                 current_u[index] -= steps * direction[index]
             end
         end
@@ -198,7 +198,9 @@ function SupportConePolicy(planner::SupportConePlanner{N}, degree::Integer, S) w
 end
 
 function _supportcone_planner(f)
-    return SupportConePlanner([Tuple(exponent_vector(monomial, 1)) for monomial in terms(f)])
+    return SupportConePlanner([
+        Tuple(exponent_vector(monomial, 1)) for monomial in terms(f)
+    ])
 end
 
 function _supportcone_fallback_chunk(policy, key, terminal_order, directions)
@@ -247,9 +249,7 @@ function run_reduction_policy!(
             signature = (key.u, key.order)
             key_counts[signature] = get(key_counts, signature, 0) + 1
         end
-        duplicate_keys = Set(
-            signature for (signature, count) in key_counts if count > 1
-        )
+        duplicate_keys = Set(signature for (signature, count) in key_counts if count > 1)
         survivors = combine!(engine, order)
 
         for chain in survivors
@@ -266,19 +266,10 @@ function run_reduction_policy!(
             signature in duplicate_keys && delete!(plan_suffixes, key)
             chunks = pop!(plan_suffixes, key, nothing)
             if chunks === nothing
-                plan = _supportcone_plan(
-                    policy.planner,
-                    key,
-                    terminal_order,
-                    directions,
-                )
+                plan = _supportcone_plan(policy.planner, key, terminal_order, directions)
                 if plan === nothing
-                    direction, chunk = _supportcone_fallback_chunk(
-                        policy,
-                        key,
-                        terminal_order,
-                        directions,
-                    )
+                    direction, chunk =
+                        _supportcone_fallback_chunk(policy, key, terminal_order, directions)
                     record_fallback!(engine, key, chunk)
                     reduce!(engine, chain, direction, chunk)
                     next_key = reduction_chain_key(engine, chain)

@@ -81,11 +81,7 @@
     @test supportcone_setup.S == [0]
     @test supportcone_setup.lazy_Ruv
     @test :supportcone in supportcone_setup.allowed_policies
-    @test_throws ArgumentError DeRham.reduction_setup(
-        double_cover,
-        [1],
-        :supportcone,
-    )
+    @test_throws ArgumentError DeRham.reduction_setup(double_cover, [1], :supportcone)
     @test_throws ArgumentError DeRham.reduction_setup(
         hypersurface,
         [0],

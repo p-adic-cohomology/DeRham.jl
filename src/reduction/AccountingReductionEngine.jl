@@ -157,10 +157,7 @@ function record_fallback!(
         throw(ArgumentError("fallback steps cannot pass the terminal order"))
     engine.fallback_keys += 1
     engine.fallback_steps += Int(steps)
-    _accounting_event!(
-        engine,
-        (; operation = :fallback, key, steps = Int(steps)),
-    )
+    _accounting_event!(engine, (; operation = :fallback, key, steps = Int(steps)))
     return nothing
 end
 
