@@ -194,6 +194,45 @@ end
         4,
     )
 
+    wide_matrixspace = matrix_space(ring, 28, 28)
+    wide_a = wide_matrixspace()
+    wide_b = wide_matrixspace()
+    wide_g = UInt[data(ring(i)) for i in 1:28]
+    wide_temp = wide_matrixspace()
+    wide_g_temp = copy(wide_g)
+    wide_params = DeRham.ZetaFunctionParams(
+        0,
+        false,
+        :pchunk,
+        :invlex,
+        false,
+        true,
+        false,
+        false,
+        false,
+        :sqrt,
+        64,
+    )
+
+    @test !DeRham._use_sqrt_interval_product(
+        wide_a,
+        wide_b,
+        wide_g,
+        wide_temp,
+        wide_g_temp,
+        wide_params,
+        64,
+    )
+    @test DeRham._use_sqrt_interval_product(
+        wide_a,
+        wide_b,
+        wide_g,
+        wide_temp,
+        wide_g_temp,
+        wide_params,
+        28^2,
+    )
+
     expected = copy(g)
     DeRham.finitediff_prodeval_linear!(a, b, 0, 2, expected, matrixspace(), copy(g))
     actual = copy(g)
@@ -240,8 +279,8 @@ end
 end
 
 @testset "square-root interval product options" begin
-    _, (x, y) = polynomial_ring(GF(7), ["x", "y"])
-    frontend = DeRham.ProjectiveHypersurface(x^3 + y^3)
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
     @test_throws ArgumentError zeta_coefficients(
         frontend;
         interval_product_algorithm = :invalid,
@@ -275,10 +314,11 @@ end
     )
 
     context = DeRham.pregen_default_context(
-        1,
+        2,
         3,
         7,
         [-1];
+        algorithm = :depthfirst,
         interval_product_algorithm = :sqrt,
         interval_product_min_length = 12,
         lazy = true,
@@ -291,4 +331,26 @@ end
           (:finitediff, 64)
     @test DeRham._resolve_interval_product_options(nothing, nothing, nothing) ==
           (:finitediff, 64)
+
+    inherited_coefficients = zeta_coefficients(
+        frontend;
+        algorithm = :depthfirst,
+        changef = false,
+        context = context,
+    )
+    @test inherited_coefficients == BigInt[7, 1, 1]
+    overridden_coefficients = zeta_coefficients(
+        frontend;
+        algorithm = :depthfirst,
+        changef = false,
+        context = context,
+        interval_product_algorithm = :finitediff,
+        interval_product_min_length = 64,
+    )
+    @test overridden_coefficients == BigInt[7, 1, 1]
+    @test_throws ArgumentError zeta_coefficients(
+        frontend;
+        context = context,
+        interval_product_algorithm = :invalid,
+    )
 end

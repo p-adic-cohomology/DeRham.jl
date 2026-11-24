@@ -22,7 +22,7 @@ temp - temporary matrix used for intermediate calculations
 g - the vector g which contains the vector which is being reduced
 g_temp - temporary vector used for intermediate calculations
 interval_product_algorithm - default interval product method for reductions
-interval_product_min_length - shortest interval evaluated by that method
+interval_product_min_length - configured minimum interval length for that method
 
 Current examples that are in use:
 

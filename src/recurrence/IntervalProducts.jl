@@ -246,10 +246,19 @@ function _supports_sqrt_interval_product(a, b, g, temp, g_temp)
     return false
 end
 
+function _sqrt_interval_product_min_length(matrix_width::Int, configured_min::Int)
+    if matrix_width > 0 && matrix_width > div(typemax(Int), matrix_width)
+        return typemax(Int)
+    end
+    return max(configured_min, matrix_width^2)
+end
+
 function _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
-    return params.interval_product_algorithm === :sqrt &&
-           interval_length >= params.interval_product_min_length &&
-           _supports_sqrt_interval_product(a, b, g, temp, g_temp)
+    params.interval_product_algorithm === :sqrt || return false
+    _supports_sqrt_interval_product(a, b, g, temp, g_temp) || return false
+    min_length =
+        _sqrt_interval_product_min_length(nrows(a), params.interval_product_min_length)
+    return interval_length >= min_length
 end
 
 function prodeval_linear!(a, b, start, stop, g, temp, g_temp, params::ZetaFunctionParams)

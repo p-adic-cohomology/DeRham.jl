@@ -8,10 +8,11 @@ and remains experimental.
 
 Select it with `interval_product_algorithm=:sqrt` in
 [`zeta_coefficients`](@ref). The default is `:finitediff`; set
-`interval_product_min_length` to control the shortest run that uses the new
-method. Unsupported matrix and vector types continue through finite-difference
-evaluation.
+`interval_product_min_length` to set a lower bound on the run length. The
+dispatcher also requires the interval length to be at least the square of the
+matrix width, which delays the cubic-cost polynomial matrix products for wider
+matrices. Unsupported matrix and vector types continue through
+finite-difference evaluation.
 
-The crossover depends on matrix width. The default minimum is fixed, so measure
-representative workloads and raise `interval_product_min_length` for wider
-matrices when the product tree is slower.
+The crossover still depends on the workload. Measure representative cases and
+raise `interval_product_min_length` when the product tree remains slower.

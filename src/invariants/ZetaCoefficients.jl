@@ -79,8 +79,8 @@ Keyword arguments:
 - `interval_product_algorithm=:finitediff`: selects finite differences or the
   experimental square-root-time interval product (`:sqrt`) for CPU DepthFirst
   and PChunk reductions.
-- `interval_product_min_length=64`: minimum interval length for selecting the
-  experimental method.
+- `interval_product_min_length=64`: configured minimum interval length for the
+  experimental method. Dispatch also applies a matrix-width floor.
 
 When a pre-generated `context` is supplied, omitted interval-product keywords
 use the settings stored in that context. Explicit keywords override them.
