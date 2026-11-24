@@ -1,0 +1,13 @@
+[[test]]
+name = "supportcone__dim_1_deg_3_fermat_1"
+type = "zeta_coefficients"
+runtime = 3.431
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "supportcone", changef = false }
+
+[[test]]
+name = "supportcone__dim_1_deg_4_random_1"
+type = "zeta_coefficients"
+runtime = 0.920
+example = "dim_1_deg_4_random_1"
+parameters = { algorithm = "supportcone", changef = false }

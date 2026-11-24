@@ -98,27 +98,6 @@
         :supportcone;
         context = :custom,
     )
-    @test DeRham._supportcone_default_S(
-        hypersurface,
-        cubic,
-        P,
-        [-1],
-        :supportcone,
-    ) == collect(0:P.n)
-    @test DeRham._supportcone_default_S(
-        hypersurface,
-        cubic,
-        P,
-        [0],
-        :supportcone,
-    ) == [0]
-    @test DeRham._supportcone_default_S(
-        hypersurface,
-        cubic,
-        P,
-        [-1],
-        :default,
-    ) == collect(0:P.n)
     double_cover_pchunk_setup = DeRham.reduction_setup(double_cover, [1], :pchunk)
     @test double_cover_pchunk_setup.policy == :pchunk
     @test :pchunk in double_cover_pchunk_setup.allowed_policies
