@@ -91,7 +91,7 @@ function reducechain_pchunk(
 
         # TODO: test how much of a difference the fast evaluation actually makes
         if params.fastevaluation
-            gMat = finitediff_prodeval_linear!(B, A, 0, nend-g_degree-1, gMat, temp, g_temp)
+            gMat = prodeval_linear!(B, A, 0, nend-g_degree-1, gMat, temp, g_temp, params)
             i = nend-g_degree + 1
         else
             while i <= (nend-g_degree)

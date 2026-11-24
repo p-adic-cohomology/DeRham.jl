@@ -26,6 +26,8 @@ const COMMON_PARAMETERS = Set([
     "always_use_bigints",
     "use_gpu",
     "use_threads",
+    "interval_product_algorithm",
+    "interval_product_min_length",
     "relative_precision",
     "series_precision",
     "algorithm_precision",
@@ -54,6 +56,18 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
     end
     if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
         error("execution record $(repr(name)): termorder must be a string")
+    end
+    if haskey(params, "interval_product_algorithm")
+        value = params["interval_product_algorithm"]
+        value isa AbstractString && value in ("finitediff", "sqrt") || error(
+            "execution record $(repr(name)): interval_product_algorithm must be \"finitediff\" or \"sqrt\"",
+        )
+    end
+    if haskey(params, "interval_product_min_length")
+        value = params["interval_product_min_length"]
+        value isa Integer && !(value isa Bool) && value > 0 || error(
+            "execution record $(repr(name)): interval_product_min_length must be a positive integer",
+        )
     end
     if haskey(params, "verbose")
         value = params["verbose"]
@@ -236,9 +250,9 @@ function parse_kwargs(params::AbstractDict)
     kwargs = Dict{Symbol,Any}()
     for (k, v) in params
         sym = Symbol(k)
-        kwargs[sym] = if sym in (:algorithm, :termorder)
+        kwargs[sym] = if sym in (:algorithm, :termorder, :interval_product_algorithm)
             Symbol(v)
-        elseif sym == :S
+        elseif sym in (:S, :interval_product_min_length)
             Int.(v)
         elseif sym in (:relative_precision, :series_precision, :algorithm_precision)
             v isa AbstractVector ? Int.(v) : Int(v)

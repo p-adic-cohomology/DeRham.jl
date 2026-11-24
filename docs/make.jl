@@ -40,6 +40,7 @@ makedocs(
         "Experimental" => [
             "Experimental algorithms" => "experimental/index.md",
             "Double covers" => "experimental/double_covers.md",
+            "Interval products" => "experimental/interval_products.md",
         ],
     ],
     format = Documenter.HTML(

@@ -18,6 +18,8 @@ end
 
 const PRIMING_CODE_PATH_DEFAULTS = (
     "algorithm" => "default",
+    "interval_product_algorithm" => "finitediff",
+    "interval_product_min_length" => 64,
     "fastevaluation" => true,
     "changef" => true,
     "always_use_bigints" => false,
@@ -28,7 +30,7 @@ const PRIMING_CODE_PATH_DEFAULTS = (
 )
 
 function _canonical_priming_option(key::String, value)
-    if key in ("algorithm", "termorder") && value isa AbstractString
+    if key in ("algorithm", "termorder", "interval_product_algorithm") && value isa AbstractString
         return String(value)
     elseif key == "k" && value isa Integer
         return typeof(value)

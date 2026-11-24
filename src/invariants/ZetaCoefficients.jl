@@ -76,10 +76,16 @@ Keyword arguments:
   values are not accepted for any explicit precision keyword.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
+- `interval_product_algorithm=:finitediff`: selects finite differences or the
+  experimental square-root-time interval product (`:sqrt`) for CPU DepthFirst
+  and PChunk reductions.
+- `interval_product_min_length=64`: minimum interval length for selecting the
+  experimental method.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
-`context`, and `precision_info` keywords are internal or experimental and
-may change. Their current defaults are `:invlex`, `false`, `true`, `false`,
+`interval_product_algorithm`, `interval_product_min_length`, `context`, and
+`precision_info` keywords are internal or experimental and may change. Their
+current defaults are `:invlex`, `false`, `true`, `false`, `:finitediff`, `64`,
 `nothing`, and `nothing`, respectively.
 
 The returned coefficients can be passed to [`L_polynomial`](@ref),
@@ -112,6 +118,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    interval_product_algorithm = :finitediff,
+    interval_product_min_length = 64,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -121,6 +129,13 @@ function zeta_coefficients(
     if !_supports_reduction_algorithm(fe, algorithm)
         throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
     end
+
+    interval_product_algorithm in (:finitediff, :sqrt) ||
+        throw(ArgumentError("interval_product_algorithm must be :finitediff or :sqrt"))
+    interval_product_min_length isa Integer && !(interval_product_min_length isa Bool) &&
+        interval_product_min_length > 0 ||
+        throw(ArgumentError("interval_product_min_length must be a positive integer"))
+    interval_product_min_length = Int(interval_product_min_length)
 
     if !(fe isa ProjectiveHypersurface)
         if use_gpu
@@ -203,6 +218,8 @@ function zeta_coefficients(
         always_use_bigints,
         use_gpu,
         use_threads,
+        interval_product_algorithm,
+        interval_product_min_length,
     )
 
     cache = controlled_reduction_cache(n, d, S, params, P)
@@ -421,6 +438,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    interval_product_algorithm = :finitediff,
+    interval_product_min_length = 64,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -440,6 +459,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        interval_product_algorithm = interval_product_algorithm,
+        interval_product_min_length = interval_product_min_length,
         context = context,
         precision_info = precision_info,
         relative_precision = relative_precision,
@@ -470,6 +491,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    interval_product_algorithm = :finitediff,
+    interval_product_min_length = 64,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -492,6 +515,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        interval_product_algorithm = interval_product_algorithm,
+        interval_product_min_length = interval_product_min_length,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,
@@ -513,6 +538,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    interval_product_algorithm = :finitediff,
+    interval_product_min_length = 64,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -532,6 +559,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        interval_product_algorithm = interval_product_algorithm,
+        interval_product_min_length = interval_product_min_length,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,

@@ -144,8 +144,9 @@ is the prime characteristic, and `S` is a vector of integers.
 Keyword arguments and defaults:
 `verbose = 0`, `givefrobmat = false`, `algorithm = :naive`,
 `termorder = :invlex`, `vars_reversed = false`, `fastevaluation = false`,
-`always_use_bigints = false`, `use_gpu = false`, `use_threads = false`, and
-`lazy = false`.
+`always_use_bigints = false`, `use_gpu = false`, `use_threads = false`,
+`interval_product_algorithm = :finitediff`,
+`interval_product_min_length = 64`, and `lazy = false`.
 """
 function pregen_default_context(
     n,
@@ -161,6 +162,8 @@ function pregen_default_context(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    interval_product_algorithm = :finitediff,
+    interval_product_min_length = 64,
     lazy = false,
 )
     params = ZetaFunctionParams(
@@ -173,6 +176,8 @@ function pregen_default_context(
         always_use_bigints,
         use_gpu,
         use_threads,
+        interval_product_algorithm,
+        interval_product_min_length,
     )
 
     m = pregen_precision_info(n, d, p)

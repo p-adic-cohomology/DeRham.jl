@@ -101,7 +101,7 @@ function reducechain_depthfirst(u, g, m, S, f, P, p, context, cache, params)
                 end
             end
         else
-            gMat = finitediff_prodeval_linear!(
+            gMat = prodeval_linear!(
                 context.B,
                 context.A,
                 0,
@@ -109,6 +109,7 @@ function reducechain_depthfirst(u, g, m, S, f, P, p, context, cache, params)
                 gMat,
                 context.temp,
                 context.g_temp,
+                params,
             )
         end
         @. J = J - K*V
