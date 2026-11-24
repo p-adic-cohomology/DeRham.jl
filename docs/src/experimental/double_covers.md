@@ -17,7 +17,9 @@ the existing Weil-bound formula. These precision choices are not certified:
 there is no precision proof for this frontend yet. The depth-first CPU
 algorithm is used by default. The VarByVar algorithm is also supported when
 requested explicitly with `S=[n]`, where `n` is the dimension of the base
-projective space. Both supported algorithms run on the CPU; GPU execution and
+projective space. The pchunk algorithm is supported for CPU runs when the
+working residue-ring modulus is below `2^64` and the default integer
+representation is used. All three algorithms run on the CPU; GPU execution and
 custom reduction contexts are not supported.
 
 Each precision may be given as a scalar for all pieces or, where supported, as

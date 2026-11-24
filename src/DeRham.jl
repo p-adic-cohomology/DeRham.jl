@@ -63,7 +63,7 @@ using Oscar:
     zero_matrix,
     zzModMatrix
 using BitIntegers: BitIntegers
-using LinearAlgebra: LinearAlgebra, I, nullspace, rank
+using LinearAlgebra: LinearAlgebra, nullspace, rank
 using Combinatorics: Combinatorics
 using Memoize: Memoize
 using LRUCache: LRUCache, LRU
@@ -107,6 +107,8 @@ include("reduction/PolynomialWithPole.jl")
 include("precision/SeriesPrecisionDefaults.jl")
 include("precision/PrecisionEstimate.jl")
 include("reduction/ControlledReductionCache.jl")
+include("reduction/ReductionEngine.jl")
+include("reduction/AccountingReductionEngine.jl")
 include("recurrence/PEP.jl")
 include("recurrence/EvaluatePEP.jl")
 include("recurrence/IntervalProducts.jl")
@@ -115,8 +117,11 @@ include("reduction/Context.jl")
 include("reduction/Steps.jl")
 include("recurrence/backend/GPU.jl")
 include("recurrence/RuvStorage.jl")
+include("reduction/ReductionSetup.jl")
+include("reduction/MatrixReductionEngine.jl")
 include("reduction/policies/PChunk.jl")
 include("reduction/policies/VarByVar.jl")
+include("reduction/policies/DepthFirstPolicy.jl")
 include("reduction/policies/DepthFirst.jl")
 include("reduction/policies/AKR.jl")
 include("reduction/ControlledReduction.jl")

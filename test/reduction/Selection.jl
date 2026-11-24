@@ -28,6 +28,27 @@
     @test selected_S == [0, 1]
     @test selected_variable === nothing
 
+    automatic_input = sum(variables[i]^2 for i = 1:5) + variables[4] * variables[6]
+    automatic_selection_error = try
+        DeRham.zeta_coefficients(
+            automatic_input;
+            S = [0],
+            algorithm = :default,
+            changef = false,
+            precision_info = (nothing, [1], [1], 4),
+        )
+        nothing
+    catch err
+        err
+    end
+    @test automatic_selection_error isa ArgumentError
+    if automatic_selection_error isa ArgumentError
+        @test occursin(
+            "matrix from f is not right invertible",
+            sprint(showerror, automatic_selection_error),
+        )
+    end
+
     hypersurface = DeRham.ProjectiveHypersurface(cubic)
     unsupported_algorithm_error = try
         DeRham.zeta_coefficients(hypersurface; algorithm = :unsupported)
@@ -52,9 +73,94 @@
     double_cover_terminal = DeRham.cohomology_quotient(double_cover).n
     @test DeRham._supports_reduction_algorithm(hypersurface, :varbyvar)
     @test DeRham._supports_reduction_algorithm(double_cover, :varbyvar)
-    @test !DeRham._supports_reduction_algorithm(double_cover, :pchunk)
+    @test DeRham._supports_reduction_algorithm(double_cover, :pchunk)
+    double_cover_pchunk_setup = DeRham.reduction_setup(double_cover, [1], :pchunk)
+    @test double_cover_pchunk_setup.policy == :pchunk
+    @test :pchunk in double_cover_pchunk_setup.allowed_policies
+    @test_throws ArgumentError DeRham.reduction_setup(
+        double_cover,
+        [1],
+        :pchunk;
+        use_gpu = true,
+    )
+    @test_throws ArgumentError DeRham.reduction_setup(
+        double_cover,
+        [1],
+        :pchunk;
+        context = :custom,
+    )
     @test DeRham.varbyvar_reduction_setup(double_cover, [double_cover_terminal]) ==
           (:depthfirst, [double_cover_terminal], nothing, [double_cover_terminal])
+
+    setup_modulus = BigInt(5)^8
+    setup_ring, = residue_ring(ZZ, setup_modulus)
+    _, setup_variables = polynomial_ring(setup_ring, ["x0", "x1", "x2"])
+    setup_f = sum(variable^3 for variable in setup_variables)
+    setup_frontend = DeRham.ProjectiveHypersurface(setup_f)
+    setup_P = DeRham.cohomology_quotient(setup_frontend)
+    setup_configuration =
+        DeRham.reduction_setup(setup_frontend, [2], :depthfirst; use_threads = true)
+    setup_params = DeRham.ZetaFunctionParams(
+        0,
+        false,
+        :depthfirst,
+        :invlex,
+        false,
+        true,
+        false,
+        false,
+        true,
+    )
+    setup_size = binomial(DeRham._reduction_g_degree(setup_P) + setup_P.n, setup_P.n)
+    setup_matspace = matrix_space(setup_ring, setup_size, setup_size)
+    setup_cache = DeRham.controlled_reduction_cache(2, 3, [2], setup_params, setup_P)
+    execution_setup = DeRham.reduction_execution_setup(
+        setup_configuration,
+        setup_frontend,
+        setup_f,
+        setup_P,
+        setup_matspace(),
+        5,
+        setup_cache,
+        setup_params,
+        nothing,
+    )
+    @test setup_configuration.allowed_policies ==
+          (:depthfirst, :pchunk, :varbyvar, :akr, :akr_naive, :akr_levelbylevel)
+    @test setup_configuration.lazy_Ruv
+    @test execution_setup.pep_type == DeRham.LazyPEP{typeof(setup_matspace())}
+    @test execution_setup.backend == :cpu_uint
+    @test execution_setup.representation == :uint
+    @test execution_setup.kernel === DeRham.eval_to_linear!
+    @test execution_setup.threads
+    mismatched_thread_params = DeRham.ZetaFunctionParams(
+        setup_params.verbose,
+        setup_params.givefrobmat,
+        setup_params.algorithm,
+        setup_params.termorder,
+        setup_params.vars_reversed,
+        setup_params.fastevaluation,
+        setup_params.always_use_bigints,
+        setup_params.use_gpu,
+        false,
+    )
+    @test_throws ArgumentError DeRham._validate_reduction_execution_setup(
+        setup_configuration,
+        setup_frontend,
+        mismatched_thread_params,
+    )
+    rebound_frontend = DeRham.ProjectiveHypersurface(setup_f + setup_variables[1]^3)
+    @test DeRham._validate_reduction_execution_setup(
+        setup_configuration,
+        rebound_frontend,
+        setup_params,
+    ) === nothing
+    mismatched_frontend = DeRham.ProjectiveHypersurface(setup_f * setup_f)
+    @test_throws ArgumentError DeRham._validate_reduction_execution_setup(
+        setup_configuration,
+        mismatched_frontend,
+        setup_params,
+    )
 
     cases = ((2, 3, [0]), (2, 3, [2]), (2, 3, [0, 1, 2]), (4, 3, [0]), (4, 4, [0]))
     moduli = (BigInt(5)^8, BigInt(2)^40, BigInt(2)^110)

@@ -79,6 +79,16 @@ function _resolve_interval_product_options(context, algorithm, min_length)
     return _validate_interval_product_options(algorithm, min_length)
 end
 
+"""
+    PreconfiguredReductionEngine(context)
+
+Wrap reusable controlled-reduction buffers and R_uv storage for constructing a
+matrix engine for one frontend polynomial.
+"""
+struct PreconfiguredReductionEngine{C<:ControlledReductionContext}
+    context::C
+end
+
 function default_context(matspace, Ruv, params)
     g_length = number_of_rows(matspace)
     B = base_ring(matspace)

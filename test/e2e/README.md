@@ -110,9 +110,9 @@ All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
 `algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
 `always_use_bigints`, `use_gpu`, `use_threads`, `interval_product_algorithm`,
-and `interval_product_min_length`. `algorithm` accepts
-`default`, `depthfirst`, `varbyvar`, or `pchunk`; `S` must be an array and
-`termorder` must be a string. The common option parser also accepts
+and `interval_product_min_length`. `algorithm` accepts `default`, `depthfirst`,
+`varbyvar`, `pchunk`, `akr`, `akr_naive`, or `akr_levelbylevel`; `S` must be an
+array and `termorder` must be a string. The common option parser also accepts
 `relative_precision`, `series_precision`, and `algorithm_precision`;
 `relative_precision` and `series_precision` take an integer or an array of
 integers, while `algorithm_precision` takes an integer. For a double-cover

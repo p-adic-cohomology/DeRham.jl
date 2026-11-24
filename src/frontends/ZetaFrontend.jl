@@ -6,12 +6,14 @@ function weight end
 function check_input end
 function reduction_prescale end
 function _supports_reduction_algorithm end
+function _reduction_allowed_policies end
 function reduction_ruv_function end
 function reduction_directions end
 function varbyvar_reduction_setup end
 function reduction_input_keys end
 function reduction_input_vector! end
 function reduction_terminal_polynomial end
+function reduction_add_terminal_chain end
 function frobenius_series end
 function frobenius_term_pole_order end
 
@@ -24,8 +26,10 @@ function reduction_prescale(P::CohomologyQuotient, m::Integer)
     return scale
 end
 
-_supports_reduction_algorithm(::ZetaFrontend, algorithm) =
-    algorithm in (:default, :depthfirst)
+_reduction_allowed_policies(::ZetaFrontend) = (:depthfirst,)
+
+_supports_reduction_algorithm(fe::ZetaFrontend, algorithm) =
+    algorithm in (:default, _reduction_allowed_policies(fe)...)
 
 """
     reduction_ruv_function(fe, S, f, pseudoInverseMat, cache, params)
@@ -157,16 +161,32 @@ Convert terminal reduction chains to the polynomial output expected by the
 final reduction stage. The chain iterator is consumed once and may be lazy.
 """
 function reduction_terminal_polynomial(fe::ZetaFrontend, chains, PR, S, params)
+    result = PR()
+    for chain in chains
+        result = reduction_add_terminal_chain(fe, result, chain, PR, params)
+    end
+    return _finish_reduction_terminal_polynomial(fe, result, PR, S)
+end
+
+"""
+    reduction_add_terminal_chain(fe, result, chain, PR, params)
+
+Add one finished terminal chain to a partially assembled reduced polynomial.
+"""
+function reduction_add_terminal_chain(fe::ZetaFrontend, result, chain, PR, params)
     P = cohomology_quotient(fe)
     reduction_degree = _reduction_g_degree(P)
+    u, g_vec = chain
+    cpu_g = Array(g_vec)
+    CUDA.@allowscalar g =
+        vector_to_polynomial(cpu_g, P.n, reduction_degree, PR, params.termorder)
     vars = gens(PR)
-    result = PR()
-    for (u, g_vec) in chains
-        cpu_g = Array(g_vec)
-        CUDA.@allowscalar g =
-            vector_to_polynomial(cpu_g, P.n, reduction_degree, PR, params.termorder)
-        result += prod(vars .^ u) * g
-    end
+    return result + prod(vars .^ u) * g
+end
+
+function _finish_reduction_terminal_polynomial(fe::ZetaFrontend, result, PR, S)
+    P = cohomology_quotient(fe)
+    vars = gens(PR)
     XS = prod(PR(vars[i+1]) for i in S; init = PR(1))
     return [[div(result, XS), terminal_pole_order(P)]]
 end

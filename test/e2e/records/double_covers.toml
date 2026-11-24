@@ -11,7 +11,7 @@ parameters = { algorithm = "depthfirst", series_precision = 2, algorithm_precisi
 name = "double_cover_hyperelliptic_g1_p3_varbyvar"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.196
+runtime = 1.268
 example = "g1_d4_a"
 p = 3
 parameters = { algorithm = "varbyvar", changef = false, S = [1], series_precision = 2, algorithm_precision = 5 }

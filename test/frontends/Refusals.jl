@@ -1,7 +1,7 @@
 struct StubFrontend <: DeRham.ZetaFrontend end
 
 @testset "Frontend algorithm refusals" begin
-    for algorithm in (:pchunk, :varbyvar, :akr)
+    for algorithm in (:pchunk, :varbyvar, :akr, :akr_naive, :akr_levelbylevel)
         @test_throws ArgumentError DeRham.zeta_coefficients(StubFrontend(); algorithm)
     end
     @test_throws ArgumentError DeRham.zeta_coefficients(StubFrontend(); use_gpu = true)

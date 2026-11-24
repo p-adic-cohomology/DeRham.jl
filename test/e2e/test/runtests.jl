@@ -818,6 +818,12 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
                 Dict{String,Any}("algorithm" => "depthfirst", "S" => [1, 2]),
             ),
         )
+        for algorithm in ("akr", "akr_naive", "akr_levelbylevel")
+            params = Dict{String,Any}("algorithm" => algorithm)
+            @test isnothing(validate("shared", params))
+            @test E2E.Common.parse_kwargs(params) ==
+                  Dict{Symbol,Any}(:algorithm => Symbol(algorithm))
+        end
         @test_throws r"unknown parameter" validate(
             "shared",
             Dict{String,Any}("not_a_parameter" => 1),
