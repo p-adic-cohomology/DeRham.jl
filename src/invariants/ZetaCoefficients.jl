@@ -130,12 +130,11 @@ function zeta_coefficients(
         throw(ArgumentError("algorithm $algorithm is not yet supported for $(typeof(fe))"))
     end
 
-    interval_product_algorithm in (:finitediff, :sqrt) ||
-        throw(ArgumentError("interval_product_algorithm must be :finitediff or :sqrt"))
-    interval_product_min_length isa Integer && !(interval_product_min_length isa Bool) &&
-        interval_product_min_length > 0 ||
-        throw(ArgumentError("interval_product_min_length must be a positive integer"))
-    interval_product_min_length = Int(interval_product_min_length)
+    interval_product_algorithm, interval_product_min_length =
+        _validate_interval_product_options(
+            interval_product_algorithm,
+            interval_product_min_length,
+        )
 
     if !(fe isa ProjectiveHypersurface)
         if use_gpu

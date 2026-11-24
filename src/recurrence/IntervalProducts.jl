@@ -23,6 +23,9 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
         _supports_sqrt_interval_product(a, b, g, temp, g_temp) ||
         throw(ArgumentError("square-root interval products require compatible CPU modular arrays"))
 
+    backend = small_modulus ?
+              _NmodIntervalProductEvaluationBackend() :
+              _FmpzModIntervalProductEvaluationBackend()
     ring = base_ring(parent(a))
     poly_ring, x = polynomial_ring(ring, "x"; cached = false)
     polynomial_matrix_space = matrix_space(poly_ring, rows, cols)
@@ -54,17 +57,21 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     block_polynomial = factors[1]
 
     points = Int[start + i * block_length for i = 0:(blocks - 1)]
+    evaluation_points = _interval_product_evaluation_points(backend, ring, points)
     evaluated_blocks = [matrix_space(ring, rows, cols)() for _ = 1:blocks]
-    for j = 1:cols, i = 1:rows
-        if small_modulus
-            point_data = UInt[data(ring(point)) for point in points]
-            values = _fast_nmod_evaluate(block_polynomial[i, j], point_data)
-        else
-            values = _fast_fmpz_mod_evaluate(block_polynomial[i, j], points)
+    try
+        for j = 1:cols, i = 1:rows
+            values = _evaluate_interval_product_polynomial(
+                backend,
+                block_polynomial[i, j],
+                evaluation_points,
+            )
+            for k = 1:blocks
+                evaluated_blocks[k][i, j] = ring(values[k])
+            end
         end
-        for k = 1:blocks
-            evaluated_blocks[k][i, j] = ring(values[k])
-        end
+    finally
+        _release_interval_product_evaluation_points!(backend, evaluation_points)
     end
 
     product = evaluated_blocks[1]
@@ -84,6 +91,74 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     return g
 end
 
+abstract type _IntervalProductEvaluationBackend end
+
+struct _NmodIntervalProductEvaluationBackend <: _IntervalProductEvaluationBackend end
+
+struct _FmpzModIntervalProductEvaluationBackend <: _IntervalProductEvaluationBackend end
+
+struct _FmpzModEvaluationPoints
+    values::Vector{Int}
+end
+
+_interval_product_evaluation_points(
+    ::_NmodIntervalProductEvaluationBackend,
+    ring,
+    points::Vector{Int},
+) = UInt[data(ring(point)) for point in points]
+
+function _interval_product_evaluation_points(
+    ::_FmpzModIntervalProductEvaluationBackend,
+    ring,
+    points::Vector{Int},
+)
+    reduced_points = ZZRingElem[lift(ring(point)) for point in points]
+    raw_points = zeros(Int, length(points))
+    initialized = 0
+    try
+        GC.@preserve ring reduced_points raw_points begin
+            for i in eachindex(points)
+                point = reduced_points[i]
+                destination = Ptr{ZZRingElem}(pointer(raw_points, i))
+                @ccall Oscar.Nemo.libflint.fmpz_set(
+                    destination::Ptr{ZZRingElem},
+                    point::Ref{ZZRingElem},
+                )::Nothing
+                initialized = i
+            end
+        end
+    catch
+        _clear_fmpz_values!(raw_points, initialized)
+        rethrow()
+    end
+    return _FmpzModEvaluationPoints(raw_points)
+end
+
+_evaluate_interval_product_polynomial(
+    ::_NmodIntervalProductEvaluationBackend,
+    poly::Oscar.Nemo.zzModPolyRingElem,
+    points::Vector{UInt},
+) = _fast_nmod_evaluate(poly, points)
+
+_evaluate_interval_product_polynomial(
+    ::_FmpzModIntervalProductEvaluationBackend,
+    poly::Oscar.Nemo.ZZModPolyRingElem,
+    points::_FmpzModEvaluationPoints,
+) = _fast_fmpz_mod_evaluate(poly, points)
+
+_release_interval_product_evaluation_points!(
+    ::_NmodIntervalProductEvaluationBackend,
+    points,
+) = nothing
+
+function _release_interval_product_evaluation_points!(
+    ::_FmpzModIntervalProductEvaluationBackend,
+    points::_FmpzModEvaluationPoints,
+)
+    _clear_fmpz_values!(points.values, length(points.values))
+    return nothing
+end
+
 function _fast_nmod_evaluate(poly::Oscar.Nemo.zzModPolyRingElem, points::Vector{UInt})
     values = Vector{UInt}(undef, length(points))
     GC.@preserve poly points values begin
@@ -98,34 +173,57 @@ function _fast_nmod_evaluate(poly::Oscar.Nemo.zzModPolyRingElem, points::Vector{
 end
 
 function _fast_fmpz_mod_evaluate(poly::Oscar.Nemo.ZZModPolyRingElem, points::Vector{Int})
-    raw_values = zeros(Int, length(points))
-    GC.@preserve poly points raw_values begin
-        @ccall Oscar.Nemo.libflint.fmpz_mod_poly_evaluate_fmpz_vec_fast(
-            raw_values::Ptr{Int},
-            poly::Ref{Oscar.Nemo.ZZModPolyRingElem},
-            points::Ptr{Int},
-            length(points)::Int,
-            base_ring(parent(poly)).ninv::Ref{Oscar.Nemo.fmpz_mod_ctx_struct},
-        )::Nothing
+    backend = _FmpzModIntervalProductEvaluationBackend()
+    evaluation_points =
+        _interval_product_evaluation_points(backend, base_ring(parent(poly)), points)
+    try
+        return _fast_fmpz_mod_evaluate(poly, evaluation_points)
+    finally
+        _release_interval_product_evaluation_points!(backend, evaluation_points)
     end
+end
 
-    values = Vector{ZZRingElem}(undef, length(points))
-    GC.@preserve raw_values values begin
-        for i in eachindex(raw_values)
-            value = ZZ(0)
-            source = Ptr{ZZRingElem}(pointer(raw_values, i))
-            @ccall Oscar.Nemo.libflint.fmpz_set(
-                value::Ref{ZZRingElem},
-                source::Ptr{ZZRingElem},
+function _fast_fmpz_mod_evaluate(
+    poly::Oscar.Nemo.ZZModPolyRingElem,
+    points::_FmpzModEvaluationPoints,
+)
+    raw_points = points.values
+    raw_values = zeros(Int, length(raw_points))
+    values = Vector{ZZRingElem}(undef, length(raw_points))
+    ring = base_ring(parent(poly))
+    GC.@preserve poly points raw_points raw_values values ring begin
+        try
+            @ccall Oscar.Nemo.libflint.fmpz_mod_poly_evaluate_fmpz_vec_fast(
+                raw_values::Ptr{Int},
+                poly::Ref{Oscar.Nemo.ZZModPolyRingElem},
+                raw_points::Ptr{Int},
+                length(raw_points)::Int,
+                ring.ninv::Ref{Oscar.Nemo.fmpz_mod_ctx_struct},
             )::Nothing
-            values[i] = value
-        end
-        for i in eachindex(raw_values)
-            source = Ptr{ZZRingElem}(pointer(raw_values, i))
-            @ccall Oscar.Nemo.libflint.fmpz_clear(source::Ptr{ZZRingElem})::Nothing
+            for i in eachindex(raw_values)
+                value = ZZ(0)
+                source = Ptr{ZZRingElem}(pointer(raw_values, i))
+                @ccall Oscar.Nemo.libflint.fmpz_set(
+                    value::Ref{ZZRingElem},
+                    source::Ptr{ZZRingElem},
+                )::Nothing
+                values[i] = value
+            end
+        finally
+            _clear_fmpz_values!(raw_values, length(raw_values))
         end
     end
     return values
+end
+
+function _clear_fmpz_values!(values::Vector{Int}, count::Int)
+    GC.@preserve values begin
+        for i = 1:count
+            value = Ptr{ZZRingElem}(pointer(values, i))
+            @ccall Oscar.Nemo.libflint.fmpz_clear(value::Ptr{ZZRingElem})::Nothing
+        end
+    end
+    return nothing
 end
 
 function _supports_sqrt_interval_product(a, b, g, temp, g_temp)
@@ -143,11 +241,15 @@ function _supports_sqrt_interval_product(a, b, g, temp, g_temp)
     return false
 end
 
+function _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
+    return params.interval_product_algorithm === :sqrt &&
+           interval_length >= params.interval_product_min_length &&
+           _supports_sqrt_interval_product(a, b, g, temp, g_temp)
+end
+
 function prodeval_linear!(a, b, start, stop, g, temp, g_temp, params::ZetaFunctionParams)
     interval_length = stop - start + 1
-    if params.interval_product_algorithm === :sqrt &&
-       interval_length >= params.interval_product_min_length &&
-       _supports_sqrt_interval_product(a, b, g, temp, g_temp)
+    if _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
         return sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     end
     return finitediff_prodeval_linear!(a, b, start, stop, g, temp, g_temp)

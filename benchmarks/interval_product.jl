@@ -55,46 +55,76 @@ function fit_power_law(lengths, times)
 end
 
 function run_interval_benchmarks()
-    lengths = (64, 256, 1024, 4096, 16384)
+    lengths = (64, 256, 1024, 4096, 16384, 65536, 262144, 1048576)
     moduli = (101^3, ZZ(101)^30, ZZ(2)^80)
     println("r,modulus,L,finitediff_seconds,sqrt_seconds,speedup")
-    for r in (2, 4), modulus in moduli
-        case = interval_case(r, modulus)
-        interval_time(:finitediff, case, 4; repetitions = 1)
-        interval_time(:sqrt, case, 4; repetitions = 1)
-        finite = Float64[]
-        square_root = Float64[]
-        for interval_length in lengths
-            expected = copy(case[5])
-            actual = copy(case[5])
-            DeRham.finitediff_prodeval_linear!(
-                case[3], case[4], 0, interval_length - 1, expected,
-                case[2](), copy(expected),
+    for r in (2, 4, 10, 28)
+        benchmark_moduli = r <= 4 ? moduli : (moduli[1],)
+        repetitions = r <= 4 ? 3 : 1
+        for modulus in benchmark_moduli
+            case = interval_case(r, modulus)
+            interval_time(:finitediff, case, 4; repetitions = 1)
+            interval_time(:sqrt, case, 4; repetitions = 1)
+            finite = Float64[]
+            square_root = Float64[]
+            measured_lengths = Int[]
+            for interval_length in lengths
+                expected = copy(case[5])
+                actual = copy(case[5])
+                DeRham.finitediff_prodeval_linear!(
+                    case[3], case[4], 0, interval_length - 1, expected,
+                    case[2](), copy(expected),
+                )
+                DeRham.sqrt_interval_product!(
+                    case[3], case[4], 0, interval_length - 1, actual,
+                    case[2](), copy(actual),
+                )
+                @assert actual == expected
+                finite_time = interval_time(
+                    :finitediff,
+                    case,
+                    interval_length;
+                    repetitions = repetitions,
+                )
+                sqrt_time = interval_time(
+                    :sqrt,
+                    case,
+                    interval_length;
+                    repetitions = repetitions,
+                )
+                push!(finite, finite_time)
+                push!(square_root, sqrt_time)
+                push!(measured_lengths, interval_length)
+                println(
+                    "$(r),$(modulus),$(interval_length),$(finite_time),$(sqrt_time),$(finite_time / sqrt_time)",
+                )
+                max(finite_time, sqrt_time) > 180 && break
+            end
+            crossover = findfirst(
+                i -> square_root[i] < finite[i],
+                eachindex(measured_lengths),
             )
-            DeRham.sqrt_interval_product!(
-                case[3], case[4], 0, interval_length - 1, actual,
-                case[2](), copy(actual),
-            )
-            @assert actual == expected
-            finite_time = interval_time(:finitediff, case, interval_length)
-            sqrt_time = interval_time(:sqrt, case, interval_length)
-            push!(finite, finite_time)
-            push!(square_root, sqrt_time)
+            crossover_length =
+                crossover === nothing ? "none" : string(measured_lengths[crossover])
+            if length(measured_lengths) >= 3
+                finite_exponent, finite_intercept =
+                    fit_power_law(measured_lengths[2:end], finite[2:end])
+                sqrt_exponent, sqrt_intercept =
+                    fit_power_law(measured_lengths[2:end], square_root[2:end])
+                fitted_crossover = finite_exponent > sqrt_exponent ?
+                    exp(
+                        (sqrt_intercept - finite_intercept) /
+                        (finite_exponent - sqrt_exponent),
+                    ) : Inf
+            else
+                finite_exponent = NaN
+                sqrt_exponent = NaN
+                fitted_crossover = NaN
+            end
             println(
-                "$(r),$(modulus),$(interval_length),$(finite_time),$(sqrt_time),$(finite_time / sqrt_time)",
+                "summary,r=$(r),modulus=$(modulus),tested_lengths=$(join(measured_lengths, ';')),crossover_L=$(crossover_length),fitted_crossover_L=$(fitted_crossover),finite_exponent=$(finite_exponent),sqrt_exponent=$(sqrt_exponent)",
             )
         end
-        crossover = findfirst(i -> square_root[i] < finite[i], eachindex(lengths))
-        crossover_length = crossover === nothing ? "none" : string(lengths[crossover])
-        finite_exponent, finite_intercept = fit_power_law(lengths[2:end], finite[2:end])
-        sqrt_exponent, sqrt_intercept =
-            fit_power_law(lengths[2:end], square_root[2:end])
-        fitted_crossover = finite_exponent > sqrt_exponent ?
-            exp((sqrt_intercept - finite_intercept) / (finite_exponent - sqrt_exponent)) :
-            Inf
-        println(
-            "summary,r=$(r),modulus=$(modulus),crossover_L=$(crossover_length),fitted_crossover_L=$(fitted_crossover),finite_exponent=$(finite_exponent),sqrt_exponent=$(sqrt_exponent)",
-        )
     end
 
     p = 1009

@@ -12,6 +12,20 @@ struct ZetaFunctionParams
     interval_product_min_length::Int
 end
 
+function _validate_interval_product_options(algorithm, min_length)
+    algorithm in (:finitediff, :sqrt) ||
+        throw(ArgumentError("interval_product_algorithm must be :finitediff or :sqrt"))
+    min_length isa Integer && !(min_length isa Bool) && min_length > 0 ||
+        throw(ArgumentError("interval_product_min_length must be a positive integer"))
+    min_length = try
+        Int(min_length)
+    catch error
+        error isa InexactError || rethrow()
+        throw(ArgumentError("interval_product_min_length must fit in an Int"))
+    end
+    return algorithm, min_length
+end
+
 ZetaFunctionParams(
     verbose,
     givefrobmat,

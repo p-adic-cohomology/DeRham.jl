@@ -166,6 +166,11 @@ function pregen_default_context(
     interval_product_min_length = 64,
     lazy = false,
 )
+    interval_product_algorithm, interval_product_min_length =
+        _validate_interval_product_options(
+            interval_product_algorithm,
+            interval_product_min_length,
+        )
     params = ZetaFunctionParams(
         verbose,
         givefrobmat,

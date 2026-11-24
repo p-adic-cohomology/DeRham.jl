@@ -1,13 +1,21 @@
 [[test]]
 name = "sqrt_depthfirst__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
-runtime = 0.781
+runtime = 0.366
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false, interval_product_algorithm = "sqrt", interval_product_min_length = 1 }
 
 [[test]]
 name = "sqrt_pchunk__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
-runtime = 1.582
+runtime = 0.391
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "pchunk", interval_product_algorithm = "sqrt", interval_product_min_length = 1 }
+
+[[test]]
+name = "sqrt_bigints_depthfirst__dim_1_deg_3_fermat_1"
+type = "zeta_coefficients"
+tags = ["bigint"]
+runtime = 0.466
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "depthfirst", always_use_bigints = true, interval_product_algorithm = "sqrt", interval_product_min_length = 1 }
