@@ -40,11 +40,8 @@ function _default_reduction_selection(f, P, S)
     return _default_reduction_selection(fe, S)
 end
 
-function _supportcone_default_S(fe, f, P, S, algorithm)
+function _supportcone_default_S(_fe, _f, P, S, _algorithm)
     S == [-1] || return S
-    if algorithm == :supportcone && fe isa ProjectiveHypersurface && is_Ssmooth(f, P, Int[])
-        return Int[]
-    end
     return collect(0:P.n)
 end
 

@@ -144,4 +144,23 @@ end
           count(event -> event.operation == :fallback, fallback_engine.events)
     @test fallback_result.fallback_keys == 2
     @test fallback_result.fallback_steps == 3
+
+    invalid_fallback_engine = DeRham.AccountingReductionEngine(geometry, directions)
+    invalid_fallback_policy = DeRham.SupportConePolicy(
+        DeRham.SupportConePlanner([(2, 0)]),
+        2,
+        Int[],
+    )
+    invalid_fallback_inputs = [(2, [(key = ([1, 0], 2), terms = [])])]
+    @test_throws ArgumentError DeRham.run_reduction_policy!(
+        invalid_fallback_policy,
+        invalid_fallback_engine,
+        invalid_fallback_inputs,
+        directions,
+        _ -> nothing,
+    )
+    @test all(
+        event -> event.operation != :fallback,
+        invalid_fallback_engine.events,
+    )
 end

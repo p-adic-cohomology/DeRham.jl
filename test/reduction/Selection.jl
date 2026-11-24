@@ -104,7 +104,7 @@
         P,
         [-1],
         :supportcone,
-    ) == Int[]
+    ) == collect(0:P.n)
     @test DeRham._supportcone_default_S(
         hypersurface,
         cubic,
