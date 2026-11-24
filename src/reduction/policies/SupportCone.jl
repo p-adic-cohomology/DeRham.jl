@@ -1,10 +1,12 @@
 """
     SupportConePlanner(support)
 
-Build exact support directions and all nonsingular support subcones. Directions
-are exponent tuples sorted lexicographically. Subcones are ordered
-lexicographically by their support-index tuples, and may overlap; they are not
-a triangulation. Determinants and Cramer coordinates use integer arithmetic.
+Build exact support directions and a bounded, deterministic set of nonsingular
+support subcones. Directions are exponent tuples sorted lexicographically. The
+lexicographically first full-rank subcone is always included; at most the first
+256 combinations are searched and at most 64 subcones are retained. Subcones
+may overlap; they are not a triangulation. Determinants and Cramer coordinates
+use integer arithmetic.
 """
 struct SupportConeSubcone{N}
     indices::NTuple{N,Int}
@@ -25,6 +27,9 @@ struct SupportConePlan{N}
     subcone::NTuple{N,Int}
     chunks::Vector{SupportConeChunk{N}}
 end
+
+const _SUPPORTCONE_MAX_SUBCONE_COMBINATIONS = 256
+const _SUPPORTCONE_MAX_SUBCONES = 64
 
 function _supportcone_determinant(matrix::AbstractMatrix{<:Integer})
     size(matrix, 1) == size(matrix, 2) ||
@@ -70,25 +75,79 @@ function _supportcone_determinant(matrix::AbstractMatrix{<:Integer})
     return sign * work[dimension, dimension]
 end
 
+function _supportcone_lexicographic_basis(::Val{N}, support) where {N}
+    pivots = Int[]
+    echelon = Vector{Vector{Rational{BigInt}}}()
+    indices = Int[]
+
+    for (index, direction) in enumerate(support)
+        row = [BigInt(value) // BigInt(1) for value in direction]
+        for (pivot, basis_row) in zip(pivots, echelon)
+            factor = row[pivot]
+            iszero(factor) && continue
+            for column = pivot:N
+                row[column] -= factor * basis_row[column]
+            end
+        end
+
+        pivot = findfirst(value -> !iszero(value), row)
+        pivot === nothing && continue
+        scale = row[pivot]
+        for column = pivot:N
+            row[column] /= scale
+        end
+        push!(pivots, pivot)
+        push!(echelon, row)
+        push!(indices, index)
+        length(indices) == N && return Tuple(indices)
+    end
+
+    return nothing
+end
+
+function _supportcone_subcone(support, indices::NTuple{N,Int}) where {N}
+    matrix = Matrix{BigInt}(undef, N, N)
+    for row = 1:N
+        for column = 1:N
+            matrix[row, column] = support[indices[column]][row]
+        end
+    end
+    determinant = _supportcone_determinant(matrix)
+    iszero(determinant) && return nothing
+    return SupportConeSubcone(indices, determinant)
+end
+
+function _supportcone_candidate_subcones(::Val{N}, support) where {N}
+    subcones = SupportConeSubcone{N}[]
+    basis = _supportcone_lexicographic_basis(Val(N), support)
+    if basis !== nothing
+        subcone = _supportcone_subcone(support, basis)
+        subcone === nothing || push!(subcones, subcone)
+    end
+
+    combinations_examined = 0
+    for selection in Combinatorics.combinations(1:length(support), N)
+        combinations_examined >= _SUPPORTCONE_MAX_SUBCONE_COMBINATIONS && break
+        combinations_examined += 1
+
+        indices = Tuple(selection)
+        indices == basis && continue
+        subcone = _supportcone_subcone(support, indices)
+        subcone === nothing && continue
+        push!(subcones, subcone)
+        length(subcones) >= _SUPPORTCONE_MAX_SUBCONES && break
+    end
+
+    return (; subcones, combinations_examined)
+end
+
 function _supportcone_planner(::Val{N}, raw_support) where {N}
     support = NTuple{N,Int}[Tuple(direction) for direction in raw_support]
     sort!(support)
     unique!(support)
 
-    subcones = SupportConeSubcone{N}[]
-    for selection in Combinatorics.combinations(1:length(support), N)
-        indices = Tuple(selection)
-        matrix = Matrix{BigInt}(undef, N, N)
-        for row = 1:N
-            for column = 1:N
-                matrix[row, column] = support[indices[column]][row]
-            end
-        end
-        determinant = _supportcone_determinant(matrix)
-        iszero(determinant) || push!(subcones, SupportConeSubcone(indices, determinant))
-    end
-
-    return SupportConePlanner{N}(support, subcones)
+    candidates = _supportcone_candidate_subcones(Val(N), support)
+    return SupportConePlanner{N}(support, candidates.subcones)
 end
 
 function SupportConePlanner(support)
@@ -179,12 +238,13 @@ function _supportcone_plan(
 end
 
 """
-    SupportConePolicy(planner, degree, S)
+SupportConePolicy(planner, degree, S)
 
 Experimental controlled-reduction policy using exact plans from the defining
 polynomial's support, with depth-first fallback for keys without a support plan.
-Support vectors are sorted lexicographically, and full-rank subcones are tried
-in lexicographic support-index order; overlapping subcones are not triangulated.
+Support vectors are sorted lexicographically, and the bounded candidate
+subcones are tried in lexicographic support-index order; overlapping subcones
+are not triangulated.
 """
 struct SupportConePolicy{N} <: AbstractReductionPolicy
     planner::SupportConePlanner{N}
