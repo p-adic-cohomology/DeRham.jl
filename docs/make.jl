@@ -35,6 +35,7 @@ makedocs(
             "Artin–Mazur height" => "invariants/artin_mazur_height.md",
             "Artin invariant" => "invariants/artin_invariant.md",
             "Jacobians" => "invariants/jacobians.md",
+            "Pairs of quadrics" => "invariants/quadric_pencils.md",
         ],
         "Utilities" => "utilities.md",
         "Experimental" => [

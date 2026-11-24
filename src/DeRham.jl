@@ -150,6 +150,7 @@ include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
 include("./invariants/ArtinInvariant.jl")
 include("./invariants/Jacobian.jl")
+include("./invariants/QuadricPencil.jl")
 
 
 export zeta_coefficients,
@@ -173,6 +174,8 @@ export zeta_coefficients,
     jacobian_zeta_function
 
 public fermat_hypersurface,
+    quadric_pencil_zeta,
+    quadric_pencil_point_count,
     random_hypersurface,
     DoubleCover,
     get_basis_of_cohomology,

@@ -32,6 +32,8 @@ end
         :jacobian_zeta_function,
     ])
     expected_public = Set([
+        :quadric_pencil_point_count,
+        :quadric_pencil_zeta,
         :fermat_hypersurface,
         :random_hypersurface,
         :DoubleCover,
