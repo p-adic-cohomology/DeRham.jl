@@ -1,0 +1,8 @@
+[[test]]
+name = "akr_nonfermat_k3_p7_matrix_akr"
+type = "akr_frobenius_matrix"
+tags = []
+runtime = 35.199
+example = "dim_2_deg_4_many_1"
+p = 7
+parameters = { algorithm = "akr", relative_precision = 1 }

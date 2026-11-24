@@ -14,3 +14,9 @@ derivatives.
 
 These algorithms are selected with `zeta_coefficients(...; algorithm=...)`.
 They are not part of the default reduction heuristic.
+
+When `S` contains all variables and the characteristic does not divide the
+hypersurface degree, AKR builds one Jacobian relation table at degree
+`(n + 1)(d - 2) + 1` and obtains higher-degree relations by multiplying those
+cutoff relations by monomials. For a proper variable subset or a characteristic
+dividing the degree, AKR keeps the per-pole-order pseudo-inverse path.

@@ -1,0 +1,41 @@
+[[test]]
+name = "akr_cutoff_prime_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.967
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "akr" }
+
+[[test]]
+name = "akr_cutoff_prime_akr_naive"
+type = "zeta_coefficients"
+tags = []
+runtime = 1.269
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "akr_naive" }
+
+[[test]]
+name = "akr_cutoff_prime_akr_levelbylevel"
+type = "zeta_coefficients"
+tags = []
+runtime = 1.089
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "akr_levelbylevel" }
+
+[[test]]
+name = "akr_cutoff_plane_quartic_p7_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 10.364
+example = "akr_nonfermat_plane_quartic_cutoff"
+p = 7
+parameters = { algorithm = "akr" }
+
+[[test]]
+name = "akr_cutoff_plane_quartic_p11_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 84.636
+example = "akr_nonfermat_plane_quartic_cutoff"
+p = 11
+parameters = { algorithm = "akr" }

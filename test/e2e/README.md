@@ -96,6 +96,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 | `type` | Expected value and input | Record-specific parameters |
 | --- | --- | --- |
 | `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
+| `akr_frobenius_matrix` | Frobenius matrix stored in `derham-invariants` notes; quartic K3 | `algorithm`, `relative_precision = 1` |
 | `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
 | `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |
 | `picard_rank_bound` | Stored `Lpoly`; projective surface | None required |

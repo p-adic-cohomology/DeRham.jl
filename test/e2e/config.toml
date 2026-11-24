@@ -22,6 +22,9 @@ records = [
     "double_cover_P2_d4_fermat_p3_varbyvar",
     "double_cover_P2_d4_fermat_p3_pchunk",
     "double_cover_P2_sextic_sparse_p5",
+    "akr_cutoff_prime_akr",
+    "akr_cutoff_prime_akr_naive",
+    "akr_cutoff_prime_akr_levelbylevel",
 ]
 
 [tags]
