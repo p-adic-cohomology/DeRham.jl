@@ -1,3 +1,29 @@
+"""
+    AbstractDenseReduction
+
+A dense reduction strategy that maps polynomial data from one pole order to a
+lower pole order or to the cohomology basis.
+"""
+abstract type AbstractDenseReduction end
+
+"""
+    dense_reduce(reduction, input, m_src, m_tgt, context)
+
+Apply a dense reduction from source pole order `m_src` to target `m_tgt`.
+Implementations receive frontend-specific data through `context`.
+"""
+function dense_reduce end
+
+"""
+    PrecomputedDenseReduction(matrix, source_order)
+
+The existing precomputed final reduction, from `source_order` to the basis.
+"""
+struct PrecomputedDenseReduction{T} <: AbstractDenseReduction
+    matrix::T
+    source_order::Int
+end
+
 struct ReductionSetup{F,S}
     frontend::F
     policy::Symbol

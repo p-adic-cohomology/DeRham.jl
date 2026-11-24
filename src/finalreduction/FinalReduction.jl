@@ -107,6 +107,12 @@ end
 computeT(f::MPolyRingElem, Basis, M, params, cache) =
     computeT(ProjectiveHypersurface(f), Basis, M, params, cache)
 
+function _precomputed_dense_reduction(fe::ZetaFrontend, Basis, M, params, cache)
+    T = computeT(fe, Basis, M, params, cache)
+    source_order = terminal_pole_order(cohomology_quotient(fe))
+    return PrecomputedDenseReduction(T, source_order)
+end
+
 """
     reduce_order_n_to_basis
 
@@ -180,6 +186,34 @@ function reduce_order_n_to_basis(
 
 end
 
+function dense_reduce(
+    reduction::PrecomputedDenseReduction,
+    poly_to_reduce,
+    source_order::Integer,
+    target_order::Symbol,
+    context::NamedTuple,
+)
+    source_order == reduction.source_order ||
+        throw(ArgumentError("precomputed dense reduction starts at $(reduction.source_order)"))
+    target_order === :basis ||
+        throw(ArgumentError("precomputed dense reduction targets the cohomology basis"))
+
+    return reduce_order_n_to_basis(
+        context.fe,
+        context.p,
+        context.e,
+        context.precision,
+        context.VS,
+        poly_to_reduce,
+        reduction.matrix,
+        context.R,
+        context.cache,
+        context.ev;
+        output_ring = context.output_ring,
+        final_scale = context.final_scale,
+    )
+end
+
 function _frobenius_column_scale_exponents(fe::ZetaFrontend, p, N_m, Basis)
     scale_exponents = Int[]
     for i = 1:length(Basis)
@@ -239,7 +273,7 @@ function compute_frobenius_matrix(
     p,
     N_m,
     Reductions,
-    T,
+    reduction::PrecomputedDenseReduction,
     Basis,
     params,
     cache,
@@ -247,6 +281,7 @@ function compute_frobenius_matrix(
     verbose = params.verbose
     termorder = params.termorder
     (9 < verbose) && println("Terms after controlled reduction: $Reductions")
+    T = reduction.matrix
     R = parent(T[1, 1])
     scale_exponents = _frobenius_column_scale_exponents(fe, p, N_m, Basis)
     output_ring = _frobenius_output_ring(p, modulus(R), maximum(scale_exponents))
@@ -260,19 +295,24 @@ function compute_frobenius_matrix(
         N = N_m[e]
         poly_to_reduce = Reductions[i][1]
         column_ring = _frobenius_output_ring(p, modulus(R), scale_exponents[i])
-        temp = reduce_order_n_to_basis(
-            fe,
-            p,
-            e,
-            N,
-            VS,
-            poly_to_reduce,
-            T,
-            R,
-            cache,
-            ev;
+        context = (
+            fe = fe,
+            p = p,
+            e = e,
+            precision = N,
+            VS = VS,
+            R = R,
+            cache = cache,
+            ev = ev,
             output_ring = column_ring,
             final_scale = scale_exponents[i],
+        )
+        temp = dense_reduce(
+            reduction,
+            poly_to_reduce,
+            reduction.source_order,
+            :basis,
+            context,
         )
 
         push!(frob_mat_temp, temp)
@@ -285,6 +325,14 @@ function compute_frobenius_matrix(
     end
 
     return frob_mat
+end
+
+function compute_frobenius_matrix(fe::ZetaFrontend, p, N_m, Reductions, T, Basis, params, cache)
+    reduction = PrecomputedDenseReduction(
+        T,
+        terminal_pole_order(cohomology_quotient(fe)),
+    )
+    return compute_frobenius_matrix(fe, p, N_m, Reductions, reduction, Basis, params, cache)
 end
 
 #end

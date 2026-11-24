@@ -323,10 +323,11 @@ function zeta_coefficients(
 
     if (0 < verbose)
         println("Computing T matrix...")
-        @time T = computeT(fe, basis, M, params, cache)
+        @time dense_reduction = _precomputed_dense_reduction(fe, basis, M, params, cache)
     else
-        T = computeT(fe, basis, M, params, cache)
+        dense_reduction = _precomputed_dense_reduction(fe, basis, M, params, cache)
     end
+    T = dense_reduction.matrix
     (9 < verbose) && println("T matrix is $T")
 
     for i = 1:nrows(pseudo_inverse_mat_new)
@@ -355,7 +356,7 @@ function zeta_coefficients(
 
     ev = cache[numerator_degree(P, terminal_pole_order(P))]
     (9 < verbose) && println(convert_p_to_m([Reductions[1][1][1], Reductions[2][1][1]], ev))
-    FM = compute_frobenius_matrix(fe, p, N_m, Reductions, T, Basis, params, cache)
+    FM = compute_frobenius_matrix(fe, p, N_m, Reductions, dense_reduction, Basis, params, cache)
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat
