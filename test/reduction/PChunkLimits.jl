@@ -33,7 +33,7 @@ function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
     )
 end
 
-@testset "pchunk representation limits" begin
+@testset "pchunk CPU representations" begin
     oversized_chunk = BigInt(typemax(Int)) + 1
     policy = DeRham.PChunkPolicy(3, [2], oversized_chunk)
     @test policy.maximum_chunk == typemax(Int)
@@ -41,23 +41,20 @@ end
     largest_allowed_modulus = BigInt(2)^64 - 1
     setup = _pchunk_execution_setup_at_modulus(largest_allowed_modulus)
     @test setup.backend == :cpu_uint
+    @test setup.representation == :uint
 
-    rejected_setup = try
-        _pchunk_execution_setup_at_modulus(BigInt(2)^64)
-        nothing
-    catch err
-        err
-    end
-    @test rejected_setup isa ArgumentError
-    if rejected_setup isa ArgumentError
-        @test occursin(
-            "pchunk currently supports only small-modulus CPU execution",
-            sprint(showerror, rejected_setup),
-        )
-    end
+    big_modulus_setup = _pchunk_execution_setup_at_modulus(BigInt(2)^64)
+    @test big_modulus_setup.backend == :cpu_bigint
+    @test big_modulus_setup.representation == :bigint
+    big_modulus_context = big_modulus_setup.context_factory()
+    @test big_modulus_context.A isa DeRham.ZZModMatrix
+    @test big_modulus_context.g isa Vector{DeRham.ZZRingElem}
 
-    @test_throws ArgumentError _pchunk_execution_setup_at_modulus(
-        5;
-        always_use_bigints = true,
-    )
+    forced_bigint_setup = _pchunk_execution_setup_at_modulus(5; always_use_bigints = true)
+    @test forced_bigint_setup.backend == :cpu_bigint
+    @test forced_bigint_setup.representation == :bigint
+    forced_bigint_context = forced_bigint_setup.context_factory()
+    @test forced_bigint_context.g isa Vector{DeRham.ZZRingElem}
+    @test DeRham._matrix_engine_vector(forced_bigint_context.g) isa
+          Vector{DeRham.ZZRingElem}
 end

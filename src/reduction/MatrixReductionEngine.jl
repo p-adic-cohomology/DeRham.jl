@@ -13,7 +13,9 @@ its context supplies shared matrix and scratch buffers for sequential moves.
 normalization.
 
 Keyword arguments:
-`evaluation_kernel = eval_to_linear!` and `fastevaluation = false`.
+`evaluation_kernel = eval_to_linear!`, `fastevaluation = false`, and
+`params`, which configures the interval-product method when fast evaluation is
+enabled.
 """
 mutable struct MatrixReductionEngine{D,C,F,K,V} <: AbstractReductionEngine
     geometry::ReductionEngineGeometry
@@ -22,6 +24,7 @@ mutable struct MatrixReductionEngine{D,C,F,K,V} <: AbstractReductionEngine
     fill_vector!::F
     evaluation_kernel::K
     fastevaluation::Bool
+    params::ZetaFunctionParams
     live::Dict{Int,MatrixReductionChainState{V}}
     next_identifier::Int
 end
@@ -33,9 +36,23 @@ function MatrixReductionEngine(
     fill_vector!;
     evaluation_kernel = eval_to_linear!,
     fastevaluation = false,
+    params = nothing,
 )
     vector_type = typeof(_matrix_engine_vector(context.g))
     live = Dict{Int,MatrixReductionChainState{vector_type}}()
+    interval_product_params =
+        params === nothing ?
+        ZetaFunctionParams(
+            0,
+            false,
+            :default,
+            :invlex,
+            false,
+            fastevaluation,
+            false,
+            false,
+            false,
+        ) : params
     return MatrixReductionEngine(
         geometry,
         directions,
@@ -43,6 +60,7 @@ function MatrixReductionEngine(
         fill_vector!,
         evaluation_kernel,
         fastevaluation,
+        interval_product_params,
         live,
         1,
     )
@@ -139,7 +157,7 @@ function reduce!(engine::MatrixReductionEngine, chain::ReductionChainHandle, v, 
     )
 
     if engine.fastevaluation
-        finitediff_prodeval_linear!(
+        prodeval_linear!(
             engine.context.B,
             engine.context.A,
             0,
@@ -147,6 +165,7 @@ function reduce!(engine::MatrixReductionEngine, chain::ReductionChainHandle, v, 
             state.vector,
             engine.context.temp,
             engine.context.g_temp,
+            engine.params,
         )
     else
         for i = 1:k

@@ -19,6 +19,7 @@ function _depthfirst_engine_factory(execution_setup, fe, P, S, cache, params, di
             fill_vector!;
             evaluation_kernel = execution_setup.kernel,
             fastevaluation = params.fastevaluation,
+            params = params,
         )
         return DepthFirstEngineState(engine)
     end

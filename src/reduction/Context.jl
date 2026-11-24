@@ -69,7 +69,8 @@ end
 function _resolve_interval_product_options(context, algorithm, min_length)
     if min_length === _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH
         min_length =
-            context isa ControlledReductionContext ? context.interval_product_min_length : nothing
+            context isa ControlledReductionContext ? context.interval_product_min_length :
+            nothing
     end
     if context isa ControlledReductionContext
         algorithm = something(algorithm, context.interval_product_algorithm)
@@ -174,7 +175,7 @@ function default_context(matspace, Ruv, params)
         B = matspace()
         temp = matspace()
 
-        if params.always_use_bigints || ZZ(2)^64 < ZZ(m)
+        if params.always_use_bigints || ZZ(2)^64 <= ZZ(m)
             # Big modulus
             # NOTE: can't use `similar` for a pointer type
             g = [ZZ(0) for i = 1:g_length]
@@ -341,7 +342,7 @@ function pregen_default_context(
         B = matspace()
         temp = matspace()
 
-        if params.always_use_bigints || ZZ(2)^64 < ZZ(M)
+        if params.always_use_bigints || ZZ(2)^64 <= ZZ(M)
             # Big modulus
             # NOTE: can't use `similar` for a pointer type
             g = [ZZ(0) for i = 1:g_length]
@@ -371,7 +372,7 @@ function default_context_type(matspace, params)
 
     if params.use_gpu == true
         ControlledReductionContext{CuModMatrix{Float64},CuModVector{Float64}}
-    elseif params.always_use_bigints || ZZ(2)^64 < ZZ(m)
+    elseif params.always_use_bigints || ZZ(2)^64 <= ZZ(m)
         ControlledReductionContext{ZZModMatrix,Vector{ZZRingElem}}
     else
         ControlledReductionContext{zzModMatrix,Vector{UInt}}

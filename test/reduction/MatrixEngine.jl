@@ -33,6 +33,7 @@
             preconfigured,
             fill_vector!;
             fastevaluation,
+            params,
         )
         return engine
     end

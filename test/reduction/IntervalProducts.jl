@@ -110,10 +110,8 @@ end
         if modulus <= ZZ(2)^64
             point_data = UInt[data(modular_ring(point)) for point in points]
             backend = DeRham._NmodIntervalProductEvaluationBackend()
-            evaluation_points = DeRham._nmod_interval_product_evaluation_points(
-                polynomial,
-                point_data,
-            )
+            evaluation_points =
+                DeRham._nmod_interval_product_evaluation_points(polynomial, point_data)
             try
                 actual = DeRham._evaluate_interval_product_polynomial(
                     backend,
@@ -126,9 +124,13 @@ end
                     evaluation_points,
                 )
             finally
-                DeRham._release_interval_product_evaluation_points!(backend, evaluation_points)
+                DeRham._release_interval_product_evaluation_points!(
+                    backend,
+                    evaluation_points,
+                )
             end
-            expected = UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
+            expected =
+                UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
             expected_second = UInt[
                 data(evaluate(second_polynomial, modular_ring(point))) for point in points
             ]
@@ -152,7 +154,10 @@ end
                     evaluation_points,
                 )
             finally
-                DeRham._release_interval_product_evaluation_points!(backend, evaluation_points)
+                DeRham._release_interval_product_evaluation_points!(
+                    backend,
+                    evaluation_points,
+                )
             end
             expected = ZZRingElem[
                 lift(evaluate(polynomial, modular_ring(point))) for point in points
@@ -339,9 +344,7 @@ end
     )
     big_actual = copy(big_g)
     big_interval_product_calls = Ref(0)
-    DeRham._with_interval_product_test_hook(
-        () -> (big_interval_product_calls[] += 1),
-    ) do
+    DeRham._with_interval_product_test_hook(() -> (big_interval_product_calls[] += 1)) do
         DeRham.prodeval_linear!(
             big_a,
             big_b,
@@ -471,8 +474,7 @@ end
         automatic_context,
         nothing,
         DeRham._UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
-    ) ==
-          (:sqrt, nothing)
+    ) == (:sqrt, nothing)
 
     inherited_coefficients = zeta_coefficients(
         frontend;

@@ -212,6 +212,7 @@ function _matrix_reduction_runtime_factory(
             fill_vector!;
             evaluation_kernel = execution_setup.kernel,
             fastevaluation = params.fastevaluation,
+            params = params,
         )
         return MatrixReductionRuntime(engine)
     end
