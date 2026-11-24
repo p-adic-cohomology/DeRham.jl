@@ -29,8 +29,9 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
         throw(DimensionMismatch("interval product temporary matrix must match the inputs"))
     length(g) == cols ||
         throw(DimensionMismatch("interval product vector must match the matrix columns"))
-    length(g_temp) == rows ||
-        throw(DimensionMismatch("interval product temporary vector must match the matrix rows"))
+    length(g_temp) == rows || throw(
+        DimensionMismatch("interval product temporary vector must match the matrix rows"),
+    )
 
     backend =
         small_modulus ? _NmodIntervalProductEvaluationBackend() :
@@ -235,8 +236,10 @@ _evaluate_interval_product_polynomial(
 _interval_product_evaluation_buffer(::_NmodIntervalProductEvaluationBackend, count::Int) =
     Vector{UInt}(undef, count)
 
-_interval_product_evaluation_buffer(::_FmpzModIntervalProductEvaluationBackend, count::Int) =
-    (zeros(Int, count), ZZRingElem[ZZ(0) for _ = 1:count])
+_interval_product_evaluation_buffer(
+    ::_FmpzModIntervalProductEvaluationBackend,
+    count::Int,
+) = (zeros(Int, count), ZZRingElem[ZZ(0) for _ = 1:count])
 
 function _evaluate_interval_product_polynomial!(
     ::_NmodIntervalProductEvaluationBackend,
