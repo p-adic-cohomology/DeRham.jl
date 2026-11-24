@@ -18,8 +18,7 @@ end
     @test length(fermat.subcones) == 1
     @test plan !== nothing
     @test plan.subcone == (1, 2, 3)
-    @test [(chunk.direction, chunk.steps) for chunk in plan.chunks] ==
-          [((0, 0, 4), 1), ((0, 4, 0), 2), ((4, 0, 0), 2)]
+    @test [(chunk.direction, chunk.steps) for chunk in plan.chunks] == [((0, 0, 4), 1), ((0, 4, 0), 2), ((4, 0, 0), 2)]
     @test sum(chunk.steps for chunk in plan.chunks) == key.order - 1
     repeated_plan = DeRham._supportcone_plan(
         fermat,
@@ -27,10 +26,7 @@ end
         1,
         directions,
     )
-    @test (
-        plan.subcone,
-        [(chunk.direction, chunk.steps) for chunk in plan.chunks],
-    ) == (
+    @test (plan.subcone, [(chunk.direction, chunk.steps) for chunk in plan.chunks]) == (
         repeated_plan.subcone,
         [(chunk.direction, chunk.steps) for chunk in repeated_plan.chunks],
     )
@@ -45,19 +41,22 @@ end
     overlapping_support = [(4, 0, 0), (0, 4, 0), (0, 0, 4), (2, 2, 0)]
     overlapping = DeRham.SupportConePlanner(overlapping_support)
     overlapping_key = DeRham.ReductionChainKey((8, 8, 4), 5)
-    overlapping_plan =
-        DeRham._supportcone_plan(overlapping, overlapping_key, 1, directions)
+    overlapping_plan = DeRham._supportcone_plan(overlapping, overlapping_key, 1, directions)
 
     @test length(overlapping.subcones) == 3
-    @test DeRham._supportcone_floors(overlapping, overlapping.subcones[1], overlapping_key.u) ==
-          BigInt[1, 0, 4]
-    @test DeRham._supportcone_floors(overlapping, overlapping.subcones[2], overlapping_key.u) ==
-          BigInt[1, 2, 2]
+    @test DeRham._supportcone_floors(
+        overlapping,
+        overlapping.subcones[1],
+        overlapping_key.u,
+    ) == BigInt[1, 0, 4]
+    @test DeRham._supportcone_floors(
+        overlapping,
+        overlapping.subcones[2],
+        overlapping_key.u,
+    ) == BigInt[1, 2, 2]
     @test overlapping_plan.subcone == (1, 2, 3)
-    @test [(chunk.direction, chunk.steps) for chunk in overlapping_plan.chunks] ==
-          [((0, 0, 4), 1), ((2, 2, 0), 3)]
-    @test sum(chunk.steps for chunk in overlapping_plan.chunks) ==
-          overlapping_key.order - 1
+    @test [(chunk.direction, chunk.steps) for chunk in overlapping_plan.chunks] == [((0, 0, 4), 1), ((2, 2, 0), 3)]
+    @test sum(chunk.steps for chunk in overlapping_plan.chunks) == overlapping_key.order - 1
     overlapping_u = collect(overlapping_key.u)
     for chunk in overlapping_plan.chunks
         @test directions(Tuple(overlapping_u), chunk.steps, chunk.direction)
@@ -71,7 +70,8 @@ end
 
     restricted_directions = supportcone_test_directions(4, [0])
     restricted_key = DeRham.ReductionChainKey((4, 4, 4), 4)
-    @test DeRham._supportcone_plan(fermat, restricted_key, 1, restricted_directions) === nothing
+    @test DeRham._supportcone_plan(fermat, restricted_key, 1, restricted_directions) ===
+          nothing
 end
 
 @testset "SupportCone policy" begin
@@ -80,10 +80,8 @@ end
     planner = DeRham.SupportConePlanner([(2, 0), (0, 2)])
     policy = DeRham.SupportConePolicy(planner, 2, Int[])
     engine = DeRham.AccountingReductionEngine(geometry, directions)
-    inputs = [
-        (4, [(key = ([4, 4], 4), terms = [])]),
-        (3, [(key = ([4, 2], 3), terms = [])]),
-    ]
+    inputs =
+        [(4, [(key = ([4, 4], 4), terms = [])]), (3, [(key = ([4, 2], 3), terms = [])])]
     terminal_keys = DeRham.ReductionChainKey[]
     on_terminal = key -> push!(terminal_keys, key)
 
@@ -101,30 +99,24 @@ end
     @test result.fallback_steps == 0
 
     events = engine.events
-    duplicate_index = findfirst(
-        event -> event.operation == :combine && event.duplicates == 1,
-        events,
-    )
-    @test events[duplicate_index - 1].operation == :reduce
-    @test events[duplicate_index - 1].key_after.order == 3
-    @test events[duplicate_index + 1].operation == :reduce
-    @test events[duplicate_index + 1].key_before.order == 3
+    duplicate_index =
+        findfirst(event -> event.operation == :combine && event.duplicates == 1, events)
+    @test events[duplicate_index-1].operation == :reduce
+    @test events[duplicate_index-1].key_after.order == 3
+    @test events[duplicate_index+1].operation == :reduce
+    @test events[duplicate_index+1].key_before.order == 3
     @test all(
         event -> directions(event.key_before.u, event.chunk_length, event.direction),
         filter(event -> event.operation == :reduce, events),
     )
     @test all(
-        event -> event.operation != :finish ||
-                 event.key.order == geometry.terminal_order,
+        event -> event.operation != :finish || event.key.order == geometry.terminal_order,
         events,
     )
 
     fallback_engine = DeRham.AccountingReductionEngine(geometry, directions)
-    fallback_policy = DeRham.SupportConePolicy(
-        DeRham.SupportConePlanner([(2, 0)]),
-        2,
-        Int[],
-    )
+    fallback_policy =
+        DeRham.SupportConePolicy(DeRham.SupportConePlanner([(2, 0)]), 2, Int[])
     fallback_inputs = [(4, [(key = ([4, 4], 4), terms = [])])]
     fallback_terminals = DeRham.ReductionChainKey[]
     @test isnothing(
@@ -146,11 +138,8 @@ end
     @test fallback_result.fallback_steps == 3
 
     invalid_fallback_engine = DeRham.AccountingReductionEngine(geometry, directions)
-    invalid_fallback_policy = DeRham.SupportConePolicy(
-        DeRham.SupportConePlanner([(2, 0)]),
-        2,
-        Int[],
-    )
+    invalid_fallback_policy =
+        DeRham.SupportConePolicy(DeRham.SupportConePlanner([(2, 0)]), 2, Int[])
     invalid_fallback_inputs = [(2, [(key = ([1, 0], 2), terms = [])])]
     @test_throws ArgumentError DeRham.run_reduction_policy!(
         invalid_fallback_policy,
@@ -159,8 +148,5 @@ end
         directions,
         _ -> nothing,
     )
-    @test all(
-        event -> event.operation != :fallback,
-        invalid_fallback_engine.events,
-    )
+    @test all(event -> event.operation != :fallback, invalid_fallback_engine.events)
 end

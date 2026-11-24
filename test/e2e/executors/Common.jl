@@ -30,13 +30,8 @@ const COMMON_PARAMETERS = Set([
     "series_precision",
     "algorithm_precision",
 ])
-const COMMON_ALGORITHMS = Set([
-    "default",
-    "depthfirst",
-    "varbyvar",
-    "pchunk",
-    "supportcone",
-])
+const COMMON_ALGORITHMS =
+    Set(["default", "depthfirst", "varbyvar", "pchunk", "supportcone"])
 const COMMON_BOOLEAN_PARAMETERS = Set([
     "changef",
     "givefrobmat",

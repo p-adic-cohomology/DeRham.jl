@@ -41,10 +41,10 @@ function _validate_reduction_setup(fe, algorithm; use_gpu = false, context = not
     end
 
     if algorithm == :supportcone
-        use_gpu &&
-            throw(ArgumentError("supportcone currently supports only CPU execution"))
-        context === nothing ||
-            throw(ArgumentError("custom reduction contexts are not supported for supportcone"))
+        use_gpu && throw(ArgumentError("supportcone currently supports only CPU execution"))
+        context === nothing || throw(
+            ArgumentError("custom reduction contexts are not supported for supportcone"),
+        )
     end
 
     if !(fe isa ProjectiveHypersurface)

@@ -4,16 +4,10 @@
     sparse_quartic = x^4 + y^4 + z^4 + x^2 * y^2
 
     for curve in (fermat_curve, sparse_quartic)
-        supportcone_coefficients = DeRham.zeta_coefficients(
-            curve;
-            algorithm = :supportcone,
-            changef = false,
-        )
-        depthfirst_coefficients = DeRham.zeta_coefficients(
-            curve;
-            algorithm = :depthfirst,
-            changef = false,
-        )
+        supportcone_coefficients =
+            DeRham.zeta_coefficients(curve; algorithm = :supportcone, changef = false)
+        depthfirst_coefficients =
+            DeRham.zeta_coefficients(curve; algorithm = :depthfirst, changef = false)
         @test supportcone_coefficients == depthfirst_coefficients
     end
 
