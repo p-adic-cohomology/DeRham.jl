@@ -14,5 +14,9 @@ maximum of 64 and the square of the matrix width, which delays the
 cubic-cost polynomial matrix products for wider matrices. Unsupported matrix
 and vector types continue through finite-difference evaluation.
 
+The interval-product selection is used only when `fastevaluation=true` (the
+default). With `fastevaluation=false`, the DepthFirst and PChunk reduction
+loops use their stepwise path and ignore the interval-product settings.
+
 The crossover still depends on the workload. Measure representative cases and
 raise `interval_product_min_length` when the product tree remains slower.

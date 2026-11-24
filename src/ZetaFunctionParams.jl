@@ -12,6 +12,8 @@ struct ZetaFunctionParams
     interval_product_min_length::Union{Nothing,Int}
 end
 
+const _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH = Val{:unspecified}()
+
 function _validate_interval_product_options(algorithm, min_length)
     algorithm in (:finitediff, :sqrt) ||
         throw(ArgumentError("interval_product_algorithm must be :finitediff or :sqrt"))

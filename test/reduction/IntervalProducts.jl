@@ -360,7 +360,13 @@ end
     )
     @test context.interval_product_algorithm === :sqrt
     @test context.interval_product_min_length == 12
-    @test DeRham._resolve_interval_product_options(context, nothing, nothing) == (:sqrt, 12)
+    @test DeRham._resolve_interval_product_options(
+        context,
+        nothing,
+        DeRham._UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+    ) == (:sqrt, 12)
+    @test DeRham._resolve_interval_product_options(context, nothing, nothing) ==
+          (:sqrt, nothing)
     @test DeRham._resolve_interval_product_options(context, :finitediff, 64) ==
           (:finitediff, 64)
     @test DeRham._resolve_interval_product_options(nothing, nothing, nothing) ==
@@ -376,7 +382,11 @@ end
         lazy = true,
     )
     @test automatic_context.interval_product_min_length === nothing
-    @test DeRham._resolve_interval_product_options(automatic_context, nothing, nothing) ==
+    @test DeRham._resolve_interval_product_options(
+        automatic_context,
+        nothing,
+        DeRham._UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+    ) ==
           (:sqrt, nothing)
 
     inherited_coefficients = zeta_coefficients(
@@ -386,6 +396,14 @@ end
         context = context,
     )
     @test inherited_coefficients == BigInt[7, 1, 1]
+    automatic_cutoff_coefficients = zeta_coefficients(
+        frontend;
+        algorithm = :depthfirst,
+        changef = false,
+        context = context,
+        interval_product_min_length = nothing,
+    )
+    @test automatic_cutoff_coefficients == BigInt[7, 1, 1]
     overridden_coefficients = zeta_coefficients(
         frontend;
         algorithm = :depthfirst,

@@ -67,10 +67,12 @@ function ControlledReductionContext{MatrixType,VectorType}(
 end
 
 function _resolve_interval_product_options(context, algorithm, min_length)
+    if min_length === _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH
+        min_length =
+            context isa ControlledReductionContext ? context.interval_product_min_length : nothing
+    end
     if context isa ControlledReductionContext
         algorithm = something(algorithm, context.interval_product_algorithm)
-        min_length =
-            min_length === nothing ? context.interval_product_min_length : min_length
     else
         algorithm = something(algorithm, :finitediff)
     end
