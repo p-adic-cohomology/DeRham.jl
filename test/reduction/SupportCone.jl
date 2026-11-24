@@ -74,6 +74,25 @@ end
           nothing
 end
 
+@testset "SupportCone planner bounds candidate enumeration" begin
+    rank_deficient_support = [(i, i^2, i^3, i^4, 0) for i = 1:40]
+    bounded_search = DeRham._supportcone_candidate_subcones(Val(5), rank_deficient_support)
+    @test bounded_search.combinations_examined ==
+          DeRham._SUPPORTCONE_MAX_SUBCONE_COMBINATIONS
+    @test isempty(bounded_search.subcones)
+
+    full_rank_support = [(i, i^2, i^3, i^4, i^5) for i = 1:40]
+    bounded_candidates =
+        DeRham._supportcone_candidate_subcones(Val(5), full_rank_support)
+    repeated_candidates =
+        DeRham._supportcone_candidate_subcones(Val(5), full_rank_support)
+    @test bounded_candidates.combinations_examined <=
+          DeRham._SUPPORTCONE_MAX_SUBCONE_COMBINATIONS
+    @test length(bounded_candidates.subcones) == DeRham._SUPPORTCONE_MAX_SUBCONES
+    @test [(subcone.indices, subcone.determinant) for subcone in bounded_candidates.subcones] ==
+          [(subcone.indices, subcone.determinant) for subcone in repeated_candidates.subcones]
+end
+
 @testset "SupportCone policy" begin
     directions = supportcone_test_directions(2, Int[])
     geometry = DeRham.ReductionEngineGeometry(2, 1)
