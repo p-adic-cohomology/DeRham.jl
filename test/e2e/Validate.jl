@@ -19,7 +19,7 @@ end
 const PRIMING_CODE_PATH_DEFAULTS = (
     "algorithm" => "default",
     "interval_product_algorithm" => "finitediff",
-    "interval_product_min_length" => 64,
+    "interval_product_min_length" => nothing,
     "fastevaluation" => true,
     "changef" => true,
     "always_use_bigints" => false,

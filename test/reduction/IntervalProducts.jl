@@ -190,7 +190,7 @@ end
         64,
     )
 
-    @test !DeRham._use_sqrt_interval_product(
+    @test DeRham._use_sqrt_interval_product(
         wide_a,
         wide_b,
         wide_g,
@@ -206,6 +206,62 @@ end
         wide_temp,
         wide_g_temp,
         wide_params,
+        28^2,
+    )
+    automatic_params = DeRham.ZetaFunctionParams(
+        0,
+        false,
+        :pchunk,
+        :invlex,
+        false,
+        true,
+        false,
+        false,
+        false,
+        :sqrt,
+        nothing,
+    )
+    @test DeRham._sqrt_interval_product_min_length(2, nothing) == 64
+    @test DeRham._sqrt_interval_product_min_length(28, nothing) == 28^2
+    @test DeRham._sqrt_interval_product_min_length(28, 1) == 1
+    explicit_params = DeRham.ZetaFunctionParams(
+        0,
+        false,
+        :pchunk,
+        :invlex,
+        false,
+        true,
+        false,
+        false,
+        false,
+        :sqrt,
+        1,
+    )
+    @test DeRham._use_sqrt_interval_product(
+        wide_a,
+        wide_b,
+        wide_g,
+        wide_temp,
+        wide_g_temp,
+        explicit_params,
+        1,
+    )
+    @test !DeRham._use_sqrt_interval_product(
+        wide_a,
+        wide_b,
+        wide_g,
+        wide_temp,
+        wide_g_temp,
+        automatic_params,
+        28^2 - 1,
+    )
+    @test DeRham._use_sqrt_interval_product(
+        wide_a,
+        wide_b,
+        wide_g,
+        wide_temp,
+        wide_g_temp,
+        automatic_params,
         28^2,
     )
 
@@ -308,7 +364,20 @@ end
     @test DeRham._resolve_interval_product_options(context, :finitediff, 64) ==
           (:finitediff, 64)
     @test DeRham._resolve_interval_product_options(nothing, nothing, nothing) ==
-          (:finitediff, 64)
+          (:finitediff, nothing)
+
+    automatic_context = DeRham.pregen_default_context(
+        2,
+        3,
+        7,
+        [-1];
+        algorithm = :depthfirst,
+        interval_product_algorithm = :sqrt,
+        lazy = true,
+    )
+    @test automatic_context.interval_product_min_length === nothing
+    @test DeRham._resolve_interval_product_options(automatic_context, nothing, nothing) ==
+          (:sqrt, nothing)
 
     inherited_coefficients = zeta_coefficients(
         frontend;
@@ -331,4 +400,30 @@ end
         context = context,
         interval_product_algorithm = :invalid,
     )
+end
+
+@testset "square-root interval products run end to end" begin
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
+    default_coefficients =
+        zeta_coefficients(frontend; algorithm = :depthfirst, changef = false)
+
+    for algorithm in (:depthfirst, :pchunk), always_use_bigints in (false, true)
+        interval_product_calls = Ref(0)
+        sqrt_coefficients = DeRham._with_interval_product_test_hook(
+            () -> (interval_product_calls[] += 1),
+        ) do
+            zeta_coefficients(
+                frontend;
+                algorithm,
+                changef = false,
+                always_use_bigints,
+                interval_product_algorithm = :sqrt,
+                interval_product_min_length = 1,
+            )
+        end
+
+        @test sqrt_coefficients == default_coefficients
+        @test interval_product_calls[] > 0
+    end
 end

@@ -22,7 +22,8 @@ temp - temporary matrix used for intermediate calculations
 g - the vector g which contains the vector which is being reduced
 g_temp - temporary vector used for intermediate calculations
 interval_product_algorithm - default interval product method for reductions
-interval_product_min_length - configured minimum interval length for that method
+interval_product_min_length - explicit minimum interval length, or `nothing` for
+  the automatic matrix-width-based threshold
 
 Current examples that are in use:
 
@@ -39,11 +40,11 @@ struct ControlledReductionContext{MatrixType,VectorType}
     g::VectorType
     g_temp::VectorType
     interval_product_algorithm::Symbol
-    interval_product_min_length::Int
+    interval_product_min_length::Union{Nothing,Int}
 end
 
 ControlledReductionContext(Ruv, A, B, temp, g, g_temp) =
-    ControlledReductionContext(Ruv, A, B, temp, g, g_temp, :finitediff, 64)
+    ControlledReductionContext(Ruv, A, B, temp, g, g_temp, :finitediff, nothing)
 
 function ControlledReductionContext{MatrixType,VectorType}(
     Ruv,
@@ -61,17 +62,17 @@ function ControlledReductionContext{MatrixType,VectorType}(
         g,
         g_temp,
         :finitediff,
-        64,
+        nothing,
     )
 end
 
 function _resolve_interval_product_options(context, algorithm, min_length)
     if context isa ControlledReductionContext
         algorithm = something(algorithm, context.interval_product_algorithm)
-        min_length = something(min_length, context.interval_product_min_length)
+        min_length =
+            min_length === nothing ? context.interval_product_min_length : min_length
     else
         algorithm = something(algorithm, :finitediff)
-        min_length = something(min_length, 64)
     end
     return _validate_interval_product_options(algorithm, min_length)
 end
@@ -197,7 +198,11 @@ Keyword arguments and defaults:
 `termorder = :invlex`, `vars_reversed = false`, `fastevaluation = false`,
 `always_use_bigints = false`, `use_gpu = false`, `use_threads = false`,
 `interval_product_algorithm = :finitediff`,
-`interval_product_min_length = 64`, and `lazy = false`.
+`interval_product_min_length = nothing`, and `lazy = false`.
+
+When `interval_product_min_length` is `nothing`, the automatic cutoff is the
+maximum of 64 and the square of the current matrix width. An explicit positive
+integer is used as-is.
 
 The interval-product settings are retained in the context and supply the
 defaults for `zeta_coefficients` when a context is passed and those keywords are
@@ -218,7 +223,7 @@ function pregen_default_context(
     use_gpu = false,
     use_threads = false,
     interval_product_algorithm = :finitediff,
-    interval_product_min_length = 64,
+    interval_product_min_length = nothing,
     lazy = false,
 )
     interval_product_algorithm, interval_product_min_length =

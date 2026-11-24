@@ -79,8 +79,9 @@ Keyword arguments:
 - `interval_product_algorithm=:finitediff`: selects finite differences or the
   experimental square-root-time interval product (`:sqrt`) for CPU DepthFirst
   and PChunk reductions.
-- `interval_product_min_length=64`: configured minimum interval length for the
-  experimental method. Dispatch also applies a matrix-width floor.
+- `interval_product_min_length=nothing`: the experimental method's minimum
+  interval length. `nothing` selects an automatic cutoff of `max(64, r^2)` for
+  each matrix width `r`; an explicit positive integer is used as-is.
 
 When a pre-generated `context` is supplied, omitted interval-product keywords
 use the settings stored in that context. Explicit keywords override them.
@@ -88,7 +89,7 @@ use the settings stored in that context. Explicit keywords override them.
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `interval_product_algorithm`, `interval_product_min_length`, `context`, and
 `precision_info` keywords are internal or experimental and may change. Their
-current defaults are `:invlex`, `false`, `true`, `false`, `:finitediff`, `64`,
+current defaults are `:invlex`, `false`, `true`, `false`, `:finitediff`, `nothing`,
 `nothing`, and `nothing`, respectively.
 
 The returned coefficients can be passed to [`L_polynomial`](@ref),

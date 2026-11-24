@@ -9,19 +9,24 @@ struct ZetaFunctionParams
     use_gpu::Bool
     use_threads::Bool
     interval_product_algorithm::Symbol
-    interval_product_min_length::Int
+    interval_product_min_length::Union{Nothing,Int}
 end
 
 function _validate_interval_product_options(algorithm, min_length)
     algorithm in (:finitediff, :sqrt) ||
         throw(ArgumentError("interval_product_algorithm must be :finitediff or :sqrt"))
-    min_length isa Integer && !(min_length isa Bool) && min_length > 0 ||
-        throw(ArgumentError("interval_product_min_length must be a positive integer"))
-    min_length = try
-        Int(min_length)
-    catch error
-        error isa InexactError || rethrow()
-        throw(ArgumentError("interval_product_min_length must fit in an Int"))
+    if min_length !== nothing
+        min_length isa Integer && !(min_length isa Bool) && min_length > 0 || throw(
+            ArgumentError(
+                "interval_product_min_length must be a positive integer or nothing",
+            ),
+        )
+        min_length = try
+            Int(min_length)
+        catch error
+            error isa InexactError || rethrow()
+            throw(ArgumentError("interval_product_min_length must fit in an Int"))
+        end
     end
     return algorithm, min_length
 end
@@ -47,7 +52,7 @@ ZetaFunctionParams(
     use_gpu,
     use_threads,
     :finitediff,
-    64,
+    nothing,
 )
 
 default_params() =

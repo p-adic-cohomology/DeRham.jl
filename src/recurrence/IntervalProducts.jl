@@ -249,11 +249,39 @@ function _supports_sqrt_interval_product(a, b, g, temp, g_temp)
     return false
 end
 
-function _sqrt_interval_product_min_length(matrix_width::Int, configured_min::Int)
-    if matrix_width > 0 && matrix_width > div(typemax(Int), matrix_width)
-        return typemax(Int)
+function _sqrt_interval_product_min_length(
+    matrix_width::Int,
+    configured_min::Union{Nothing,Int},
+)
+    configured_min === nothing || return configured_min
+    width_squared = if matrix_width > 0 && matrix_width > div(typemax(Int), matrix_width)
+        typemax(Int)
+    else
+        matrix_width^2
     end
-    return max(configured_min, matrix_width^2)
+    return max(64, width_squared)
+end
+
+function _with_interval_product_test_hook(f::Function, hook::Function)
+    storage = task_local_storage()
+    key = :DeRham_interval_product_test_hook
+    previous = get(storage, key, nothing)
+    storage[key] = hook
+    try
+        return f()
+    finally
+        if previous === nothing
+            delete!(storage, key)
+        else
+            storage[key] = previous
+        end
+    end
+end
+
+function _notify_interval_product_test_hook()
+    hook = get(task_local_storage(), :DeRham_interval_product_test_hook, nothing)
+    hook === nothing || hook()
+    return nothing
 end
 
 function _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
@@ -267,6 +295,7 @@ end
 function prodeval_linear!(a, b, start, stop, g, temp, g_temp, params::ZetaFunctionParams)
     interval_length = stop - start + 1
     if _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
+        _notify_interval_product_test_hook()
         return sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
     end
     return finitediff_prodeval_linear!(a, b, start, stop, g, temp, g_temp)
