@@ -201,6 +201,12 @@ end
 
 function _supportcone_fallback_chunk(policy, key, terminal_order, directions)
     maximum_chunk = key.order - terminal_order
+    available_degree = sum(exponent for exponent in key.u if exponent > 0)
+    available_degree >= policy.degree || throw(
+        ArgumentError(
+            "supportcone fallback cannot form a degree-$(policy.degree) direction from key $(key.u)",
+        ),
+    )
     direction = rev_chooseV(collect(key.u), policy.degree, policy.S)
     chunk = _depthfirst_chunk_length(key.u, direction, maximum_chunk)
     chunk >= 1 || throw(ArgumentError("supportcone fallback selected an empty chunk"))
