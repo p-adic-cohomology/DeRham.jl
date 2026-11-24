@@ -6,6 +6,56 @@
     end
 end
 
+@testset "AKR dense reduction split equality" begin
+    _, (x, y, z) = polynomial_ring(GF(5), ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    n = 2
+    d = 3
+    S = collect(0:n)
+    params = DeRham.default_params()
+    quotient = DeRham.HypersurfaceQuotient(n, d)
+    cache = DeRham.controlled_reduction_cache(n, d, S, params, quotient)
+    (_, f, pseudo_inverse) =
+        DeRham.find_Ssmooth_model(f, quotient, 1, S, params, true, cache)
+
+    precisionring, _ = residue_ring(ZZ, 5)
+    precisionringpoly, precisionvars = polynomial_ring(precisionring, ["x", "y", "z"])
+    f_lift = DeRham.liftCoefficients(precisionring, precisionringpoly, f)
+    pseudo_inverse_space =
+        matrix_space(precisionring, nrows(pseudo_inverse), ncols(pseudo_inverse))
+    pseudo_inverse_lifted = pseudo_inverse_space()
+    for i = 1:nrows(pseudo_inverse), j = 1:ncols(pseudo_inverse)
+        pseudo_inverse_lifted[i, j] = ZZ(pseudo_inverse[i, j])
+    end
+
+    picache = DeRham._build_akr_picache(
+        4,
+        n,
+        d,
+        S,
+        f_lift,
+        pseudo_inverse_lifted,
+        cache,
+        params,
+        5;
+        target_order = n,
+    )
+    context = (; S, f = f_lift, p = 5, picache, params, terminal_order = n)
+    x_lift = precisionvars[1]
+    input = [[x_lift^9, 4]]
+
+    @testset "one-shot and split reductions agree" begin
+        for reduction in
+            (DeRham.AKRNaiveDenseReduction(), DeRham.AKRLevelByLevelDenseReduction())
+            direct = DeRham.dense_reduce(reduction, input, 4, 2, context)
+            middle = DeRham.dense_reduce(reduction, input, 4, 3, context)
+            split = DeRham.dense_reduce(reduction, middle, 3, 2, context)
+            @test direct == split
+            @test only(direct)[2] == 2
+        end
+    end
+end
+
 @testset "AKR plane curve full-precision equality" begin
     curve = DeRham.fermat_hypersurface(3, 3, 2)
     _, naive = DeRham.zeta_coefficients(curve; givefrobmat = true, algorithm = :akr_naive)

@@ -356,7 +356,16 @@ function zeta_coefficients(
 
     ev = cache[numerator_degree(P, terminal_pole_order(P))]
     (9 < verbose) && println(convert_p_to_m([Reductions[1][1][1], Reductions[2][1][1]], ev))
-    FM = compute_frobenius_matrix(fe, p, N_m, Reductions, dense_reduction, Basis, params, cache)
+    FM = compute_frobenius_matrix(
+        fe,
+        p,
+        N_m,
+        Reductions,
+        dense_reduction,
+        Basis,
+        params,
+        cache,
+    )
     (9 < verbose) && println("The Frobenius matrix is $FM")
 
     if givefrobmat

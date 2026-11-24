@@ -182,6 +182,11 @@ public fermat_hypersurface,
     tate_untwist,
     normalized_tate_twist,
     ibm_lattice_correction,
-    pregen_default_context
+    pregen_default_context,
+    AbstractDenseReduction,
+    dense_reduce,
+    PrecomputedDenseReduction,
+    AKRNaiveDenseReduction,
+    AKRLevelByLevelDenseReduction
 
 end

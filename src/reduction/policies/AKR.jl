@@ -1,10 +1,29 @@
-function _reducechain_akr_naive(g, m, f, p, picache, params)
+"""
+    AKRNaiveDenseReduction()
+
+Experimental dense reduction that applies each AKR pole-reduction chain
+independently.
+"""
+struct AKRNaiveDenseReduction <: AbstractDenseReduction end
+
+"""
+    AKRLevelByLevelDenseReduction()
+
+Experimental dense reduction that combines terms at each pole order before
+applying the next AKR reduction step.
+"""
+struct AKRLevelByLevelDenseReduction <: AbstractDenseReduction end
+
+function _reducechain_akr_naive(g, m, f, p, picache, params; target_order = nothing)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     PR = parent(f)
     R = coefficient_ring(parent(f))
+    target_order === nothing && (target_order = n)
+    target_order >= n ||
+        throw(ArgumentError("target order is below the terminal pole order"))
 
-    while m > n
+    while m > target_order
         gtemp = picache[m]*g
         len = Int(length(gtemp)/(n+1))
         g = derivative(
@@ -34,29 +53,68 @@ function _reducechain_akr_naive(g, m, f, p, picache, params)
     return g
 end
 
-function _reducepoly_akr_naive(pol, S, f, p, picache, params)
+function _reducepoly_akr_naive(pol, S, f, p, picache, params; target_order = nothing)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     PR = parent(f)
-    result = PR()
-    for term in pol
-        terms = termsoforder(pol, term[2])
-        for t in terms
-            g = polynomial_to_vector(t[1], n+1, params.termorder)
-            reduced = _reducechain_akr_naive(g, t[2], f, p, picache, params)
-            reduced_poly = vector_to_polynomial(reduced, n, d*n-n-1, PR, params.termorder)
-            result += reduced_poly
+    target_order === nothing && (target_order = n)
+    target_order >= n ||
+        throw(ArgumentError("target order is below the terminal pole order"))
+    result_by_order = Dict{Int,typeof(PR())}()
+    input_orders = sort!(unique(Int(term[2]) for term in pol))
+
+    for order in input_orders
+        for term in termsoforder(pol, order)
+            if order > target_order
+                g = polynomial_to_vector(term[1], n + 1, params.termorder)
+                reduced = _reducechain_akr_naive(
+                    g,
+                    order,
+                    f,
+                    p,
+                    picache,
+                    params;
+                    target_order = target_order,
+                )
+                reduced_poly = vector_to_polynomial(
+                    reduced,
+                    n,
+                    d * target_order - n - 1,
+                    PR,
+                    params.termorder,
+                )
+                result_by_order[target_order] =
+                    get(result_by_order, target_order, PR()) + reduced_poly
+            else
+                result_by_order[order] = get(result_by_order, order, PR()) + term[1]
+            end
         end
     end
 
-    return [[result, n]]
+    isempty(result_by_order) && return [[PR(), target_order]]
+    return [
+        [result_by_order[order], order] for order in sort!(collect(keys(result_by_order)))
+    ]
 end
 
-function _build_akr_picache(highm, n, d, S, f, pseudoInverseMat, cache, params, p)
+function _build_akr_picache(
+    highm,
+    n,
+    d,
+    S,
+    f,
+    pseudoInverseMat,
+    cache,
+    params,
+    p;
+    target_order = n,
+)
+    target_order >= n ||
+        throw(ArgumentError("target order is below the terminal pole order"))
     M = factor(modulus(base_ring(parent(f))))[p]
     picache = Vector{typeof(pseudoInverseMat)}(undef, highm)
     picache[n] = pseudoInverseMat
-    for i = (n+1):highm
+    for i = max(n+1, target_order+1):highm
         l = d*i - n - 1
         generate_degree_forward(cache, l)
         generate_degree_forward(cache, l-(d-1))
@@ -78,22 +136,45 @@ function _highest_akr_pole_order(FT)
     return FT[length(FT)][length(FT[length(FT)])][2]
 end
 
-function reducetransform_akr_naive(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
+function reducetransform_akr_naive(
+    FT,
+    N_m,
+    S,
+    f,
+    pseudoInverseMat,
+    p,
+    cache,
+    params;
+    target_order = nvars(parent(f)) - 1,
+)
     d = total_degree(f)
     n = nvars(parent(f)) - 1
     highm = _highest_akr_pole_order(FT)
-    picache = _build_akr_picache(highm, n, d, S, f, pseudoInverseMat, cache, params, p)
+    picache = _build_akr_picache(
+        highm,
+        n,
+        d,
+        S,
+        f,
+        pseudoInverseMat,
+        cache,
+        params,
+        p;
+        target_order = target_order,
+    )
+    reduction = AKRNaiveDenseReduction()
+    context = (; S, f, p, picache, params, terminal_order = n)
 
     result = similar(FT)
     for i = 1:length(FT)
         pol = FT[i]
         if 0 < params.verbose
             println("Reducing vector $i")
-            @time reduction = _reducepoly_akr_naive(pol, S, f, p, picache, params)
+            @time reduced = dense_reduce(reduction, pol, highm, target_order, context)
         else
-            reduction = _reducepoly_akr_naive(pol, S, f, p, picache, params)
+            reduced = dense_reduce(reduction, pol, highm, target_order, context)
         end
-        result[i] = reduction
+        result[i] = reduced
     end
 
     return result
@@ -139,44 +220,135 @@ end
 Reduce all terms at each pole order together. The derivative still uses the
 existing polynomial-vector conversions used by the naive AKR implementation.
 """
-function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
+function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params; target_order = nothing)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     PR = parent(f)
     R = coefficient_ring(parent(f))
-    isempty(pol) && return [[PR(), n]]
-    highm = maximum(Int(term[2]) for term in pol)
+    target_order === nothing && (target_order = n)
+    target_order >= n ||
+        throw(ArgumentError("target order is below the terminal pole order"))
+    result_by_order = Dict{Int,typeof(PR())}()
+    input_orders = sort!(unique(Int(term[2]) for term in pol))
+    isempty(input_orders) && return [[PR(), target_order]]
+    for order in input_orders
+        order <= target_order || continue
+        for term in termsoforder(pol, order)
+            result_by_order[order] = get(result_by_order, order, PR()) + term[1]
+        end
+    end
+
+    highm = maximum(input_orders)
+    if highm <= target_order
+        return [
+            [result_by_order[order], order] for
+            order in sort!(collect(keys(result_by_order)))
+        ]
+    end
     degree = d*highm - n - 1
     g = fill(R(0), binomial(degree+n, n))
 
-    for m = highm:-1:(n+1)
+    for m = highm:-1:(target_order+1)
         for term in termsoforder(pol, m)
             g .+= polynomial_to_vector(term[1], n+1, params.termorder)
         end
         g = _reduce_akr_level(g, m, f, picache, params)
     end
 
-    result = vector_to_polynomial(g, n, d*n-n-1, PR, params.termorder)
-    return [[result, n]]
+    result = vector_to_polynomial(g, n, d * target_order - n - 1, PR, params.termorder)
+    result_by_order[target_order] = get(result_by_order, target_order, PR()) + result
+    return [
+        [result_by_order[order], order] for order in sort!(collect(keys(result_by_order)))
+    ]
 end
 
-function reducetransform_akr_levelbylevel(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
+function reducetransform_akr_levelbylevel(
+    FT,
+    N_m,
+    S,
+    f,
+    pseudoInverseMat,
+    p,
+    cache,
+    params;
+    target_order = nvars(parent(f)) - 1,
+)
     d = total_degree(f)
     n = nvars(parent(f)) - 1
     highm = _highest_akr_pole_order(FT)
-    picache = _build_akr_picache(highm, n, d, S, f, pseudoInverseMat, cache, params, p)
+    picache = _build_akr_picache(
+        highm,
+        n,
+        d,
+        S,
+        f,
+        pseudoInverseMat,
+        cache,
+        params,
+        p;
+        target_order = target_order,
+    )
+    reduction = AKRLevelByLevelDenseReduction()
+    context = (; S, f, p, picache, params, terminal_order = n)
 
     result = similar(FT)
     for i = 1:length(FT)
         pol = FT[i]
         if 0 < params.verbose
             println("Reducing vector $i")
-            @time reduction = _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
+            @time reduced = dense_reduce(reduction, pol, highm, target_order, context)
         else
-            reduction = _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
+            reduced = dense_reduce(reduction, pol, highm, target_order, context)
         end
-        result[i] = reduction
+        result[i] = reduced
     end
 
     return result
+end
+
+function _validate_akr_dense_reduction(pol, m_src, m_tgt, context)
+    m_tgt >= context.terminal_order ||
+        throw(ArgumentError("target order is below the terminal pole order"))
+    m_src >= m_tgt || throw(ArgumentError("source order must be at least the target order"))
+    all(term -> Int(term[2]) <= m_src, pol) ||
+        throw(ArgumentError("input contains a term above the source pole order"))
+    return nothing
+end
+
+function dense_reduce(
+    reduction::AKRNaiveDenseReduction,
+    pol,
+    m_src::Integer,
+    m_tgt::Integer,
+    context::NamedTuple,
+)
+    _validate_akr_dense_reduction(pol, m_src, m_tgt, context)
+    return _reducepoly_akr_naive(
+        pol,
+        context.S,
+        context.f,
+        context.p,
+        context.picache,
+        context.params;
+        target_order = Int(m_tgt),
+    )
+end
+
+function dense_reduce(
+    reduction::AKRLevelByLevelDenseReduction,
+    pol,
+    m_src::Integer,
+    m_tgt::Integer,
+    context::NamedTuple,
+)
+    _validate_akr_dense_reduction(pol, m_src, m_tgt, context)
+    return _reducepoly_akr_levelbylevel(
+        pol,
+        context.S,
+        context.f,
+        context.p,
+        context.picache,
+        context.params;
+        target_order = Int(m_tgt),
+    )
 end

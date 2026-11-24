@@ -193,8 +193,9 @@ function dense_reduce(
     target_order::Symbol,
     context::NamedTuple,
 )
-    source_order == reduction.source_order ||
-        throw(ArgumentError("precomputed dense reduction starts at $(reduction.source_order)"))
+    source_order == reduction.source_order || throw(
+        ArgumentError("precomputed dense reduction starts at $(reduction.source_order)"),
+    )
     target_order === :basis ||
         throw(ArgumentError("precomputed dense reduction targets the cohomology basis"))
 
@@ -307,13 +308,8 @@ function compute_frobenius_matrix(
             output_ring = column_ring,
             final_scale = scale_exponents[i],
         )
-        temp = dense_reduce(
-            reduction,
-            poly_to_reduce,
-            reduction.source_order,
-            :basis,
-            context,
-        )
+        temp =
+            dense_reduce(reduction, poly_to_reduce, reduction.source_order, :basis, context)
 
         push!(frob_mat_temp, temp)
     end
@@ -327,11 +323,17 @@ function compute_frobenius_matrix(
     return frob_mat
 end
 
-function compute_frobenius_matrix(fe::ZetaFrontend, p, N_m, Reductions, T, Basis, params, cache)
-    reduction = PrecomputedDenseReduction(
-        T,
-        terminal_pole_order(cohomology_quotient(fe)),
-    )
+function compute_frobenius_matrix(
+    fe::ZetaFrontend,
+    p,
+    N_m,
+    Reductions,
+    T,
+    Basis,
+    params,
+    cache,
+)
+    reduction = PrecomputedDenseReduction(T, terminal_pole_order(cohomology_quotient(fe)))
     return compute_frobenius_matrix(fe, p, N_m, Reductions, reduction, Basis, params, cache)
 end
 
