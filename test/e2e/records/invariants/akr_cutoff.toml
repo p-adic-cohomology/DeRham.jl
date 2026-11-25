@@ -18,7 +18,7 @@ parameters = { algorithm = "akr_naive" }
 name = "akr_cutoff_prime_akr_levelbylevel"
 type = "zeta_coefficients"
 tags = []
-runtime = 1.089
+runtime = 0.623
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "akr_levelbylevel" }
 
