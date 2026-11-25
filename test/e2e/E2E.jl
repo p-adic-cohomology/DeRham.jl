@@ -17,6 +17,7 @@ include("Loader.jl")
 include("executors/Common.jl")
 include("DoubleCoverModels.jl")
 include("executors/ZetaCoefficients.jl")
+include("executors/SparseDwork.jl")
 include("executors/NewtonPolygon.jl")
 include("executors/PointCounts.jl")
 include("executors/PicardRankBound.jl")
@@ -28,6 +29,7 @@ include("executors/ANumber.jl")
 include("executors/ArtinInvariant.jl")
 
 const EXECUTOR_REGISTRY = Dict{String,Module}(
+    "sparse_dwork_coefficients" => SparseDworkExecutor,
     "zeta_coefficients" => ZetaCoefficientsExecutor,
     "newton_polygon" => NewtonPolygonExecutor,
     "point_counts" => PointCountsExecutor,

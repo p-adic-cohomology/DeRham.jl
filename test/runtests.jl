@@ -38,6 +38,7 @@ function run_de_rham_full_test_suite!()
                 end
             end
 
+            include(joinpath($test_dir, "invariants/SparseDwork.jl"))
             include(joinpath($test_dir, "invariants/HodgePolygon.jl"))
             include(joinpath($test_dir, "invariants/TateTwist.jl"))
             include(joinpath($test_dir, "invariants/PointCounts.jl"))

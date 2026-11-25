@@ -96,6 +96,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 | `type` | Expected value and input | Record-specific parameters |
 | --- | --- | --- |
 | `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
+| `sparse_dwork_coefficients` | Stored primitive `Lpoly`; sparse cubic/quartic curve or surface | None |
 | `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
 | `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |
 | `picard_rank_bound` | Stored `Lpoly`; projective surface | None required |

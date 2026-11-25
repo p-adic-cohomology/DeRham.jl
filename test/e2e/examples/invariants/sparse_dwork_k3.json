@@ -1,0 +1,99 @@
+{
+  "schema_version": "3",
+  "cases": [
+    {
+      "id": "sparse_dwork_quartic_2_f7",
+      "variety": {
+        "coeff_domain": {
+          "kind": "integer"
+        },
+        "dim": 2,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "primitive"
+        },
+        "model": {
+          "kind": "projective_hypersurface",
+          "pretty": "x^4+y^4+z^4+w^4+2*x*y*z*w",
+          "vars": [
+            "x",
+            "y",
+            "z",
+            "w"
+          ],
+          "monomials": [
+            [
+              4,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              4,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              4,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              4
+            ],
+            [
+              1,
+              1,
+              1,
+              1
+            ]
+          ],
+          "coeffs": [
+            1,
+            1,
+            1,
+            1,
+            2
+          ]
+        }
+      },
+      "results": [
+        {
+          "p": 7,
+          "Lpoly": {
+            "coeffs_asc": [
+              "1",
+              "1",
+              "-434",
+              "-98",
+              "83349",
+              "-64827",
+              "-9277464",
+              "19765032",
+              "657187314",
+              "-2663338062",
+              "-30507326892",
+              "213551288244",
+              "913524955266",
+              "-11045347186398",
+              "-16277353748376",
+              "374379136212648",
+              "128184160768461",
+              "-8075602128413043",
+              "465261027974414",
+              "100961643070447838",
+              "-11398895185373143",
+              "-558545864083284007"
+            ]
+          }
+        }
+      ],
+      "notes": "The primitive factor is (1-7T)^9 (1+7T)^10 (1-6T+49T^2). The mirror factor can be checked with PARI hgmeulerfactor(hgminit([4,2],[1,1,1]),1/16,7)."
+    }
+  ]
+}

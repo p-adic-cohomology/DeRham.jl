@@ -39,6 +39,7 @@ makedocs(
         "Utilities" => "utilities.md",
         "Experimental" => [
             "Experimental algorithms" => "experimental/index.md",
+            "Sparse Dwork hypersurfaces" => "experimental/sparse_dwork.md",
             "Double covers" => "experimental/double_covers.md",
         ],
     ],

@@ -1,0 +1,8 @@
+[[test]]
+name = "sparse_dwork_k3_f7"
+type = "sparse_dwork_coefficients"
+tags = []
+runtime = 3.263
+example = "sparse_dwork_quartic_2_f7"
+p = 7
+parameters = {}
