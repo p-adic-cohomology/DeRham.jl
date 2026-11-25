@@ -48,16 +48,18 @@ function random_change_of_variables(f)
 end
 
 """
-    find_Ssmooth_model(f, M, S_target, params)
-Find a change of variable that makes f S_target-smooth
+    find_Ssmooth_model(f, P, M, S_target, params, changef, cache; target_order=terminal_pole_order(P))
+Find a change of variable that makes f S_target-smooth for the requested pole order.
 
 Inputs:
 * "f" -- Oscar polynomial (should be homogeneous)
+* "P" -- the cohomology quotient
 * "M" -- integer, algorithm precision
 * "S_target" -- list, target S-smoothness
 * "params" -- the ControlledReductionParamaters
 * "changef" -- bool
 * "cache" -- the GradedExpCache used for this controlled reduction
+* "target_order" -- pole order used to choose the reduction degree; defaults to the terminal pole order
 """
 function find_Ssmooth_model(
     f,

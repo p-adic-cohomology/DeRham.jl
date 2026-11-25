@@ -112,8 +112,10 @@ recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
 `always_use_bigints`, `use_gpu`, and `use_threads`. `algorithm` accepts
 `default`, `depthfirst`, `varbyvar`, `pchunk`, `akr`, `akr_naive`, or
 `akr_levelbylevel`; `dense_reduction` accepts `akr`, `akr_naive`, or
-`akr_levelbylevel`; `handoff_pole_order` must be an integer and requires a dense
-method. `S` must be an array and `termorder` must be a string. The common option parser also accepts
+`akr_levelbylevel`; `handoff_pole_order` must be an integer between the quotient's
+terminal pole order and the maximum generated Frobenius source pole order, and it
+requires a dense method. `S` must be an array and `termorder` must be a string.
+The common option parser also accepts
 `relative_precision`, `series_precision`, and `algorithm_precision`;
 `relative_precision` and `series_precision` take an integer or an array of
 integers, while `algorithm_precision` takes an integer. For a double-cover

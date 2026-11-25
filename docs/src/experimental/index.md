@@ -21,7 +21,9 @@ Projective hypersurfaces also accept the experimental keywords
 `dense_reduction` and `handoff_pole_order`. The controlled policy reduces to the
 handoff order, then the selected AKR dense method reduces to the terminal pole
 order. The existing precomputed final reduction maps that result to the
-cohomology basis. The handoff order must be at least the terminal pole order.
+cohomology basis. The handoff order must be at least the terminal pole order
+and no greater than the maximum pole order among the generated Frobenius source
+terms.
 
 `dense_reduction` accepts `:akr_naive` or `:akr_levelbylevel`; `:akr` is an
 alias for `:akr_naive`. If the method is omitted, the existing precomputed

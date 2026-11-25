@@ -150,7 +150,8 @@ Keyword arguments:
   `:akr_levelbylevel` (`:akr` aliases `:akr_naive`).
 - `handoff_pole_order=nothing`: experimental pole order at which a controlled
   policy stops before the selected dense method. It must be at least the
-  quotient's terminal pole order and requires `dense_reduction`.
+  quotient's terminal pole order and no greater than the maximum pole order
+  among the generated Frobenius source terms. It requires `dense_reduction`.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `context`, and `precision_info` keywords are internal or experimental and
@@ -276,7 +277,24 @@ function zeta_coefficients(
         handoff_order,
     )
 
-    cache = controlled_reduction_cache(n, d, S, params, P)
+    basis_cache_params = if handoff_order === nothing
+        params
+    else
+        ZetaFunctionParams(
+            params.verbose,
+            params.givefrobmat,
+            params.algorithm,
+            params.termorder,
+            params.vars_reversed,
+            params.fastevaluation,
+            params.always_use_bigints,
+            params.use_gpu,
+            params.use_threads,
+            params.dense_reduction,
+            nothing,
+        )
+    end
+    cache = controlled_reduction_cache(n, d, S, basis_cache_params, P)
 
     (0 < verbose) && println("p = $p")
     (9 < verbose) && println("Working with a degree $d hypersurface in P^$n")
@@ -301,6 +319,20 @@ function zeta_coefficients(
             series_precision = series_precision,
             algorithm_precision = algorithm_precision,
         )
+    end
+
+    if handoff_order !== nothing
+        max_source_order_bound = maximum(
+            (
+                Int(frobenius_term_pole_order(fe, Int(Basis[i][2]), N_m[i] - 1)) for
+                i in eachindex(Basis)
+            );
+            init = terminal_pole_order(P),
+        )
+        handoff_order <= max_source_order_bound || throw(
+            ArgumentError("handoff_pole_order exceeds the Frobenius source pole order"),
+        )
+        cache = controlled_reduction_cache(n, d, S, params, P)
     end
 
     (1 < verbose) && println("N_m=$N_m")

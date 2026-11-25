@@ -83,10 +83,15 @@ function _reducepoly_akr_naive(pol, S, f, p, picache, params; target_order = not
                     PR,
                     params.termorder,
                 )
-                result_by_order[target_order] =
-                    get(result_by_order, target_order, PR()) + reduced_poly
+                result = get!(result_by_order, target_order) do
+                    PR()
+                end
+                result_by_order[target_order] = result + reduced_poly
             else
-                result_by_order[order] = get(result_by_order, order, PR()) + term[1]
+                result = get!(result_by_order, order) do
+                    PR()
+                end
+                result_by_order[order] = result + term[1]
             end
         end
     end
@@ -234,7 +239,10 @@ function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params; target_orde
     for order in input_orders
         order <= target_order || continue
         for term in termsoforder(pol, order)
-            result_by_order[order] = get(result_by_order, order, PR()) + term[1]
+            result = get!(result_by_order, order) do
+                PR()
+            end
+            result_by_order[order] = result + term[1]
         end
     end
 

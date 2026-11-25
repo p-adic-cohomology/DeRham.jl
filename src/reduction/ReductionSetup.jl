@@ -79,9 +79,13 @@ function _resolve_dense_reduction_options(
             throw(ArgumentError("handoff_pole_order requires dense_reduction"))
     end
 
-    order =
-        handoff_pole_order === nothing ?
-        (preset === nothing ? terminal_pole_order(P) : nothing) : Int(handoff_pole_order)
+    order = if handoff_pole_order !== nothing
+        Int(handoff_pole_order)
+    elseif method !== nothing && preset === nothing
+        terminal_pole_order(P)
+    else
+        nothing
+    end
     order === nothing ||
         order >= terminal_pole_order(P) ||
         throw(ArgumentError("handoff_pole_order is below the terminal pole order"))
