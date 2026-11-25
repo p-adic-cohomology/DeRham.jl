@@ -59,6 +59,18 @@ function priming_record_errors(names::Vector{String}, records::Vector{ExecutionR
     ]
 end
 
+function presubmit_budget_errors(records::Vector{ExecutionRecord}, config::CatalogueConfig)
+    isfinite(config.presubmit_budget_seconds) || return String[]
+    presubmit = filter(record -> record.runtime < config.presubmit_seconds, records)
+    total = isempty(presubmit) ? 0.0 : sum(record.runtime for record in presubmit)
+    total <= config.presubmit_budget_seconds && return String[]
+    return [
+        "test/e2e/config.toml: the $(length(presubmit)) presubmit records declare " *
+        "$(round(total, digits = 3))s in total, above presubmit_budget_seconds=" *
+        "$(config.presubmit_budget_seconds); lower presubmit_seconds or re-time records",
+    ]
+end
+
 function priming_coverage_errors(
     catalogue::ExampleCatalogue,
     records::Vector{ExecutionRecord},
@@ -200,6 +212,7 @@ function validate_catalogue(
 
     append!(errors, priming_record_errors(config.priming_records, records))
     append!(errors, priming_coverage_errors(catalogue, records, config))
+    append!(errors, presubmit_budget_errors(records, config))
 
     isempty(errors) || throw(CatalogueValidationError(errors))
     return expected

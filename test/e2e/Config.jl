@@ -7,7 +7,11 @@ struct CatalogueConfig
     ci_seconds::Float64
     allowed_tags::Set{String}
     priming_records::Vector{String}
+    presubmit_budget_seconds::Float64
 end
+
+CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records) =
+    CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records, Inf)
 
 function load_config(path::AbstractString)
     isfile(path) || error("E2E config not found: $(path)")
@@ -23,6 +27,9 @@ function load_config(path::AbstractString)
     presubmit_seconds > 0 || error("$(path): thresholds.presubmit_seconds must be > 0")
     ci_seconds > presubmit_seconds ||
         error("$(path): thresholds.ci_seconds must be > thresholds.presubmit_seconds")
+    presubmit_budget_seconds = Float64(get(thresholds, "presubmit_budget_seconds", Inf))
+    presubmit_budget_seconds > 0 ||
+        error("$(path): thresholds.presubmit_budget_seconds must be > 0")
 
     haskey(raw, "tags") || error("$(path): missing [tags] table")
     haskey(raw["tags"], "allowed") || error("$(path): tags.allowed is required")
@@ -43,5 +50,11 @@ function load_config(path::AbstractString)
     length(unique(priming_records)) == length(priming_records) ||
         error("$(path): priming.records must not contain duplicate names")
 
-    return CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records)
+    return CatalogueConfig(
+        presubmit_seconds,
+        ci_seconds,
+        allowed_tags,
+        priming_records,
+        presubmit_budget_seconds,
+    )
 end

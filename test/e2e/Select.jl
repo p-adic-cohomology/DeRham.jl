@@ -59,10 +59,7 @@ function parse_selection(args::AbstractVector{<:AbstractString})
 end
 
 function should_run_priming(selection::Selection)
-    if selection.mode == :workflow
-        return selection.value in (:ci, :full)
-    end
-    return selection.mode in (:name, :tag)
+    return selection.mode in (:workflow, :name, :tag)
 end
 
 # Returns (broad, records): `broad` selections (workflow, tag) skip cases

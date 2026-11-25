@@ -1,286 +1,286 @@
 [[test]]
 name = "pchunk__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
-runtime = 1.103
+runtime = 0.775
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_fermat_2"
 type = "zeta_coefficients"
-runtime = 0.738
+runtime = 1.123
 example = "dim_1_deg_3_fermat_2"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_fermat_3"
 type = "zeta_coefficients"
-runtime = 0.549
+runtime = 0.85
 example = "dim_1_deg_3_fermat_3"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_fermat_4"
 type = "zeta_coefficients"
-runtime = 1.004
+runtime = 1.093
 example = "dim_1_deg_3_fermat_4"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_1"
 type = "zeta_coefficients"
-runtime = 1.237
+runtime = 0.811
 example = "dim_1_deg_3_random_1"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_2"
 type = "zeta_coefficients"
-runtime = 1.761
+runtime = 0.837
 example = "dim_1_deg_3_random_2"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_3"
 type = "zeta_coefficients"
-runtime = 1.342
+runtime = 0.739
 example = "dim_1_deg_3_random_3"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_4"
 type = "zeta_coefficients"
-runtime = 1.492
+runtime = 0.599
 example = "dim_1_deg_3_random_4"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_5"
 type = "zeta_coefficients"
-runtime = 0.96
+runtime = 0.935
 example = "dim_1_deg_3_random_5"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_6"
 type = "zeta_coefficients"
-runtime = 0.55
+runtime = 0.645
 example = "dim_1_deg_3_random_6"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_7"
 type = "zeta_coefficients"
-runtime = 0.689
+runtime = 1.222
 example = "dim_1_deg_3_random_7"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_8"
 type = "zeta_coefficients"
-runtime = 0.528
+runtime = 1.111
 example = "dim_1_deg_3_random_8"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_random_9"
 type = "zeta_coefficients"
-runtime = 0.648
+runtime = 0.98
 example = "dim_1_deg_3_random_9"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_1"
 type = "zeta_coefficients"
-runtime = 0.756
+runtime = 0.864
 example = "dim_1_deg_3_many_1"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_2"
 type = "zeta_coefficients"
-runtime = 0.681
+runtime = 0.746
 example = "dim_1_deg_3_many_2"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_3"
 type = "zeta_coefficients"
-runtime = 1.497
+runtime = 0.701
 example = "dim_1_deg_3_many_3"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_4"
 type = "zeta_coefficients"
-runtime = 1.282
+runtime = 0.601
 example = "dim_1_deg_3_many_4"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_5"
 type = "zeta_coefficients"
-runtime = 0.789
+runtime = 0.687
 example = "dim_1_deg_3_many_5"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_6"
 type = "zeta_coefficients"
-runtime = 0.691
+runtime = 0.906
 example = "dim_1_deg_3_many_6"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_7"
 type = "zeta_coefficients"
-runtime = 0.616
+runtime = 0.95
 example = "dim_1_deg_3_many_7"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_8"
 type = "zeta_coefficients"
-runtime = 0.598
+runtime = 1.087
 example = "dim_1_deg_3_many_8"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_9"
 type = "zeta_coefficients"
-runtime = 0.776
+runtime = 1.061
 example = "dim_1_deg_3_many_9"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_10"
 type = "zeta_coefficients"
-runtime = 0.679
+runtime = 1.131
 example = "dim_1_deg_3_many_10"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_11"
 type = "zeta_coefficients"
-runtime = 1.775
+runtime = 0.576
 example = "dim_1_deg_3_many_11"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_3_many_12"
 type = "zeta_coefficients"
-runtime = 1.016
+runtime = 0.634
 example = "dim_1_deg_3_many_12"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_fermat_1"
 type = "zeta_coefficients"
-runtime = 0.9
+runtime = 0.746
 example = "dim_1_deg_4_fermat_1"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_fermat_2"
 type = "zeta_coefficients"
-runtime = 0.52
+runtime = 0.997
 example = "dim_1_deg_4_fermat_2"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_fermat_3"
 type = "zeta_coefficients"
-runtime = 0.654
+runtime = 0.925
 example = "dim_1_deg_4_fermat_3"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_1"
 type = "zeta_coefficients"
-runtime = 0.531
+runtime = 1.033
 example = "dim_1_deg_4_random_1"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_2"
 type = "zeta_coefficients"
-runtime = 0.551
+runtime = 0.728
 example = "dim_1_deg_4_random_2"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_3"
 type = "zeta_coefficients"
-runtime = 0.569
+runtime = 0.646
 example = "dim_1_deg_4_random_3"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_4"
 type = "zeta_coefficients"
-runtime = 1.355
+runtime = 0.829
 example = "dim_1_deg_4_random_4"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_5"
 type = "zeta_coefficients"
-runtime = 0.966
+runtime = 0.62
 example = "dim_1_deg_4_random_5"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_6"
 type = "zeta_coefficients"
-runtime = 1.108
+runtime = 0.675
 example = "dim_1_deg_4_random_6"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_7"
 type = "zeta_coefficients"
-runtime = 0.846
+runtime = 0.795
 example = "dim_1_deg_4_random_7"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_8"
 type = "zeta_coefficients"
-runtime = 1.023
+runtime = 0.802
 example = "dim_1_deg_4_random_8"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_random_9"
 type = "zeta_coefficients"
-runtime = 0.841
+runtime = 1.262
 example = "dim_1_deg_4_random_9"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_many_1"
 type = "zeta_coefficients"
-runtime = 0.762
+runtime = 0.897
 example = "dim_1_deg_4_many_1"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_many_2"
 type = "zeta_coefficients"
-runtime = 1.021
+runtime = 0.949
 example = "dim_1_deg_4_many_2"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_many_3"
 type = "zeta_coefficients"
-runtime = 1.122
+runtime = 0.701
 example = "dim_1_deg_4_many_3"
 parameters = { algorithm = "pchunk" }
 
 [[test]]
 name = "pchunk__dim_1_deg_4_many_4"
 type = "zeta_coefficients"
-runtime = 1.41
+runtime = 0.979
 example = "dim_1_deg_4_many_4"
 parameters = { algorithm = "pchunk" }

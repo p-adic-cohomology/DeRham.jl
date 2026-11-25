@@ -1,3 +1,5 @@
+include("../Precision.jl")
+
 @testset "Hodge polygon" begin
     test_hodge_polygon_values()
     test_hodge_polygon_examples()

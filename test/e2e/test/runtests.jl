@@ -377,7 +377,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
     end
 
     @testset "priming set and configuration coverage" begin
-        @test !E2E.should_run_priming(E2E.Selection(:workflow, :presubmit))
+        @test E2E.should_run_priming(E2E.Selection(:workflow, :presubmit))
         @test E2E.should_run_priming(E2E.Selection(:workflow, :ci))
         @test E2E.should_run_priming(E2E.Selection(:workflow, :full))
         @test E2E.should_run_priming(E2E.Selection(:name, "record"))
@@ -413,6 +413,35 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         threshold_boundary =
             record("threshold_boundary", 0.25, Dict{String,Any}("algorithm" => "varbyvar"))
         config = E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed"])
+
+        priming_config =
+            E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed", "uncovered"])
+        priming_candidates = [primed, same_configuration, uncovered]
+        presubmit_priming = E2E.priming_records_for(
+            catalogue,
+            priming_candidates,
+            priming_config,
+            E2E.Selection(:workflow, :presubmit),
+            (broad = true, records = [same_configuration]),
+        )
+        @test [record.name for record in presubmit_priming] == ["primed"]
+        ci_priming = E2E.priming_records_for(
+            catalogue,
+            priming_candidates,
+            priming_config,
+            E2E.Selection(:workflow, :ci),
+            (broad = true, records = [same_configuration]),
+        )
+        @test [record.name for record in ci_priming] == ["primed", "uncovered"]
+
+        budget_config = E2E.CatalogueConfig(0.25, 1.0, Set{String}(), ["primed"], 0.35)
+        @test isempty(
+            E2E.presubmit_budget_errors([primed, same_configuration], budget_config),
+        )
+        over_budget = E2E.presubmit_budget_errors(priming_candidates, budget_config)
+        @test length(over_budget) == 1
+        @test occursin("presubmit_budget_seconds=0.35", only(over_budget))
+        @test isempty(E2E.presubmit_budget_errors(priming_candidates, config))
 
         @test E2E.priming_configuration_key(primed, example) ==
               E2E.priming_configuration_key(same_configuration, example)

@@ -13,9 +13,25 @@ notes-tag rules, records, and runtime measurement.
 - Each selected E2E record runs once, timed, and its normalized result is
   checked against the expected value. The fixed priming set runs before `ci`
   and `full` workflows and before `--name=` / `--tag=` selections; `presubmit`
-  does not run it. Keep the set below five minutes and cover every configuration
-  whose cheapest record is below `ci_seconds`; see `test/e2e/README.md` for the
-  configuration key and how to add an entry.
+  runs the priming records for its own configurations. Keep the set below five
+  minutes and cover every configuration whose cheapest record is below
+  `ci_seconds`; see `test/e2e/README.md` for the configuration key and how to
+  add an entry.
+
+## Test tiers
+
+- `presubmit` has a budget of one minute after priming. It runs the unit test
+  files marked `:presubmit` in `UNIT_TEST_TIERS` (`test/runtests.jl`) and the
+  E2E records below `presubmit_seconds`. `ci` runs every unit test file, the
+  quality gates and the records below `ci_seconds`; `full` runs everything.
+- New unit test files go in `UNIT_TEST_TIERS`. Mark a file `:presubmit` only if
+  it takes a few seconds on the shared host under its usual load.
+- Declared E2E runtimes are measured on the shared host under its usual load.
+- Besides presubmit, run the tests for what you changed:
+  `Pkg.test(test_args=["--unit=<file>", ...])` for the unit test files that
+  cover the changed code (for example `--unit=reduction/AKR.jl` for
+  `src/reduction/policies/AKR.jl`), and `--name=` / `--tag=` for the E2E
+  records that exercise it. Report which targeted tests you ran.
 - When a change affects execution speed, re-time affected E2E records in the
   same change.
 - Derive an expected value from stored `Lpoly` data whenever that data

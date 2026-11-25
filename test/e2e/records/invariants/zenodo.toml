@@ -2,7 +2,7 @@
 name = "zenodo_artin_mazur_height_p3_h7"
 type = "artin_mazur_height"
 tags = []
-runtime = 26.033
+runtime = 43.887
 example = "zenodo_22784396_p3_r1999"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -74,7 +74,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p3_h10"
 type = "artin_mazur_height"
 tags = []
-runtime = 28.748
+runtime = 45.791
 example = "zenodo_22784396_p3_r2307"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -98,7 +98,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p3_ss"
 type = "artin_mazur_height"
 tags = []
-runtime = 20.966
+runtime = 42.463
 example = "zenodo_22784396_p3_r4001"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -122,7 +122,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p5_h8"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.962
+runtime = 8.883
 example = "zenodo_22784396_p5_r172"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -146,7 +146,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p5_h9"
 type = "artin_mazur_height"
 tags = []
-runtime = 4.077
+runtime = 5.515
 example = "zenodo_22784396_p5_r2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -170,7 +170,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p5_h10"
 type = "artin_mazur_height"
 tags = []
-runtime = 5.38
+runtime = 9.859
 example = "zenodo_22784396_p5_r353"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -194,7 +194,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p5_ss"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.881
+runtime = 6.223
 example = "zenodo_22784396_p5_r76"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -218,7 +218,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p7_h7"
 type = "artin_mazur_height"
 tags = []
-runtime = 2.67
+runtime = 6.758
 example = "zenodo_22784396_p7_r920"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -242,7 +242,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p7_h8"
 type = "artin_mazur_height"
 tags = []
-runtime = 2.743
+runtime = 5.249
 example = "zenodo_22784396_p7_r473"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -266,7 +266,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p7_h9"
 type = "artin_mazur_height"
 tags = []
-runtime = 2.263
+runtime = 5.147
 example = "zenodo_22784396_p7_r501"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -290,7 +290,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p7_h10"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.809
+runtime = 8.968
 example = "zenodo_22784396_p7_r917"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -314,7 +314,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p7_ss"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.32
+runtime = 7.142
 example = "zenodo_22784396_p7_r921"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -338,7 +338,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p11_h3"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.686
+runtime = 11.469
 example = "zenodo_22784396_p11_r244"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -362,7 +362,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p11_h4"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.014
+runtime = 9.528
 example = "zenodo_22784396_p11_r835"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -386,7 +386,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p11_h5"
 type = "artin_mazur_height"
 tags = []
-runtime = 6.864
+runtime = 9.324
 example = "zenodo_22784396_p11_r800"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -410,7 +410,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p11_h6"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.747
+runtime = 8.455
 example = "zenodo_22784396_p11_r836"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -434,7 +434,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p13_h3"
 type = "artin_mazur_height"
 tags = []
-runtime = 6.383
+runtime = 9.155
 example = "zenodo_22784396_p13_r959"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -458,7 +458,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p13_h4"
 type = "artin_mazur_height"
 tags = []
-runtime = 4.541
+runtime = 11.854
 example = "zenodo_22784396_p13_r3"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -482,7 +482,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 name = "zenodo_artin_mazur_height_p13_h5"
 type = "artin_mazur_height"
 tags = []
-runtime = 3.946
+runtime = 12.262
 example = "zenodo_22784396_p13_r795"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 

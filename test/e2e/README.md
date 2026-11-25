@@ -77,8 +77,11 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 - `name` must be nonempty and globally unique across every record file.
 - `runtime` is the measured execution time in seconds, used only for
-  `--workflow=` membership. Use Julia 1.13.2; update affected records in the
-  same change when an implementation change affects their speed.
+  `--workflow=` membership. Record the harness's `actual_runtime` from a ci
+  run (after priming) on the shared development host under its usual load,
+  not on a quiet machine: that is where the tiers run. Use Julia 1.13.2; update
+  affected records in the same change when an implementation change affects
+  their speed.
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
 - `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
@@ -132,8 +135,15 @@ exactly as you would a local example; there is no separate syntax.
 selector may be given; a bare `Pkg.test()` defaults to `--workflow=ci`.
 An invocation with only a `--name=` or `--tag=` selector runs the selected E2E
 record(s) without running the conventional testsets, E2E harness tests, or
-quality gates. Bare `Pkg.test()` and `--workflow=` invocations still run those
-tests and gates.
+quality gates. Bare `Pkg.test()` and `--workflow=` invocations also run the
+unit test files of that workflow's tier (`UNIT_TEST_TIERS` in
+`test/runtests.jl`): `presubmit` runs the files marked `:presubmit`, while `ci`
+and `full` run every unit test file and the quality gates.
+
+`--unit=<file>` (a path relative to `test/`, repeatable) runs only those unit
+test files, whatever their tier, and can be combined with `--name=` and
+`--tag=` to run specific records as well. Use it to run the tests for the code
+you changed:
 
 ```julia
 Pkg.test("DeRham")                                    # --workflow=ci (default)
@@ -141,10 +151,17 @@ Pkg.test("DeRham"; test_args = ["--workflow=presubmit"])
 Pkg.test("DeRham"; test_args = ["--workflow=full"])
 Pkg.test("DeRham"; test_args = ["--name=my_new_example_default"])
 Pkg.test("DeRham"; test_args = ["--tag=bigint"])
+Pkg.test("DeRham"; test_args = ["--unit=reduction/AKR.jl"])
+Pkg.test("DeRham"; test_args = ["--unit=reduction/Selection.jl", "--name=pchunk__dim_1_deg_3_fermat_1"])
 ```
 
 `--workflow=` selects by each record's `runtime` against the configured
 `presubmit_seconds` / `ci_seconds` thresholds (`presubmit ⊆ ci ⊆ full`).
+Presubmit has a time budget of one minute after priming, split between its
+unit test files and its E2E records. Catalogue validation fails when the
+presubmit records' declared runtimes add up to more than
+`presubmit_budget_seconds`; lower `presubmit_seconds` or move records out of
+presubmit rather than raising the budget.
 `--name=` and `--tag=` ignore runtime thresholds; a `--tag=` selection (like
 a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
@@ -158,7 +175,9 @@ execution time; the summary remains informational.
 
 `config.toml` lists the fixed priming set under `[priming].records`. The harness
 runs those ordinary records before `ci` and `full` workflows and before
-`--name=` or `--tag=` selections. `presubmit` does not run the priming set. Each
+`--name=` or `--tag=` selections. `presubmit` runs only the priming records
+whose configuration matches one of its selected records. In a workflow run,
+priming happens before the unit test files, so they share the compiled code. Each
 priming result is checked like any other record, and a priming record that is
 also selected runs only once. A priming-only record that requires an unavailable
 capability is skipped; when explicitly selected by `--name=`, it follows the
@@ -225,3 +244,13 @@ added or changed, plus the prescribed workflow test tier. The end-of-run
 runtime table flags cases whose measured time is more than twice or less than
 half their declared runtime; this is informational and does not change a test
 result.
+
+The November 25, 2026 tier refresh uses 346 measured records from the loaded-host
+CI logs `20261124T142034Z-land-main-34f2ccb.log` and
+`20261125T042125Z-epic4-supportcone-0ea3750.log` (kept in the coordinator's
+`dispatch/medium-test-runs/logs/` evidence directory). Each declaration uses the
+smaller available post-priming measurement, rounded to milliseconds; records
+without a measurement retain their existing declaration. Sixteen formerly
+CI-eligible records cross the unchanged 30-second CI threshold into `full`.
+At the 0.7-second presubmit threshold, 45 records declare 27.355 seconds in total;
+three GPU records account for 1.5 seconds and skip when GPU is unavailable.
