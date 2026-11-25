@@ -63,10 +63,8 @@ end
     )
     S = collect(0:quotient.n)
     cache = DeRham.controlled_reduction_cache(quotient.n, quotient.d, S, params, quotient)
-    terminal_degree = DeRham.numerator_degree(
-        quotient,
-        DeRham.terminal_pole_order(quotient),
-    )
+    terminal_degree =
+        DeRham.numerator_degree(quotient, DeRham.terminal_pole_order(quotient))
     cached_terminal_basis = cache[terminal_degree]
 
     @test DeRham.extend_controlled_reduction_cache!(
