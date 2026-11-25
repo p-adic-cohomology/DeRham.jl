@@ -1,11 +1,5 @@
-@testset "AKR cutoff relation table" begin
-    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
-    f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
-    table = DeRham._build_akr_relation_table(f, 7, 1)
+function akr_relation_identities_hold(table, f)
     partials = [derivative(f, i) for i = 1:3]
-
-    @test table.cutoff == 7
-    @test length(table.relations) == 36
     for (monomial, cofactors) in table.relations
         reconstructed = Dict{NTuple{3,Int},BigInt}()
         for (i, cofactor, relation_coefficient) in cofactors
@@ -23,8 +17,19 @@
                 end
             end
         end
-        @test reconstructed == Dict(monomial => big(1))
+        reconstructed == Dict(monomial => big(1)) || return false
     end
+    return true
+end
+
+@testset "AKR cutoff relation table" begin
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
+    table = DeRham._build_akr_relation_table(f, 7, 1)
+
+    @test table.cutoff == 7
+    @test length(table.relations) == 36
+    @test akr_relation_identities_hold(table, f)
 end
 
 @testset "AKR cutoff BigInt reduction map" begin
@@ -34,6 +39,7 @@ end
     f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
     table = DeRham._build_akr_relation_table(f, 7, 23)
     @test table.modulus > typemax(UInt64)
+    @test akr_relation_identities_hold(table, f)
 
     m = 3
     params = (; termorder = :invlex)
