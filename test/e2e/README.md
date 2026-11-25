@@ -77,9 +77,10 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 - `name` must be nonempty and globally unique across every record file.
 - `runtime` is the measured execution time in seconds, used only for
-  `--workflow=` membership. Record the harness's `actual_runtime` from a ci
-  run (after priming) on the shared development host under its usual load,
-  not on a quiet machine: that is where the tiers run. Use Julia 1.13.2; update
+  `--workflow=` membership. Record the harness's `actual_runtime` from a primed
+  workflow on the shared development host under its usual load, where the tiers
+  run. Identify the workflow and source revision because their warmed paths can
+  differ. Use Julia 1.13.2; update
   affected records in the same change when an implementation change affects
   their speed.
 - `example` must match an example `id`. If that example has more than one
@@ -258,8 +259,7 @@ The November 25, 2026 tier refresh uses 346 measured records from the loaded-hos
 CI logs `20261124T142034Z-land-main-34f2ccb.log` and
 `20261125T042125Z-epic4-supportcone-0ea3750.log` (kept in the coordinator's
 `dispatch/medium-test-runs/logs/` evidence directory). Each declaration uses the
-smaller available post-priming measurement, rounded to milliseconds, except
-the conic smoke pair uses the larger of the two available samples. Forty-two
+smaller available post-priming measurement, rounded to milliseconds. Forty-two
 of those declarations are replaced by the newer post-priming measurements in
 `tiers-presubmit-codex-2.log`, on source `59bb6df` under the usual shared-host
 load; priming measurements are excluded. The later 40.155-second observation
@@ -269,8 +269,12 @@ retain their existing declaration. Seventeen formerly CI-eligible records cross
 the unchanged 30-second CI threshold into `full`.
 
 The smoke pair `double_cover_conic_nonsplit_p3` and
-`double_cover_conic_split_p3` declares 1.036 and 0.732 seconds from those CI
-samples. The presubmit unit files are HodgePolygon, CharPolyFrob and Refusals.
+`double_cover_conic_split_p3` declares 14.574 and 12.009 seconds from the
+loaded-host presubmit run on source `87c4af3`. This replaces their older CI
+measurements, whose broader prefix had already warmed more paths. That run
+passed the combined post-priming budget in 31.857 seconds, including 4.806
+seconds of remaining compilation. Priming took 245.803 seconds separately.
+The presubmit unit files are HodgePolygon, CharPolyFrob and Refusals.
 Admit files using their timings after presubmit's own priming and preceding
 tests: a broad CI prefix can hide substantial compilation cost. Slower files
 remain in CI/full and are available individually through `--unit=<file>`.
