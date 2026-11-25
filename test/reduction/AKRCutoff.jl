@@ -99,6 +99,58 @@ end
     @test length(table.bigint_reduction_maps) == 1
 end
 
+@testset "AKR UInt64 reduction path" begin
+    p = 7
+    precision = 12
+    modulus = big(p)^precision
+    precision_ring, = residue_ring(ZZ, modulus)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    table = DeRham._build_akr_relation_table(f, p, precision)
+
+    @test table.modulus <= typemax(UInt64)
+
+    m = 3
+    params = (; termorder = :invlex)
+    source_monomials = DeRham.gen_exp_vec(3, 3 * m - 3, params.termorder)
+    g = fill(precision_ring(modulus - 1), length(source_monomials))
+    reduction_map = DeRham._akr_reduction_map(table, m, f, params.termorder)
+    source_residue = UInt64(modulus - 1)
+    @test any(
+        UInt128(source_residue) * UInt128(reduction_map.factors[k]) > typemax(UInt64) for
+        j in eachindex(g) for k = reduction_map.offsets[j]:(reduction_map.offsets[j+1]-1)
+    )
+
+    cofactor_degree = 3 * m - 3 - 3 + 1
+    cofactor_monomials = DeRham.gen_exp_vec(3, cofactor_degree, params.termorder)
+    cofactor_indices = Dict(Tuple(e) => i for (i, e) in enumerate(cofactor_monomials))
+    expected_cofactors_bigint = fill(big(0), 3 * length(cofactor_monomials))
+    for (j, exponent) in enumerate(source_monomials)
+        left = table.cutoff
+        h = ntuple(Val(3)) do i
+            part = min(left, exponent[i])
+            left -= part
+            part
+        end
+        @test left == 0
+        shift = ntuple(i -> exponent[i] - h[i], Val(3))
+        for (i, cofactor, factor) in table.relations[h]
+            shifted = ntuple(l -> shift[l] + cofactor[l], Val(3))
+            position = (i - 1) * length(cofactor_monomials) + cofactor_indices[shifted]
+            expected_cofactors_bigint[position] =
+                mod(expected_cofactors_bigint[position] + (modulus - 1) * factor, modulus)
+        end
+    end
+
+    actual_cofactors = DeRham._akr_cofactor_vector(g, m, f, table, params)
+    @test [DeRham._akr_bigint(lift(ZZ, c)) for c in actual_cofactors] == expected_cofactors_bigint
+
+    expected_cofactors = precision_ring.(expected_cofactors_bigint)
+    expected_reduced =
+        DeRham._akr_pseudoinverse_derivative(expected_cofactors, m, f, [0, 1, 2], params)
+    @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
+end
+
 @testset "AKR partial-variable fallback" begin
     p = 2
     coefficient_ring, = residue_ring(ZZ, p)

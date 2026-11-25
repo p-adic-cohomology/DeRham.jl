@@ -119,6 +119,9 @@ common option parser also accepts
 integers, while `algorithm_precision` takes an integer. For a double-cover
 zeta record, `series_precision` and `algorithm_precision` are required;
 `relative_precision` defaults to the existing Weil-bound formula.
+For a projective `zeta_coefficients` record, setting `algorithm_precision` by
+itself overrides the automatically computed working precision while keeping
+the automatic relative and series precisions.
 
 ## Reference an example from the pinned artifact
 

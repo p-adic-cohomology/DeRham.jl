@@ -23,6 +23,24 @@ example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "akr_levelbylevel" }
 
 [[test]]
+name = "akr_cutoff_uint64_modulus_akr_naive"
+type = "zeta_coefficients"
+tags = []
+runtime = 5.55
+example = "dim_1_deg_3_fermat_1"
+p = 7
+parameters = { algorithm = "akr_naive", algorithm_precision = 12 }
+
+[[test]]
+name = "akr_cutoff_uint64_modulus_akr_levelbylevel"
+type = "zeta_coefficients"
+tags = []
+runtime = 2.15
+example = "dim_1_deg_3_fermat_1"
+p = 7
+parameters = { algorithm = "akr_levelbylevel", algorithm_precision = 12 }
+
+[[test]]
 name = "akr_cutoff_plane_quartic_p7_akr"
 type = "zeta_coefficients"
 tags = []
