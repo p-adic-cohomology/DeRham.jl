@@ -63,6 +63,31 @@ end
 
     actual = DeRham._akr_cofactor_vector(g, m, f, table, params)
     @test actual == expected
+    cofactor_length = length(cofactor_monomials)
+    expected_reduced_polynomial = derivative(
+        DeRham.vector_to_polynomial(
+            expected[1:cofactor_length],
+            2,
+            cofactor_degree,
+            parent(f),
+            params.termorder,
+        ),
+        1,
+    )
+    for i = 1:2
+        component = DeRham.vector_to_polynomial(
+            expected[(i*cofactor_length+1):((i+1)*cofactor_length)],
+            2,
+            cofactor_degree,
+            parent(f),
+            params.termorder,
+        )
+        expected_reduced_polynomial += derivative(component, i + 1)
+    end
+    expected_reduced =
+        DeRham.polynomial_to_vector(expected_reduced_polynomial, 3, params.termorder)
+    @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
+
     cached_map = DeRham._akr_bigint_reduction_map(table, m, f, params.termorder)
     @test cached_map === DeRham._akr_bigint_reduction_map(table, m, f, params.termorder)
     @test length(table.bigint_reduction_maps) == 1
