@@ -39,6 +39,8 @@ makedocs(
         "Utilities" => "utilities.md",
         "Experimental" => [
             "Experimental algorithms" => "experimental/index.md",
+            "Native dense hypersurfaces" => "experimental/native_hypersurfaces.md",
+            "Dense Dwork K3 derivation" => "experimental/dense_dwork.md",
             "Double covers" => "experimental/double_covers.md",
         ],
     ],

@@ -1,0 +1,23 @@
+n=6 p=17 N=5 one_matrix=true
+certified_top_from_socle 1
+window_groups 519 shared_readouts 1
+backend window
+rank 22 levels 0.035951s powers 0.000002s coefficients+grouping 3.409812s reduction 0.001898s requests 11418 largest_power 68
+        3.45 real         3.43 user         0.01 sys
+             9060352  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                 729  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  12  involuntary context switches
+         59362558955  instructions retired
+         13010090923  cycles elapsed
+             8585552  peak memory footprint

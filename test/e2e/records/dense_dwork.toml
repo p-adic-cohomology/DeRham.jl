@@ -1,0 +1,41 @@
+[[test]]
+name = "dense_dwork_p37"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 0.424
+example = "dense_dwork_p37"
+
+[[test]]
+name = "dense_dwork_p61"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 1.17
+example = "dense_dwork_p61"
+
+[[test]]
+name = "dense_dwork_p67"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 1.12
+example = "dense_dwork_p67"
+
+[[test]]
+name = "dense_dwork_p101"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 1.964
+example = "dense_dwork_p101"
+
+[[test]]
+name = "dense_dwork_p11"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 0.033
+example = "dense_dwork_p11"
+
+[[test]]
+name = "dense_dwork_p13"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 0.042
+example = "dense_dwork_p13"

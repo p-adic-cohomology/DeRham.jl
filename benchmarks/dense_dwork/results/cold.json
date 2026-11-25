@@ -1,0 +1,23 @@
+[
+  {
+    "mode": "workshop",
+    "p": 101,
+    "status": 0,
+    "process_wall_seconds": 3.7329435830000004,
+    "cold": true
+  },
+  {
+    "mode": "native",
+    "p": 101,
+    "status": 0,
+    "process_wall_seconds": 50.749726375,
+    "cold": true
+  },
+  {
+    "mode": "upstream",
+    "p": 101,
+    "status": 0,
+    "process_wall_seconds": 100.26419083300001,
+    "cold": true
+  }
+]

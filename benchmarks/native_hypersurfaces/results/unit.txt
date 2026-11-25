@@ -1,0 +1,4 @@
+Test Summary:                     | Pass  Total  Time
+dense Dwork reconstruction guards |  167    167  0.6s
+Test Summary:                                                | Pass  Total  Time
+dense hypersurface precision ranges and functional equations |  457    457  0.1s

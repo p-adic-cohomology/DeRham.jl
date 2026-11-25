@@ -1,0 +1,4 @@
+native_dwork_n5_p13 direct_points=2341 matches=true
+native_dwork_n5_p19 direct_points=7259 matches=true
+native_dwork_n6_p11 direct_points=16160 matches=true
+native_dwork_n6_p17 direct_points=88486 matches=true

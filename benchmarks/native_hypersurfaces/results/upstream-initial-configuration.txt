@@ -1,0 +1,9 @@
+Preliminary comparison harness result (before specifying cubic S=[0,1,2]).
+No Frobenius solve completed in these attempts.
+All four exited 1: ERROR: LoadError: Length of S must be <= 3.
+The benchmark was corrected to use S=collect(0:(degree-1)), matching the upstream cubic catalogue.
+
+native_dwork_n5_p13 upstream-default exit=1 process_wall_seconds=31.917261832999998
+native_dwork_n5_p13 upstream-depthfirst exit=1 process_wall_seconds=31.320964542000002
+native_dwork_n6_p11 upstream-depthfirst exit=1 process_wall_seconds=31.414820958
+native_dwork_n6_p11 upstream-default exit=1 process_wall_seconds=31.277315

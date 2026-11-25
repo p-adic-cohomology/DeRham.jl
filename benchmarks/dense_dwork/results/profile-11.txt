@@ -1,0 +1,3 @@
+(validation = 0.00145925, native = 0.031621791999999996, reconstruction = 0.002803416, assembly = 0.000257916)
+(validation = 0.001404375, native = 0.031419042, reconstruction = 0.002932041, assembly = 7.1875e-5)
+(validation = 0.001338083, native = 0.031680375, reconstruction = 0.0027462909999999997, assembly = 4.0083e-5)

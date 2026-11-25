@@ -1,0 +1,19 @@
+{"p": 101, "first_solve_seconds": 2.051981666008942, "warm_seconds": [2.063285709009506, 2.0737009590957314, 2.0408364169998094], "median_seconds": 2.063285709009506, "full_projective_zeta_equal": true}
+        8.45 real         8.27 user         0.06 sys
+            53428224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               14652  page reclaims
+                  12  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   8  voluntary context switches
+                 975  involuntary context switches
+          1568370881  instructions retired
+           559412311  cycles elapsed
+            36143632  peak memory footprint

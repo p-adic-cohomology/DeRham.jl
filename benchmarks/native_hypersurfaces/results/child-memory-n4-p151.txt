@@ -1,0 +1,22 @@
+n=4 p=151 N=4 one_matrix=true
+window_groups 603 shared_readouts 0
+backend window
+rank 21 levels 0.004968s powers 0.000003s coefficients+grouping 3.360989s reduction 0.000450s requests 4221 largest_power 453
+        3.36 real         3.35 user         0.00 sys
+             4472832  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                 443  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                 109  involuntary context switches
+         49147572803  instructions retired
+         12653135025  cycles elapsed
+             4014416  peak memory footprint

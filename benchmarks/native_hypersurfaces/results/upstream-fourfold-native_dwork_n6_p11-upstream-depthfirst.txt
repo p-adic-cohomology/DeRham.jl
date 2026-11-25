@@ -1,0 +1,53 @@
+[28349] signal 15: Terminated: 15
+in expression starting at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/benchmarks/native_hypersurfaces/benchmark.jl:39
+_nmod_vec_add at /Users/ahuchala/.julia/artifacts/94e2c1a808c4c7af04e6153d4676d3d6c1907121/lib/libflint.24.0.dylib (unknown line)
+nmod_mat_add at /Users/ahuchala/.julia/artifacts/94e2c1a808c4c7af04e6153d4676d3d6c1907121/lib/libflint.24.0.dylib (unknown line)
+add! at /Users/ahuchala/.julia/packages/Nemo/XTmgX/src/flint/nmod_mat.jl:226 [inlined]
+my_add! at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/recurrence/backend/LinearAlgebraWrappers.jl:82 [inlined]
+eval_to_linear! at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/recurrence/EvaluatePEP.jl:36
+unknown function (ip: 0x3c79744a3) at (unknown file)
+reducechain_depthfirst at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/reduction/policies/DepthFirst.jl:82
+#reducepoly_depthfirst##2 at ./none (unknown line)
+unknown function (ip: 0x3c78dc223) at (unknown file)
+iterate at ./generator.jl:48 [inlined]
+iterate at ./iterators.jl:1316 [inlined]
+reduction_terminal_polynomial at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/frontends/ZetaFrontend.jl:169
+reducepoly_depthfirst at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/reduction/policies/DepthFirst.jl:150
+unknown function (ip: 0x3c77a42db) at (unknown file)
+reducetransform_depthfirst at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/reduction/policies/DepthFirst.jl:232
+reducetransform at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/reduction/ControlledReduction.jl:18
+unknown function (ip: 0x3c717c277) at (unknown file)
+#zeta_coefficients#164 at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/invariants/ZetaCoefficients.jl:348
+zeta_coefficients at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/invariants/ZetaCoefficients.jl:102 [inlined]
+#zeta_coefficients#168 at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/invariants/ZetaCoefficients.jl:430 [inlined]
+zeta_coefficients at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/invariants/ZetaCoefficients.jl:411 [inlined]
+#zeta_function#215 at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/invariants/ZetaFunction.jl:66
+zeta_function at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/src/invariants/ZetaFunction.jl:63 [inlined]
+#benchmark##4 at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/benchmarks/native_hypersurfaces/benchmark.jl:9 [inlined]
+macro expansion at ./timing.jl:463 [inlined]
+benchmark at /private/tmp/sparse-dwork-pr.2uxNGG/DeRham.jl/benchmarks/native_hypersurfaces/benchmark.jl:17
+unknown function (ip: 0x3522fd017) at (unknown file)
+jl_apply at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/julia.h:2319 [inlined]
+jl_f__apply_iterate at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/builtins.c:876
+jl_apply at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/julia.h:2319 [inlined]
+do_call at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/interpreter.c:123
+eval_stmt_value at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/interpreter.c:194 [inlined]
+eval_body at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/interpreter.c:675
+jl_interpret_toplevel_thunk at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/interpreter.c:884
+jl_toplevel_eval_flex at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/toplevel.c:742
+jl_eval_toplevel_stmts at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/toplevel.c:585
+jl_toplevel_eval_flex at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/toplevel.c:683
+ijl_toplevel_eval at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/toplevel.c:754 [inlined]
+ijl_toplevel_eval_in at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/toplevel.c:799
+eval at ./boot.jl:489
+include_string at ./loading.jl:3045
+_include at ./loading.jl:3105
+include at ./Base.jl:309
+exec_options at ./client.jl:344
+_start at ./client.jl:577
+jfptr__start_44882.1 at /Users/ahuchala/.julia/juliaup/julia-1.13.2+0.aarch64.apple.darwin14/Julia-1.13.app/Contents/Resources/julia/lib/julia/sys.dylib (unknown line)
+jl_apply at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/julia.h:2319 [inlined]
+true_main at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/jlapi.c:985
+jl_repl_entrypoint at /Users/julia/.julia/scratchspaces/a66863c6-20e8-4ff4-8a62-49f30b1f605e/agent-cache/builder-honeycrisp-HL2F7YQ3XH.1/019ebd63-635e-4155-b60a-9d2815900786/trusted/build/builder-honeycrisp-HL2F7YQ3XH-1/julialang/julia-ci/src/jlapi.c:1152
+unknown function (ip: 0x0) at (unknown file)
+Allocations: 1183282002 (Pool: 1183246900; Big: 35102); GC: 1109

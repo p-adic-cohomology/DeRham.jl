@@ -1,0 +1,36 @@
+[
+  {
+    "case": "native_dwork_n6_p11",
+    "mode": "upstream-default",
+    "status": "timeout",
+    "cold": false,
+    "wall_seconds": 360.007675916,
+    "load_average_start": [
+      3.3837890625,
+      3.67333984375,
+      3.77197265625
+    ],
+    "load_average_end": [
+      3.80224609375,
+      3.90380859375,
+      3.84765625
+    ]
+  },
+  {
+    "case": "native_dwork_n6_p11",
+    "mode": "upstream-depthfirst",
+    "status": "timeout",
+    "cold": false,
+    "wall_seconds": 360.009206833,
+    "load_average_start": [
+      3.80224609375,
+      3.90380859375,
+      3.84765625
+    ],
+    "load_average_end": [
+      4.01513671875,
+      3.775390625,
+      3.7607421875
+    ]
+  }
+]

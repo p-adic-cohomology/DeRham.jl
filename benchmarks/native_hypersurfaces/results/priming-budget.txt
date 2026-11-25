@@ -1,0 +1,3 @@
+Fresh Julia 1.13.2 exact-name run: native_dwork_n5_p13
+20 configured priming records; 18 executed, 2 unavailable GPU records skipped.
+Sum of recorded execution times, including first-use JIT: 78.511 seconds < 300 seconds.

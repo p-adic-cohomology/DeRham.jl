@@ -1,0 +1,71 @@
+Julia 1.13.2: Pkg.test(test_args=["--workflow=presubmit"])
+Exit status: 0
+
+Test Summary: | Pass  Total   Time
+DeRham.jl     | 1898   1898  31.6s
+Test Summary: | Pass  Total  Time
+Hodge polygon |   16     16  0.2s
+Test Summary:                | Pass  Total  Time
+L_polynomial and Tate twists |   24     24  1.0s
+Test Summary:                  | Pass  Total  Time
+point_counts and zeta_function |   18     18  0.4s
+Test Summary:  | Pass  Total   Time
+newton_polygon |   16     16  21.0s
+Test Summary:                  | Pass  Total  Time
+hasse_witt_matrix and a_number |    8      8  1.5s
+Test Summary: | Pass  Total  Time
+Picard rank   |   60     60  0.6s
+Test Summary:      | Pass  Total   Time
+Artin-Mazur height |   15     15  52.6s
+Test Summary:   | Pass  Total  Time
+artin_invariant |   14     14  2.1s
+Test Summary:                       | Pass  Total  Time
+Degree-one functional equation sign |    8      8  0.0s
+Test Summary:               | Pass  Total  Time
+K3 over F3 Frobenius weight |    1      1  0.0s
+Test Summary:       | Pass  Total  Time
+jacobian invariants |   31     31  1.6s
+Test Summary:                     | Pass  Total  Time
+dense Dwork reconstruction guards |  167    167  0.0s
+Test Summary:        | Pass  Total  Time
+cohomology quotients |   88     88  0.4s
+Test Summary:                    | Pass  Total  Time
+Projective hypersurface frontend |  189    189  0.9s
+Test Summary:         | Pass  Total  Time
+Double cover frontend |  184    184  5.4s
+Test Summary:           | Pass  Total  Time
+Double cover zeta suite |   37     37  8.9s
+Test Summary:                        | Pass  Total  Time
+Double cover conic Frobenius scaling |    2      2  0.8s
+Test Summary:               | Pass  Total  Time
+Frontend algorithm refusals |    7      7  0.0s
+Test Summary:                        | Pass  Total  Time
+reduction selection characterization |  993    993  0.6s
+Test Summary:                 | Pass  Total  Time
+frontend reduction directions |   17     17  0.1s
+Test Summary:                      | Pass  Total  Time
+frontend Frobenius term conversion |   10     10  0.1s
+Test Summary:                              | Pass  Total  Time
+graded exponent cache and quotient degrees |   20     20  0.0s
+Test Summary:             | Pass  Total  Time
+priming config validation |   14     14  0.1s
+[e2e] SKIP gpu_primer: requires unavailable capabilities: [:gpu]
+Test Summary: | Pass  Total  Time
+E2E harness   |  310    310  5.1s
+Test Summary:                 | Pass  Total  Time
+double-cover model conversion |   23     23  0.5s
+[e2e] PASS dense_dwork_p37  expected_runtime=0.422s actual_runtime=0.684s
+[e2e] PASS dense_dwork_p61  expected_runtime=1.026s actual_runtime=1.057s
+[e2e] PASS dense_dwork_p67  expected_runtime=1.139s actual_runtime=1.121s
+[e2e] PASS dense_dwork_p101  expected_runtime=2.002s actual_runtime=1.984s
+[e2e] PASS dense_dwork_p11  expected_runtime=0.135s actual_runtime=0.033s
+[e2e] PASS dense_dwork_p13  expected_runtime=0.159s actual_runtime=0.042s
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_2: requires unavailable capabilities: [:gpu]
+Test Summary: | Pass  Total     Time
+E2E           |  315    315  5m19.5s
+Test Summary:                | Pass  Total  Time
+public API and Oscar exports |   23     23  0.1s
+Test Summary:          | Pass  Total     Time
+quality gates — DeRham |   18     18  1m09.4s

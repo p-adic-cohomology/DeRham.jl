@@ -1,0 +1,27 @@
+first_solve_seconds=6.278111792
+warm_repetition_seconds=3.56338425
+warm_repetition_seconds=3.568839
+warm_repetition_seconds=3.570252084
+warm_repetition_seconds=3.572147667
+warm_repetition_seconds=3.571451375
+median_seconds=3.570252084
+julia_version=1.13.2 oscar_version=1.8.2 threads=1
+full_zeta_equal=true mode=native case=native_dwork_n4_p151
+       56.60 real        54.76 user         1.13 sys
+          3277520896  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              335055  page reclaims
+                 169  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                  16  signals received
+                4521  voluntary context switches
+                1476  involuntary context switches
+        430017887051  instructions retired
+        129177655075  cycles elapsed
+          2937490768  peak memory footprint

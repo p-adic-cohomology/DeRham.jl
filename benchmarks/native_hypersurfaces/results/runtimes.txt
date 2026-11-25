@@ -1,0 +1,17 @@
+native_dwork_n5_p13 runtime_seconds=0.345294625
+native_dwork_n5_p19 runtime_seconds=1.73126675
+native_dwork_n5_p23 runtime_seconds=4.171946625
+native_dwork_n6_p17 runtime_seconds=3.456774959
+native_dwork_n6_p23 runtime_seconds=7.488929583
+native_dwork_n6_p89 runtime_seconds=34.853810167
+native_dwork_n6_p167 runtime_seconds=59.608856917
+native_dwork_n6_p11 runtime_seconds=4.025745792
+native_dwork_n4_p151 runtime_seconds=3.545509541
+native_dwork_n4_p251 runtime_seconds=5.930308416
+dense_dwork_p37 runtime_seconds=0.4235005
+dense_dwork_p61 runtime_seconds=1.169841583
+dense_dwork_p67 runtime_seconds=1.120321334
+dense_dwork_p101 runtime_seconds=1.963728875
+dense_dwork_p11 runtime_seconds=0.03337025
+dense_dwork_p13 runtime_seconds=0.041930083
+julia_version=1.13.2 oscar_version=1.8.2 threads=1

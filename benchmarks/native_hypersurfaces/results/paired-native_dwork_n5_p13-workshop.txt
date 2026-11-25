@@ -1,0 +1,26 @@
+first_solve_seconds=1.0897042080760002
+warm_repetition_seconds=0.3383566669654101
+warm_repetition_seconds=0.33754016598686576
+warm_repetition_seconds=0.3394915000535548
+warm_repetition_seconds=0.3382952919928357
+warm_repetition_seconds=0.33660662500187755
+median_seconds=0.3382952919928357
+full_zeta_equal=true mode=workshop case=native_dwork_n5_p13
+        3.08 real         2.12 user         0.05 sys
+            47284224  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               15289  page reclaims
+                 993  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 310  voluntary context switches
+                 733  involuntary context switches
+          1357460420  instructions retired
+           503274674  cycles elapsed
+            30015992  peak memory footprint

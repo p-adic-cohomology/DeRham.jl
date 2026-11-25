@@ -1,0 +1,10 @@
+native_dwork_n5_p13 all_coefficients=11 seconds=13.828776875
+native_dwork_n5_p19 all_coefficients=11 seconds=1.6073045
+native_dwork_n5_p23 all_coefficients=11 seconds=4.066612
+native_dwork_n6_p17 all_coefficients=23 seconds=3.451731875
+native_dwork_n6_p23 all_coefficients=23 seconds=7.391693917
+native_dwork_n6_p89 all_coefficients=23 seconds=34.37016975
+native_dwork_n6_p167 all_coefficients=23 seconds=58.712865959
+native_dwork_n6_p11 all_coefficients=23 seconds=4.037028458
+native_dwork_n4_p151 all_coefficients=22 seconds=3.55997075
+native_dwork_n4_p251 all_coefficients=22 seconds=6.009226708

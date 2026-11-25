@@ -1,0 +1,10 @@
+Test Summary:                                           | Pass  Total   Time
+four archived primitive polynomials and ambient factors |   16     16  28.2s
+small_p=11 points=123 coefficients=BigInt[1, 10, -88, -1452, -5324, 0, 483153, 7086244, -38974342, -1500512167, 11789738455, 129687123005, -1997181694277, -6276856753442, 138090848575724, 1139249500749723, 0, -183798919454288644, -6065364341991525252, -44479338507937851848, 611590904484145462910, 7400249944258160101211]
+small_p=13 points=183 coefficients=BigInt[1, 0, -78, 1014, 2197, -57122, -742586, 14480427, 0, -3262922884, -21208998746, 275716983698, 7168641576148, 0, -908625319776759, 7874752771398578, 102371786028181514, -665416609183179841, -51902495516288027598, 674732441711744358774, 0, -247064529073450392704413]
+Test Summary:                                                    | Pass  Total     Time
+small primes: direct counts and independent controlled reduction |    6      6  1m41.7s
+Test Summary:          | Pass  Total  Time
+domain and singularity |    6      6  0.1s
+Test Summary:            | Pass  Total  Time
+maximum native precision |    9      9  5.1s

@@ -1,0 +1,2 @@
+julia +1.13.2 --project=. deps/build.jl
+Exit status: 0; all three shipping native executables rebuilt successfully.

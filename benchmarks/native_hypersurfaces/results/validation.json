@@ -1,0 +1,138 @@
+{
+  "upstream_base": "d9633cf1847fed1f2ccf7a48ab855d4ce3ca4bde",
+  "workshop": "a5f802454f425ed6eae2aea197a6b3fee65ddba8",
+  "presubmit_exit": 0,
+  "presubmit_e2e_assertions": 321,
+  "focused": {
+    "native_dwork_n5_p13": 0,
+    "native_dwork_n5_p19": 0,
+    "native_dwork_n5_p23": 0,
+    "native_dwork_n6_p17": 0,
+    "native_dwork_n6_p23": 0,
+    "native_dwork_n6_p89": 0,
+    "native_dwork_n6_p167": 0,
+    "native_dwork_n6_p11": 0,
+    "native_dwork_n4_p151": 0,
+    "native_dwork_n4_p251": 0,
+    "dense_dwork_p37": 0,
+    "dense_dwork_p61": 0,
+    "dense_dwork_p67": 0,
+    "dense_dwork_p101": 0,
+    "dense_dwork_p11": 0,
+    "dense_dwork_p13": 0
+  },
+  "available_serial_priming_seconds": 78.511,
+  "cohort_smooth_matches": 300,
+  "cohort_singular_refusals": 26,
+  "threefold_after_storage_change": {
+    "smooth_matches": 100,
+    "singular_refusals": 11
+  },
+  "archived_equations": 14,
+  "upstream_comparisons": [
+    {
+      "case": "native_dwork_n5_p13",
+      "mode": "upstream-default",
+      "status": "timeout",
+      "cold": false,
+      "wall_seconds": 360.00756579200004,
+      "load_average_start": [
+        2.9697265625,
+        3.47509765625,
+        3.755859375
+      ],
+      "load_average_end": [
+        3.787109375,
+        3.810546875,
+        3.8291015625
+      ]
+    },
+    {
+      "case": "native_dwork_n5_p13",
+      "mode": "upstream-depthfirst",
+      "status": "skipped-equivalent-policy",
+      "reason": "Default dispatch is depthfirst for this shape; canceled redundant attempt after default timed out."
+    },
+    {
+      "case": "native_dwork_n6_p11",
+      "mode": "upstream-default",
+      "status": "timeout",
+      "cold": false,
+      "wall_seconds": 360.007675916,
+      "load_average_start": [
+        3.3837890625,
+        3.67333984375,
+        3.77197265625
+      ],
+      "load_average_end": [
+        3.80224609375,
+        3.90380859375,
+        3.84765625
+      ]
+    },
+    {
+      "case": "native_dwork_n6_p11",
+      "mode": "upstream-depthfirst",
+      "status": "timeout",
+      "cold": false,
+      "wall_seconds": 360.009206833,
+      "load_average_start": [
+        3.80224609375,
+        3.90380859375,
+        3.84765625
+      ],
+      "load_average_end": [
+        4.01513671875,
+        3.775390625,
+        3.7607421875
+      ]
+    }
+  ],
+  "cold": [
+    {
+      "case": "native_dwork_n6_p11",
+      "mode": "workshop",
+      "status": 0,
+      "cold": true,
+      "wall_seconds": 4.686744625,
+      "load_average_start": [
+        4.005859375,
+        3.78173828125,
+        3.7626953125
+      ],
+      "load_average_end": [
+        3.84521484375,
+        3.751953125,
+        3.751953125
+      ]
+    },
+    {
+      "case": "native_dwork_n6_p11",
+      "mode": "native",
+      "status": 0,
+      "cold": true,
+      "wall_seconds": 38.20105575,
+      "load_average_start": [
+        3.84521484375,
+        3.751953125,
+        3.751953125
+      ],
+      "load_average_end": [
+        3.4404296875,
+        3.66845703125,
+        3.72119140625
+      ]
+    },
+    {
+      "case": "native_dwork_n6_p11",
+      "mode": "upstream-default",
+      "status": "skipped-after-cold-timeout",
+      "reason": "Fresh upstream process already failed to finish its first exact solve within 360 seconds."
+    }
+  ],
+  "gpu_skips": [
+    "gpu_p7_depthfirst__dim_1_deg_4_random_1",
+    "gpu_s012__dim_2_deg_3_fermat_1",
+    "gpu_s012__dim_2_deg_3_fermat_2"
+  ]
+}

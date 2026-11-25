@@ -1,0 +1,25 @@
+[
+  {
+    "case": "native_dwork_n5_p13",
+    "mode": "upstream-default",
+    "status": "timeout",
+    "cold": false,
+    "wall_seconds": 360.00756579200004,
+    "load_average_start": [
+      2.9697265625,
+      3.47509765625,
+      3.755859375
+    ],
+    "load_average_end": [
+      3.787109375,
+      3.810546875,
+      3.8291015625
+    ]
+  },
+  {
+    "case": "native_dwork_n5_p13",
+    "mode": "upstream-depthfirst",
+    "status": "skipped-equivalent-policy",
+    "reason": "Default dispatch is depthfirst for this shape; canceled redundant attempt after default timed out."
+  }
+]

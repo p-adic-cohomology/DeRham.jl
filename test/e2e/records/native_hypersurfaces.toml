@@ -1,0 +1,69 @@
+[[test]]
+name = "native_dwork_n5_p13"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 0.345
+example = "native_dwork_n5_p13"
+
+[[test]]
+name = "native_dwork_n5_p19"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 1.731
+example = "native_dwork_n5_p19"
+
+[[test]]
+name = "native_dwork_n5_p23"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 4.172
+example = "native_dwork_n5_p23"
+
+[[test]]
+name = "native_dwork_n6_p17"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 3.457
+example = "native_dwork_n6_p17"
+
+[[test]]
+name = "native_dwork_n6_p23"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 7.489
+example = "native_dwork_n6_p23"
+
+[[test]]
+name = "native_dwork_n6_p89"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 34.854
+example = "native_dwork_n6_p89"
+
+[[test]]
+name = "native_dwork_n6_p167"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 59.609
+example = "native_dwork_n6_p167"
+
+[[test]]
+name = "native_dwork_n6_p11"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 4.026
+example = "native_dwork_n6_p11"
+
+[[test]]
+name = "native_dwork_n4_p151"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 3.546
+example = "native_dwork_n4_p151"
+
+[[test]]
+name = "native_dwork_n4_p251"
+type = "dense_dwork_zeta"
+tags = []
+runtime = 5.93
+example = "native_dwork_n4_p251"

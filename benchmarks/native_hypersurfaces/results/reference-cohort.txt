@@ -1,0 +1,3 @@
+n=4 smooth=100 attempts=109
+n=5 smooth=100 attempts=111
+n=6 smooth=100 attempts=106
