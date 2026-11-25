@@ -44,8 +44,7 @@ end
     overlapping_plan = DeRham._supportcone_plan(overlapping, overlapping_key, 1, directions)
 
     @test length(overlapping.subcones) == 3
-    @test overlapping.subcones[1].adjugate ==
-          BigInt[0 0 -8; 8 -8 0; -16 0 0]
+    @test overlapping.subcones[1].adjugate == BigInt[0 0 -8; 8 -8 0; -16 0 0]
     @test DeRham._supportcone_floors(overlapping.subcones[1], overlapping_key.u) ==
           BigInt[1, 0, 4]
     @test DeRham._supportcone_floors(overlapping.subcones[2], overlapping_key.u) ==
@@ -78,15 +77,16 @@ end
     @test isempty(bounded_search.subcones)
 
     full_rank_support = [(i, i^2, i^3, i^4, i^5) for i = 1:40]
-    bounded_candidates =
-        DeRham._supportcone_candidate_subcones(Val(5), full_rank_support)
-    repeated_candidates =
-        DeRham._supportcone_candidate_subcones(Val(5), full_rank_support)
+    bounded_candidates = DeRham._supportcone_candidate_subcones(Val(5), full_rank_support)
+    repeated_candidates = DeRham._supportcone_candidate_subcones(Val(5), full_rank_support)
     @test bounded_candidates.combinations_examined <=
           DeRham._SUPPORTCONE_MAX_SUBCONE_COMBINATIONS
     @test length(bounded_candidates.subcones) == DeRham._SUPPORTCONE_MAX_SUBCONES
-    @test [(subcone.indices, subcone.determinant) for subcone in bounded_candidates.subcones] ==
-          [(subcone.indices, subcone.determinant) for subcone in repeated_candidates.subcones]
+    @test [
+        (subcone.indices, subcone.determinant) for subcone in bounded_candidates.subcones
+    ] == [
+        (subcone.indices, subcone.determinant) for subcone in repeated_candidates.subcones
+    ]
 
     rank_four_support = vcat(
         fill((1, 0, 0, 0, 0), 35),

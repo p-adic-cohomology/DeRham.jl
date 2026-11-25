@@ -86,7 +86,7 @@ function _supportcone_adjugate(matrix::AbstractMatrix{<:Integer}, determinant::B
     for row = 1:dimension
         for column = 1:dimension
             augmented[row, column] = BigInt(matrix[row, column]) // BigInt(1)
-            augmented[row, dimension + column] =
+            augmented[row, dimension+column] =
                 row == column ? BigInt(1) // BigInt(1) : BigInt(0) // BigInt(1)
         end
     end
@@ -100,21 +100,21 @@ function _supportcone_adjugate(matrix::AbstractMatrix{<:Integer}, determinant::B
             throw(ArgumentError("a support-cone adjugate requires a nonsingular matrix"))
 
         if pivot_row != pivot_index
-            for column = 1:(2 * dimension)
+            for column = 1:(2*dimension)
                 augmented[pivot_index, column], augmented[pivot_row, column] =
                     augmented[pivot_row, column], augmented[pivot_index, column]
             end
         end
 
         pivot = augmented[pivot_index, pivot_index]
-        for column = 1:(2 * dimension)
+        for column = 1:(2*dimension)
             augmented[pivot_index, column] /= pivot
         end
         for row = 1:dimension
             row == pivot_index && continue
             factor = augmented[row, pivot_index]
             iszero(factor) && continue
-            for column = 1:(2 * dimension)
+            for column = 1:(2*dimension)
                 augmented[row, column] -= factor * augmented[pivot_index, column]
             end
         end
@@ -123,8 +123,7 @@ function _supportcone_adjugate(matrix::AbstractMatrix{<:Integer}, determinant::B
     adjugate = Matrix{BigInt}(undef, dimension, dimension)
     for row = 1:dimension
         for column = 1:dimension
-            adjugate[row, column] =
-                BigInt(determinant * augmented[row, dimension + column])
+            adjugate[row, column] = BigInt(determinant * augmented[row, dimension+column])
         end
     end
     return adjugate
@@ -169,7 +168,11 @@ function _supportcone_subcone(support, indices::NTuple{N,Int}) where {N}
     end
     determinant = _supportcone_determinant(matrix)
     iszero(determinant) && return nothing
-    return SupportConeSubcone(indices, determinant, _supportcone_adjugate(matrix, determinant))
+    return SupportConeSubcone(
+        indices,
+        determinant,
+        _supportcone_adjugate(matrix, determinant),
+    )
 end
 
 function _supportcone_candidate_subcones(::Val{N}, support) where {N}
@@ -282,7 +285,7 @@ function _supportcone_plan(
 end
 
 """
-SupportConePolicy(planner, degree, S)
+    SupportConePolicy(planner, degree, S)
 
 Experimental controlled-reduction policy using exact plans from the defining
 polynomial's support, with depth-first fallback for keys without a support plan.
