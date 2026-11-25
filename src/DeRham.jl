@@ -121,6 +121,7 @@ include("reduction/MatrixReductionEngine.jl")
 include("reduction/policies/PChunk.jl")
 include("reduction/policies/VarByVar.jl")
 include("reduction/policies/DepthFirstPolicy.jl")
+include("reduction/policies/SupportCone.jl")
 include("reduction/policies/DepthFirst.jl")
 include("reduction/policies/AKR.jl")
 include("reduction/ControlledReduction.jl")
@@ -182,6 +183,8 @@ public fermat_hypersurface,
     tate_untwist,
     normalized_tate_twist,
     ibm_lattice_correction,
-    pregen_default_context
+    pregen_default_context,
+    SupportConePlanner,
+    SupportConePolicy
 
 end

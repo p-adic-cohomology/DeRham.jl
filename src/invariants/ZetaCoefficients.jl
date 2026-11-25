@@ -67,7 +67,8 @@ Keyword arguments:
   [AKR pole reduction](@ref)). Double covers default to `:depthfirst` and also
   support explicit CPU execution with `:varbyvar` and `S=[n]`, or `:pchunk`
   when the working residue-ring modulus is below `2^64` with the default
-  integer representation.
+  integer representation. Projective hypersurfaces also support the
+  experimental CPU-only `:supportcone` policy.
 - `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
   uncertified precision inputs for non-hypersurface frontends. Hypersurface
   frontends reject these keywords. ``DoubleCover`` requires `series_precision`

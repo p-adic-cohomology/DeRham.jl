@@ -10,6 +10,8 @@ struct AccountingReductionResult{C}
     steps::Int
     chunks::Int
     duplicates_combined::Int
+    fallback_keys::Int
+    fallback_steps::Int
 end
 
 """
@@ -34,6 +36,8 @@ mutable struct AccountingReductionEngine{F,R,P} <: AbstractReductionEngine
     steps::Int
     chunks::Int
     duplicates_combined::Int
+    fallback_keys::Int
+    fallback_steps::Int
 end
 
 function AccountingReductionEngine(
@@ -52,6 +56,8 @@ function AccountingReductionEngine(
         Dict{Int,ReductionChainKey}(),
         NamedTuple[],
         1,
+        0,
+        0,
         0,
         0,
         0,
@@ -141,6 +147,20 @@ function reduce_batched!(engine::AccountingReductionEngine, chains, directions, 
     return chains
 end
 
+function record_fallback!(
+    engine::AccountingReductionEngine,
+    key::ReductionChainKey,
+    steps::Integer,
+)
+    steps >= 1 || throw(ArgumentError("a fallback reduction must take at least one step"))
+    steps <= key.order - engine.geometry.terminal_order ||
+        throw(ArgumentError("fallback steps cannot pass the terminal order"))
+    engine.fallback_keys += 1
+    engine.fallback_steps += Int(steps)
+    _accounting_event!(engine, (; operation = :fallback, key, steps = Int(steps)))
+    return nothing
+end
+
 function combine!(engine::AccountingReductionEngine, order::Integer)
     identifiers =
         sort!([identifier for (identifier, key) in engine.live if key.order == order])
@@ -199,6 +219,8 @@ function accounting_result(engine::AccountingReductionEngine)
         engine.steps,
         engine.chunks,
         engine.duplicates_combined,
+        engine.fallback_keys,
+        engine.fallback_steps,
     )
 end
 

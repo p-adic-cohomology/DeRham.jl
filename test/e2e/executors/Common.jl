@@ -38,6 +38,7 @@ const COMMON_ALGORITHMS = Set([
     "akr",
     "akr_naive",
     "akr_levelbylevel",
+    "supportcone",
 ])
 const COMMON_BOOLEAN_PARAMETERS = Set([
     "changef",
