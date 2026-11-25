@@ -18,15 +18,21 @@ end
 
 _akr_bigint(value) = parse(BigInt, string(value))
 
-function _akr_relation_axpy!(row, multiple, pivot, modulus)
+function _akr_relation_axpy!(row, row_index, multiple, pivot, modulus, column_rows)
     for (j, value) in pivot
-        a = mod(get(row, j, big(0)) - multiple * value, modulus)
+        old = get(row, j, big(0))
+        a = mod(old - multiple * value, modulus)
         if iszero(a)
             delete!(row, j)
+            j > 0 && delete!(column_rows[j], row_index)
         else
+            if iszero(old) && j > 0
+                push!(column_rows[j], row_index)
+            end
             row[j] = a
         end
     end
+    return row
 end
 
 function _build_akr_relation_table(f, p, M, ::Val{N}) where {N}
@@ -55,24 +61,37 @@ function _build_akr_relation_table(f, p, M, ::Val{N}) where {N}
         push!(rows, row)
     end
 
+    column_rows = [Set{Int}() for _ in eachindex(monomials)]
+    for (i, row) in enumerate(rows), j in keys(row)
+        j > 0 && push!(column_rows[j], i)
+    end
+
     pivots = zeros(Int, length(monomials))
+    active = trues(length(rows))
     rank = 0
     for j in eachindex(monomials)
-        row_index = findnext(row -> !iszero(mod(get(row, j, big(0)), p)), rows, rank + 1)
-        isnothing(row_index) && continue
+        row_index = 0
+        for i in column_rows[j]
+            if active[i] && !iszero(mod(rows[i][j], p)) &&
+               (row_index == 0 || i < row_index)
+                row_index = i
+            end
+        end
+        row_index == 0 && continue
         rank += 1
-        rows[rank], rows[row_index] = rows[row_index], rows[rank]
-        pivot = rows[rank]
+        active[row_index] = false
+        pivot = rows[row_index]
         scale = invmod(pivot[j], modulus)
         for l in keys(pivot)
             pivot[l] = mod(pivot[l] * scale, modulus)
         end
-        for (i, row) in enumerate(rows)
-            if i != rank && haskey(row, j)
-                _akr_relation_axpy!(row, row[j], pivot, modulus)
+        for i in collect(column_rows[j])
+            if i != row_index && haskey(rows[i], j)
+                row = rows[i]
+                _akr_relation_axpy!(row, i, row[j], pivot, modulus, column_rows)
             end
         end
-        pivots[j] = rank
+        pivots[j] = row_index
     end
 
     rank == length(monomials) || throw(
