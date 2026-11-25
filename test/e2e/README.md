@@ -108,11 +108,12 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
-`algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
+`algorithm`, `dense_reduction`, `handoff_pole_order`, `termorder`, `vars_reversed`, `fastevaluation`,
 `always_use_bigints`, `use_gpu`, and `use_threads`. `algorithm` accepts
 `default`, `depthfirst`, `varbyvar`, `pchunk`, `akr`, `akr_naive`, or
-`akr_levelbylevel`; `S` must be an array and `termorder` must be a string. The
-common option parser also accepts
+`akr_levelbylevel`; `dense_reduction` accepts `akr`, `akr_naive`, or
+`akr_levelbylevel`; `handoff_pole_order` must be an integer and requires a dense
+method. `S` must be an array and `termorder` must be a string. The common option parser also accepts
 `relative_precision`, `series_precision`, and `algorithm_precision`;
 `relative_precision` and `series_precision` take an integer or an array of
 integers, while `algorithm_precision` takes an integer. For a double-cover
@@ -169,8 +170,9 @@ process. A validation guard requires a priming record for every configuration
 whose cheapest catalogue record has `runtime < ci_seconds`; configurations
 whose records all meet or exceed that threshold are exempt. A configuration
 uses variety dimension and the code-path options `algorithm`, `fastevaluation`,
-`changef`, `always_use_bigints`, `use_gpu`, `use_threads`, `termorder`, and
-`k`. Executors share the compiled pipeline for a dimension and option set, so
+`dense_reduction`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
+`termorder`, and `k`. `handoff_pole_order` controls the runtime reduction depth
+and does not split configurations. Executors share the compiled pipeline for a dimension and option set, so
 executor type does not split configurations. Integer `k` values are keyed by
 type, so `k=1` and `k=2` share a configuration while an absent `k` remains
 distinct. `S` is record data and does not split configurations.

@@ -1,0 +1,31 @@
+[[test]]
+name = "dense_depthfirst_levelby_h3__dim_1_deg_3_fermat_p7"
+type = "zeta_coefficients"
+tags = []
+runtime = 56.792
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "depthfirst", dense_reduction = "akr_levelbylevel", handoff_pole_order = 3 }
+
+[[test]]
+name = "dense_depthfirst_levelby_h3__dim_1_deg_4_fermat_p7"
+type = "zeta_coefficients"
+tags = []
+runtime = 44.922
+example = "dim_1_deg_4_fermat_1"
+parameters = { algorithm = "depthfirst", dense_reduction = "akr_levelbylevel", handoff_pole_order = 3 }
+
+[[test]]
+name = "dense_depthfirst_levelby_h3__dim_1_deg_4_fermat_p11"
+type = "zeta_coefficients"
+tags = []
+runtime = 38.074
+example = "dim_1_deg_4_fermat_2"
+parameters = { algorithm = "depthfirst", dense_reduction = "akr_levelbylevel", handoff_pole_order = 3 }
+
+[[test]]
+name = "dense_depthfirst_naive_h3__dim_1_deg_4_fermat_p7"
+type = "zeta_coefficients"
+tags = []
+runtime = 39.968
+example = "dim_1_deg_4_fermat_1"
+parameters = { algorithm = "depthfirst", dense_reduction = "akr_naive", handoff_pole_order = 3 }

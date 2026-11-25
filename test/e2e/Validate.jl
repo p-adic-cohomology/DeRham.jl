@@ -18,6 +18,7 @@ end
 
 const PRIMING_CODE_PATH_DEFAULTS = (
     "algorithm" => "default",
+    "dense_reduction" => nothing,
     "fastevaluation" => true,
     "changef" => true,
     "always_use_bigints" => false,

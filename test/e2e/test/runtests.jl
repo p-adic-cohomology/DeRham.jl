@@ -422,6 +422,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             0.2,
             Dict{String,Any}(
                 "algorithm" => "default",
+                "dense_reduction" => nothing,
                 "fastevaluation" => true,
                 "changef" => true,
                 "always_use_bigints" => false,
@@ -438,6 +439,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
 
         for (option, value) in (
             "algorithm" => "pchunk",
+            "dense_reduction" => "akr_levelbylevel",
             "fastevaluation" => false,
             "changef" => false,
             "always_use_bigints" => true,
@@ -823,6 +825,27 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             @test isnothing(validate("shared", params))
             @test E2E.Common.parse_kwargs(params) ==
                   Dict{Symbol,Any}(:algorithm => Symbol(algorithm))
+        end
+        dense_parameters = Dict{String,Any}(
+            "dense_reduction" => "akr_levelbylevel",
+            "handoff_pole_order" => 3,
+        )
+        @test isnothing(validate("shared", dense_parameters))
+        @test E2E.Common.parse_kwargs(dense_parameters) == Dict{Symbol,Any}(
+            :dense_reduction => :akr_levelbylevel,
+            :handoff_pole_order => 3,
+        )
+        for invalid_method in ("precomputed", 1, true)
+            @test_throws r"dense_reduction must be a string" validate(
+                "shared",
+                Dict{String,Any}("dense_reduction" => invalid_method),
+            )
+        end
+        for invalid_handoff in (true, 3.0, "3")
+            @test_throws r"handoff_pole_order must be an integer" validate(
+                "shared",
+                Dict{String,Any}("handoff_pole_order" => invalid_handoff),
+            )
         end
         @test_throws r"unknown parameter" validate(
             "shared",

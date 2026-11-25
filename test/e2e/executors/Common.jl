@@ -20,6 +20,8 @@ const COMMON_PARAMETERS = Set([
     "changef",
     "givefrobmat",
     "algorithm",
+    "dense_reduction",
+    "handoff_pole_order",
     "termorder",
     "vars_reversed",
     "fastevaluation",
@@ -59,6 +61,18 @@ function validate_common_parameters(name::AbstractString, params::AbstractDict)
         params["algorithm"] in COMMON_ALGORITHMS || error(
             "execution record $(repr(name)): unknown algorithm $(repr(get(params, "algorithm", nothing)))",
         )
+    end
+    if haskey(params, "dense_reduction")
+        value = params["dense_reduction"]
+        value isa AbstractString && value in ("akr", "akr_naive", "akr_levelbylevel") ||
+            error(
+                "execution record $(repr(name)): dense_reduction must be a string naming akr, akr_naive, or akr_levelbylevel",
+            )
+    end
+    if haskey(params, "handoff_pole_order")
+        value = params["handoff_pole_order"]
+        value isa Integer && !(value isa Bool) ||
+            error("execution record $(repr(name)): handoff_pole_order must be an integer")
     end
     if haskey(params, "termorder") && !(params["termorder"] isa AbstractString)
         error("execution record $(repr(name)): termorder must be a string")
@@ -244,10 +258,12 @@ function parse_kwargs(params::AbstractDict)
     kwargs = Dict{Symbol,Any}()
     for (k, v) in params
         sym = Symbol(k)
-        kwargs[sym] = if sym in (:algorithm, :termorder)
+        kwargs[sym] = if sym in (:algorithm, :dense_reduction, :termorder)
             Symbol(v)
         elseif sym == :S
             Int.(v)
+        elseif sym == :handoff_pole_order
+            Int(v)
         elseif sym in (:relative_precision, :series_precision, :algorithm_precision)
             v isa AbstractVector ? Int.(v) : Int(v)
         else
