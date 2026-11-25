@@ -44,16 +44,12 @@ end
     overlapping_plan = DeRham._supportcone_plan(overlapping, overlapping_key, 1, directions)
 
     @test length(overlapping.subcones) == 3
-    @test DeRham._supportcone_floors(
-        overlapping,
-        overlapping.subcones[1],
-        overlapping_key.u,
-    ) == BigInt[1, 0, 4]
-    @test DeRham._supportcone_floors(
-        overlapping,
-        overlapping.subcones[2],
-        overlapping_key.u,
-    ) == BigInt[1, 2, 2]
+    @test overlapping.subcones[1].adjugate ==
+          BigInt[0 0 -8; 8 -8 0; -16 0 0]
+    @test DeRham._supportcone_floors(overlapping.subcones[1], overlapping_key.u) ==
+          BigInt[1, 0, 4]
+    @test DeRham._supportcone_floors(overlapping.subcones[2], overlapping_key.u) ==
+          BigInt[1, 2, 2]
     @test overlapping_plan.subcone == (1, 2, 3)
     @test [(chunk.direction, chunk.steps) for chunk in overlapping_plan.chunks] == [((0, 0, 4), 1), ((2, 2, 0), 3)]
     @test sum(chunk.steps for chunk in overlapping_plan.chunks) == overlapping_key.order - 1
@@ -91,6 +87,18 @@ end
     @test length(bounded_candidates.subcones) == DeRham._SUPPORTCONE_MAX_SUBCONES
     @test [(subcone.indices, subcone.determinant) for subcone in bounded_candidates.subcones] ==
           [(subcone.indices, subcone.determinant) for subcone in repeated_candidates.subcones]
+
+    rank_four_support = vcat(
+        fill((1, 0, 0, 0, 0), 35),
+        [(0, 1, 0, 0, 0), (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (1, 1, 1, 1, 0)],
+    )
+    late_basis_search = DeRham._supportcone_candidate_subcones(
+        Val(5),
+        vcat(rank_four_support, [(0, 0, 0, 0, 1)]),
+    )
+    @test late_basis_search.combinations_examined ==
+          DeRham._SUPPORTCONE_MAX_SUBCONE_COMBINATIONS
+    @test any(subcone -> subcone.indices == (1, 36, 37, 38, 40), late_basis_search.subcones)
 end
 
 @testset "SupportCone policy" begin

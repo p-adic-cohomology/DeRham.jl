@@ -11,6 +11,7 @@ use integer arithmetic.
 struct SupportConeSubcone{N}
     indices::NTuple{N,Int}
     determinant::BigInt
+    adjugate::Matrix{BigInt}
 end
 
 struct SupportConePlanner{N}
@@ -75,6 +76,60 @@ function _supportcone_determinant(matrix::AbstractMatrix{<:Integer})
     return sign * work[dimension, dimension]
 end
 
+function _supportcone_adjugate(matrix::AbstractMatrix{<:Integer}, determinant::BigInt)
+    size(matrix, 1) == size(matrix, 2) ||
+        throw(ArgumentError("a support-cone adjugate requires a square matrix"))
+    dimension = size(matrix, 1)
+    dimension == 0 && return Matrix{BigInt}(undef, 0, 0)
+
+    augmented = Matrix{Rational{BigInt}}(undef, dimension, 2 * dimension)
+    for row = 1:dimension
+        for column = 1:dimension
+            augmented[row, column] = BigInt(matrix[row, column]) // BigInt(1)
+            augmented[row, dimension + column] =
+                row == column ? BigInt(1) // BigInt(1) : BigInt(0) // BigInt(1)
+        end
+    end
+
+    for pivot_index = 1:dimension
+        pivot_row = pivot_index
+        while pivot_row <= dimension && iszero(augmented[pivot_row, pivot_index])
+            pivot_row += 1
+        end
+        pivot_row > dimension &&
+            throw(ArgumentError("a support-cone adjugate requires a nonsingular matrix"))
+
+        if pivot_row != pivot_index
+            for column = 1:(2 * dimension)
+                augmented[pivot_index, column], augmented[pivot_row, column] =
+                    augmented[pivot_row, column], augmented[pivot_index, column]
+            end
+        end
+
+        pivot = augmented[pivot_index, pivot_index]
+        for column = 1:(2 * dimension)
+            augmented[pivot_index, column] /= pivot
+        end
+        for row = 1:dimension
+            row == pivot_index && continue
+            factor = augmented[row, pivot_index]
+            iszero(factor) && continue
+            for column = 1:(2 * dimension)
+                augmented[row, column] -= factor * augmented[pivot_index, column]
+            end
+        end
+    end
+
+    adjugate = Matrix{BigInt}(undef, dimension, dimension)
+    for row = 1:dimension
+        for column = 1:dimension
+            adjugate[row, column] =
+                BigInt(determinant * augmented[row, dimension + column])
+        end
+    end
+    return adjugate
+end
+
 function _supportcone_lexicographic_basis(::Val{N}, support) where {N}
     pivots = Int[]
     echelon = Vector{Vector{Rational{BigInt}}}()
@@ -114,7 +169,7 @@ function _supportcone_subcone(support, indices::NTuple{N,Int}) where {N}
     end
     determinant = _supportcone_determinant(matrix)
     iszero(determinant) && return nothing
-    return SupportConeSubcone(indices, determinant)
+    return SupportConeSubcone(indices, determinant, _supportcone_adjugate(matrix, determinant))
 end
 
 function _supportcone_candidate_subcones(::Val{N}, support) where {N}
@@ -160,27 +215,16 @@ function SupportConePlanner(support)
     return _supportcone_planner(Val(dimension), raw_support)
 end
 
-function _supportcone_floors(
-    planner::SupportConePlanner{N},
-    subcone::SupportConeSubcone{N},
-    u,
-) where {N}
+function _supportcone_floors(subcone::SupportConeSubcone{N}, u) where {N}
     length(u) == N || return nothing
 
-    matrix = Matrix{BigInt}(undef, N, N)
-    for row = 1:N
-        for column = 1:N
-            matrix[row, column] = planner.support[subcone.indices[column]][row]
-        end
-    end
-
     numerators = Vector{BigInt}(undef, N)
-    for column = 1:N
-        replaced = copy(matrix)
+    for coordinate = 1:N
+        numerator = BigInt(0)
         for row = 1:N
-            replaced[row, column] = u[row]
+            numerator += subcone.adjugate[coordinate, row] * u[row]
         end
-        numerators[column] = _supportcone_determinant(replaced)
+        numerators[coordinate] = numerator
     end
 
     denominator = subcone.determinant
@@ -204,7 +248,7 @@ function _supportcone_plan(
     required_steps > 0 || return nothing
 
     for subcone in planner.subcones
-        chunk_lengths = _supportcone_floors(planner, subcone, key.u)
+        chunk_lengths = _supportcone_floors(subcone, key.u)
         chunk_lengths === nothing && continue
         sum(chunk_lengths) >= required_steps || return nothing
 
