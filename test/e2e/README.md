@@ -262,9 +262,11 @@ smaller available post-priming measurement, rounded to milliseconds, except
 the conic smoke pair uses the larger of the two available samples. Forty-two
 of those declarations are replaced by the newer post-priming measurements in
 `tiers-presubmit-codex-2.log`, on source `59bb6df` under the usual shared-host
-load; priming measurements are excluded. Records without a measurement retain
-their existing declaration. Sixteen formerly CI-eligible records cross the
-unchanged 30-second CI threshold into `full`.
+load; priming measurements are excluded. The later 40.155-second observation
+for `double_cover_hyperelliptic_g2_p11` on source `93618e6` supersedes its
+earlier measurement and moves it into `full`. Records without a measurement
+retain their existing declaration. Seventeen formerly CI-eligible records cross
+the unchanged 30-second CI threshold into `full`.
 
 The smoke pair `double_cover_conic_nonsplit_p3` and
 `double_cover_conic_split_p3` declares 1.036 and 0.732 seconds from those CI
