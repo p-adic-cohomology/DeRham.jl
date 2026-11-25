@@ -40,16 +40,16 @@ const UNIT_TEST_TIERS = [
     "reduction/Selection.jl" => :ci,
     "reduction/AKR.jl" => :ci,
     "reduction/FrontendMethods.jl" => :ci,
-    "reduction/EngineInterfaces.jl" => :presubmit,
+    "reduction/EngineInterfaces.jl" => :ci,
     "reduction/AccountingEngine.jl" => :ci,
     "reduction/MatrixEngine.jl" => :ci,
     "reduction/RuvRebinding.jl" => :ci,
-    "reduction/DepthFirstPolicy.jl" => :presubmit,
-    "reduction/VarByVarPolicy.jl" => :presubmit,
+    "reduction/DepthFirstPolicy.jl" => :ci,
+    "reduction/VarByVarPolicy.jl" => :ci,
     "reduction/PChunkDirection.jl" => :ci,
-    "reduction/PChunkLimits.jl" => :presubmit,
+    "reduction/PChunkLimits.jl" => :ci,
     "reduction/PChunkThreading.jl" => :ci,
-    "graded_ring/GradedExpCache.jl" => :presubmit,
+    "graded_ring/GradedExpCache.jl" => :ci,
     "e2e/test/runtests.jl" => :ci,
 ]
 
@@ -94,8 +94,11 @@ function run_de_rham_test_suite!(args::AbstractVector{<:AbstractString})
     flush(stdout)
 
     started_at = time_ns()
-    e2e_timing = @timed @testset "E2E" begin
-        E2E.run!(args; primed = primed)
+    e2e_timing = nothing
+    if workflow == :presubmit
+        e2e_timing = @timed @testset "E2E" begin
+            E2E.run!(args; primed = primed)
+        end
     end
 
     unit_timing = @timed for (file, tier) in UNIT_TEST_TIERS
@@ -106,6 +109,12 @@ function run_de_rham_test_suite!(args::AbstractVector{<:AbstractString})
                 "compile=$(round(timing.compile_time, digits = 3))s",
             )
             flush(stdout)
+        end
+    end
+
+    if e2e_timing === nothing
+        e2e_timing = @timed @testset "E2E" begin
+            E2E.run!(args; primed = primed)
         end
     end
 

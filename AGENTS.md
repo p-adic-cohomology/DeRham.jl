@@ -28,7 +28,8 @@ notes-tag rules, records, and runtime measurement.
   `ci` runs every unit test file, the
   quality gates and the records below `ci_seconds`; `full` runs everything.
 - New unit test files go in `UNIT_TEST_TIERS`. Mark a file `:presubmit` only if
-  it takes a few seconds on the shared host under its usual load.
+  it takes a few seconds on the shared host under its usual load, measured
+  with presubmit's own priming and preceding tests rather than a CI prefix.
 - Declared E2E runtimes are measured on the shared host under its usual load.
 - Besides presubmit, run the tests for what you changed:
   `Pkg.test(test_args=["--unit=<file>", ...])` for the unit test files that

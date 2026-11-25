@@ -4,7 +4,7 @@ ci_seconds = 30.0
 presubmit_budget_seconds = 35.0
 
 [presubmit]
-records = ["double_cover_hyperelliptic_g2_p11"]
+records = ["double_cover_conic_nonsplit_p3", "double_cover_conic_split_p3"]
 
 [priming]
 records = [

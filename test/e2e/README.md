@@ -182,9 +182,11 @@ execution time; the summary remains informational.
 `config.toml` lists the fixed priming set under `[priming].records`. The harness
 runs those ordinary records before `ci` and `full` workflows and before
 `--name=` or `--tag=` selections. `presubmit` runs only the priming records
-whose configuration matches one of its selected records. In a workflow run,
+whose configuration matches one of its selected records. In presubmit,
 priming and selected E2E execution happen together before the unit test files,
-so test method definitions do not intervene between priming and E2E execution. Each
+so test method definitions do not intervene between priming and E2E execution.
+CI/full run their unit files after priming and before selected E2E execution,
+then run the quality gates. Each
 priming result is checked like any other record, and a priming record that is
 also selected runs only once. A priming-only record that requires an unavailable
 capability is skipped; when explicitly selected by `--name=`, it follows the
@@ -256,16 +258,18 @@ The November 25, 2026 tier refresh uses 346 measured records from the loaded-hos
 CI logs `20261124T142034Z-land-main-34f2ccb.log` and
 `20261125T042125Z-epic4-supportcone-0ea3750.log` (kept in the coordinator's
 `dispatch/medium-test-runs/logs/` evidence directory). Each declaration uses the
-smaller available post-priming measurement, rounded to milliseconds. Forty-two
+smaller available post-priming measurement, rounded to milliseconds, except
+the conic smoke pair uses the larger of the two available samples. Forty-two
 of those declarations are replaced by the newer post-priming measurements in
 `tiers-presubmit-codex-2.log`, on source `59bb6df` under the usual shared-host
 load; priming measurements are excluded. Records without a measurement retain
 their existing declaration. Sixteen formerly CI-eligible records cross the
 unchanged 30-second CI threshold into `full`.
 
-The smoke case `double_cover_hyperelliptic_g2_p11` took 18.902 seconds as the
-first selected E2E computation after priming, before other selected cases could
-warm its paths. The eight presubmit unit files took about 11 seconds together
-in that run. Slower files remain in CI/full and are available individually
-through `--unit=<file>`. The complete smoke-plus-unit budget is checked again
-in each presubmit run.
+The smoke pair `double_cover_conic_nonsplit_p3` and
+`double_cover_conic_split_p3` declares 1.036 and 0.732 seconds from those CI
+samples. The presubmit unit files are HodgePolygon, CharPolyFrob and Refusals.
+Admit files using their timings after presubmit's own priming and preceding
+tests: a broad CI prefix can hide substantial compilation cost. Slower files
+remain in CI/full and are available individually through `--unit=<file>`.
+The complete smoke-plus-unit budget is checked in every presubmit run.
