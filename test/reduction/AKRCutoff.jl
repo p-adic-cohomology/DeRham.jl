@@ -123,6 +123,22 @@ end
     end
 end
 
+@testset "AKR full-variable fallback when characteristic divides degree" begin
+    p = 2
+    coefficient_ring, = residue_ring(ZZ, p)
+    _, (x, y, z) = polynomial_ring(coefficient_ring, ["x", "y", "z"])
+    f = x^3 * y + y^3 * z + z^3 * x
+    n = 2
+    d = 4
+    S = [0, 1, 2]
+    params = DeRham.default_params()
+    pseudo_inverse = Matrix{Int}(undef, 0, 0)
+    picache = DeRham._build_akr_picache(n, n, d, S, f, pseudo_inverse, nothing, params, p)
+
+    @test !(picache isa DeRham._AKRRelationTable)
+    @test picache[n] === pseudo_inverse
+end
+
 @testset "AKR BigInt multi-level reduction" begin
     curve = DeRham.fermat_hypersurface(3, 3, 7)
     hodge_polygon, relative_precision, series_precision, _ =
