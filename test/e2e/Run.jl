@@ -157,6 +157,7 @@ function run_selected(
     println(
         "[e2e] selected $(length(selected.records)) case(s), running $(length(records)) record(s), estimated total runtime $(round(estimated_total, digits = 3))s",
     )
+    flush(stdout)
 
     outcomes = CaseOutcome[]
     for record in records
@@ -168,6 +169,7 @@ function run_selected(
             if selected.broad ||
                (record.name in primed_names && !(record.name in selected_names))
                 println("[e2e] SKIP $(record.name): $(reason)")
+                flush(stdout)
                 push!(
                     outcomes,
                     CaseOutcome(record.name, false, true, reason, record.runtime, 0.0),
@@ -191,6 +193,7 @@ function run_selected(
             line *= "  $(result.error_message)"
         end
         println(line)
+        flush(stdout)
         if result.errored
             @test "E2E record $(record.name): $(result.error_message)" == ""
         else

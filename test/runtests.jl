@@ -24,26 +24,26 @@ in. `presubmit` files run in every workflow; `ci` files run in `ci` and
 const UNIT_TEST_TIERS = [
     "CoreExamples.jl" => :ci,
     "invariants/HodgePolygon.jl" => :presubmit,
-    "invariants/TateTwist.jl" => :presubmit,
-    "invariants/PointCounts.jl" => :presubmit,
+    "invariants/TateTwist.jl" => :ci,
+    "invariants/PointCounts.jl" => :ci,
     "invariants/NewtonPolygon.jl" => :ci,
     "invariants/HasseWitt.jl" => :ci,
-    "invariants/PicardRank.jl" => :presubmit,
+    "invariants/PicardRank.jl" => :ci,
     "invariants/ArtinMazurHeight.jl" => :ci,
     "invariants/ArtinInvariant.jl" => :ci,
     "invariants/CharPolyFrob.jl" => :presubmit,
     "invariants/Jacobian.jl" => :ci,
-    "quotients/CohomologyQuotient.jl" => :presubmit,
-    "frontends/ProjectiveHypersurface.jl" => :presubmit,
+    "quotients/CohomologyQuotient.jl" => :ci,
+    "frontends/ProjectiveHypersurface.jl" => :ci,
     "frontends/DoubleCover.jl" => :ci,
     "frontends/Refusals.jl" => :presubmit,
-    "reduction/Selection.jl" => :presubmit,
+    "reduction/Selection.jl" => :ci,
     "reduction/AKR.jl" => :ci,
-    "reduction/FrontendMethods.jl" => :presubmit,
+    "reduction/FrontendMethods.jl" => :ci,
     "reduction/EngineInterfaces.jl" => :presubmit,
     "reduction/AccountingEngine.jl" => :presubmit,
-    "reduction/MatrixEngine.jl" => :presubmit,
-    "reduction/RuvRebinding.jl" => :presubmit,
+    "reduction/MatrixEngine.jl" => :ci,
+    "reduction/RuvRebinding.jl" => :ci,
     "reduction/DepthFirstPolicy.jl" => :presubmit,
     "reduction/VarByVarPolicy.jl" => :presubmit,
     "reduction/PChunkDirection.jl" => :presubmit,
@@ -94,6 +94,10 @@ function run_de_rham_test_suite!(args::AbstractVector{<:AbstractString})
     flush(stdout)
 
     started_at = time_ns()
+    e2e_timing = @timed @testset "E2E" begin
+        E2E.run!(args; primed = primed)
+    end
+
     unit_timing = @timed for (file, tier) in UNIT_TEST_TIERS
         if tier == :presubmit || workflow in (:ci, :full)
             timing = @timed include_unit_test(file)
@@ -103,10 +107,6 @@ function run_de_rham_test_suite!(args::AbstractVector{<:AbstractString})
             )
             flush(stdout)
         end
-    end
-
-    e2e_timing = @timed @testset "E2E" begin
-        E2E.run!(args; primed = primed)
     end
 
     elapsed = (time_ns() - started_at) / 1.0e9

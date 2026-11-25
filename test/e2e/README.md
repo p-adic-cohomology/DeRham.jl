@@ -177,7 +177,8 @@ execution time; the summary remains informational.
 runs those ordinary records before `ci` and `full` workflows and before
 `--name=` or `--tag=` selections. `presubmit` runs only the priming records
 whose configuration matches one of its selected records. In a workflow run,
-priming happens before the unit test files, so they share the compiled code. Each
+priming and selected E2E execution happen together before the unit test files,
+so test method definitions do not intervene between priming and E2E execution. Each
 priming result is checked like any other record, and a priming record that is
 also selected runs only once. A priming-only record that requires an unavailable
 capability is skipped; when explicitly selected by `--name=`, it follows the
@@ -254,3 +255,6 @@ without a measurement retain their existing declaration. Sixteen formerly
 CI-eligible records cross the unchanged 30-second CI threshold into `full`.
 At the 0.7-second presubmit threshold, 45 records declare 27.355 seconds in total;
 three GPU records account for 1.5 seconds and skip when GPU is unavailable.
+The ten presubmit unit files took 13.268 seconds in the first loaded-host tier
+measurement. Files taking more than three seconds in that run remain in CI/full;
+their tests are still available individually through `--unit=<file>`.
