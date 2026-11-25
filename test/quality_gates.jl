@@ -32,6 +32,8 @@ end
         :jacobian_zeta_function,
     ])
     expected_public = Set([
+        :dense_dwork_zeta,
+        :dense_dwork_coefficients,
         :fermat_hypersurface,
         :random_hypersurface,
         :DoubleCover,

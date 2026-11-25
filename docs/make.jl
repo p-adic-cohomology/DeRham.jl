@@ -39,6 +39,7 @@ makedocs(
         "Utilities" => "utilities.md",
         "Experimental" => [
             "Experimental algorithms" => "experimental/index.md",
+            "Dense Dwork quartic K3" => "experimental/dense_dwork.md",
             "Double covers" => "experimental/double_covers.md",
         ],
     ],

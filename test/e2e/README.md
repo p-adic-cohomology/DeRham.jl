@@ -95,6 +95,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 | `type` | Expected value and input | Record-specific parameters |
 | --- | --- | --- |
+| `dense_dwork_zeta` | Stored `Lpoly` plus ambient factors; fully dense quartic K3, primes 11–101; built C++ backend required | None accepted |
 | `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
 | `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
 | `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |

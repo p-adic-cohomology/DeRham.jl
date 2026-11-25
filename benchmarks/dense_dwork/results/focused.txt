@@ -1,0 +1,37 @@
+Exact-name E2E tests, Julia 1.13.2; all passed.
+The p=11,13 entries below were rerun after restoring the half-power path.
+
+Pkg.test(test_args=["--name=dense_dwork_p11"]): exit 0
+[e2e] PASS dense_dwork_p11  expected_runtime=0.135s actual_runtime=13.979s
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+     Testing DeRham tests passed
+Pkg.test(test_args=["--name=dense_dwork_p13"]): exit 0
+[e2e] PASS dense_dwork_p11  expected_runtime=0.135s actual_runtime=13.767s
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+[e2e] PASS dense_dwork_p13  expected_runtime=0.159s actual_runtime=0.046s
+     Testing DeRham tests passed
+Pkg.test(test_args=["--name=dense_dwork_p37"]): exit 0
+[e2e] PASS dense_dwork_p37  expected_runtime=0.422s actual_runtime=12.725s
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+     Testing DeRham tests passed
+Pkg.test(test_args=["--name=dense_dwork_p61"]): exit 0
+[e2e] PASS dense_dwork_p11  expected_runtime=0.135s actual_runtime=12.372s
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+[e2e] PASS dense_dwork_p61  expected_runtime=1.026s actual_runtime=1.021s
+     Testing DeRham tests passed
+Pkg.test(test_args=["--name=dense_dwork_p67"]): exit 0
+[e2e] PASS dense_dwork_p11  expected_runtime=0.135s actual_runtime=12.414s
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+[e2e] PASS dense_dwork_p67  expected_runtime=1.139s actual_runtime=1.124s
+     Testing DeRham tests passed
+Pkg.test(test_args=["--name=dense_dwork_p101"]): exit 0
+[e2e] PASS dense_dwork_p11  expected_runtime=0.135s actual_runtime=12.415s
+[e2e] SKIP gpu_s012__dim_2_deg_3_fermat_1: requires unavailable capabilities: [:gpu]
+[e2e] SKIP gpu_p7_depthfirst__dim_1_deg_4_random_1: requires unavailable capabilities: [:gpu]
+[e2e] PASS dense_dwork_p101  expected_runtime=2.002s actual_runtime=1.975s
+     Testing DeRham tests passed

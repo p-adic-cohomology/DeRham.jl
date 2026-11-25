@@ -150,6 +150,7 @@ include("./invariants/PicardRank.jl")
 include("./invariants/ArtinMazurHeight.jl")
 include("./invariants/ArtinInvariant.jl")
 include("./invariants/Jacobian.jl")
+include("./invariants/DenseDwork.jl")
 
 
 export zeta_coefficients,
@@ -172,7 +173,9 @@ export zeta_coefficients,
     jacobian_point_counts,
     jacobian_zeta_function
 
-public fermat_hypersurface,
+public dense_dwork_zeta,
+    dense_dwork_coefficients,
+    fermat_hypersurface,
     random_hypersurface,
     DoubleCover,
     get_basis_of_cohomology,

@@ -1,0 +1,27 @@
+first_solve_seconds=14.82177675
+warm_repetition_seconds=0.035548209
+warm_repetition_seconds=0.035071666
+warm_repetition_seconds=0.035558917
+warm_seconds=[0.035548209, 0.035071666, 0.035558917]
+median_seconds=0.035548209
+julia_version=1.13.2 oscar_version=1.8.2
+threads=1 backend=native
+full_projective_zeta_equal=true
+       36.08 real        33.93 user         1.24 sys
+          3112435712  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              323280  page reclaims
+                 139  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                  11  signals received
+                4850  voluntary context switches
+                3367  involuntary context switches
+        399112707936  instructions retired
+        127034477026  cycles elapsed
+          2749173000  peak memory footprint

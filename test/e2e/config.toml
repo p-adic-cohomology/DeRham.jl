@@ -4,6 +4,7 @@ ci_seconds = 30.0
 
 [priming]
 records = [
+    "dense_dwork_p11",
     "s01__dim_1_deg_3_fermat_1",
     "fast_eval__dim_1_deg_3_fermat_1",
     "bigints__dim_1_deg_3_fermat_1",
