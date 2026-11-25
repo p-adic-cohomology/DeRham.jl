@@ -1,18 +1,19 @@
-struct _AKRReductionMap
+struct _AKRReductionMap{T<:Integer}
     cofactor_length::Int
     reduced_length::Int
     offsets::Vector{Int}
     positions::Vector{Int}
-    factors::Vector{UInt64}
+    factors::Vector{T}
     derivative_positions::Vector{Int}
-    derivative_factors::Vector{UInt64}
+    derivative_factors::Vector{T}
 end
 
 struct _AKRRelationTable{N}
     cutoff::Int
     modulus::BigInt
     relations::Dict{NTuple{N,Int},Vector{Tuple{Int,NTuple{N,Int},BigInt}}}
-    reduction_maps::Dict{Tuple{Int,Symbol},_AKRReductionMap}
+    reduction_maps::Dict{Tuple{Int,Symbol},_AKRReductionMap{UInt64}}
+    bigint_reduction_maps::Dict{Tuple{Int,Symbol},_AKRReductionMap{BigInt}}
 end
 
 _akr_bigint(value) = parse(BigInt, string(value))
@@ -95,14 +96,21 @@ function _build_akr_relation_table(f, p, M, ::Val{N}) where {N}
         cutoff,
         modulus,
         relations,
-        Dict{Tuple{Int,Symbol},_AKRReductionMap}(),
+        Dict{Tuple{Int,Symbol},_AKRReductionMap{UInt64}}(),
+        Dict{Tuple{Int,Symbol},_AKRReductionMap{BigInt}}(),
     )
 end
 
 _build_akr_relation_table(f, p, M) =
     _build_akr_relation_table(f, p, M, Val(nvars(parent(f))))
 
-function _build_akr_reduction_map(table::_AKRRelationTable{N}, m, f, termorder) where {N}
+function _build_akr_reduction_map(
+    table::_AKRRelationTable{N},
+    m,
+    f,
+    termorder,
+    ::Type{T},
+) where {N,T<:Integer}
     d = total_degree(f)
     degree = d * m - N
     degree >= table.cutoff || error("AKR pole order is below the Jacobian cutoff")
@@ -113,12 +121,11 @@ function _build_akr_reduction_map(table::_AKRRelationTable{N}, m, f, termorder) 
     reduced_monomials = gen_exp_vec(N, cofactor_degree - 1, termorder)
     reduced_indices = Dict(Tuple(e) => i for (i, e) in enumerate(reduced_monomials))
     cofactor_length = length(cofactor_monomials)
-    modulus = UInt64(table.modulus)
     offsets = Vector{Int}(undef, length(source_monomials) + 1)
     positions = Int[]
-    factors = UInt64[]
+    factors = T[]
     derivative_positions = zeros(Int, N * cofactor_length)
-    derivative_factors = zeros(UInt64, N * cofactor_length)
+    derivative_factors = zeros(T, N * cofactor_length)
 
     for (j, exponent) in enumerate(source_monomials)
         offsets[j] = length(positions) + 1
@@ -136,7 +143,7 @@ function _build_akr_reduction_map(table::_AKRRelationTable{N}, m, f, termorder) 
             index = get(cofactor_indices, shifted, 0)
             index != 0 || error("AKR cofactor has the wrong degree")
             push!(positions, (i - 1) * cofactor_length + index)
-            push!(factors, UInt64(mod(factor, table.modulus)))
+            push!(factors, T(mod(factor, table.modulus)))
         end
     end
     offsets[end] = length(positions) + 1
@@ -146,10 +153,10 @@ function _build_akr_reduction_map(table::_AKRRelationTable{N}, m, f, termorder) 
         reduced_exponent = ntuple(l -> exponent[l] - (l == i), Val(N))
         position = (i - 1) * cofactor_length + j
         derivative_positions[position] = reduced_indices[reduced_exponent]
-        derivative_factors[position] = UInt64(exponent[i])
+        derivative_factors[position] = T(exponent[i])
     end
 
-    return _AKRReductionMap(
+    return _AKRReductionMap{T}(
         cofactor_length,
         length(reduced_monomials),
         offsets,
@@ -162,14 +169,24 @@ end
 
 function _akr_reduction_map(table::_AKRRelationTable, m, f, termorder)
     return get!(table.reduction_maps, (m, termorder)) do
-        _build_akr_reduction_map(table, m, f, termorder)
+        _build_akr_reduction_map(table, m, f, termorder, UInt64)
+    end
+end
+
+function _akr_bigint_reduction_map(table::_AKRRelationTable, m, f, termorder)
+    return get!(table.bigint_reduction_maps, (m, termorder)) do
+        _build_akr_reduction_map(table, m, f, termorder, BigInt)
     end
 end
 
 _akr_residue_uint64(value::UInt64) = value
 _akr_residue_uint64(value) = UInt64(lift(ZZ, value))
 
-function _akr_cofactor_residues(g, reduction_map::_AKRReductionMap, modulus::UInt64)
+function _akr_cofactor_residues(
+    g,
+    reduction_map::_AKRReductionMap{UInt64},
+    modulus::UInt64,
+)
     accumulators = zeros(UInt64, length(reduction_map.derivative_positions))
     for j in eachindex(g)
         coefficient = _akr_residue_uint64(g[j])
@@ -199,7 +216,7 @@ end
 
 function _akr_derivative_residues(
     cofactor_vector,
-    reduction_map::_AKRReductionMap,
+    reduction_map::_AKRReductionMap{UInt64},
     modulus::UInt64,
 )
     reduced = zeros(UInt64, reduction_map.reduced_length)
@@ -228,32 +245,15 @@ function _akr_cofactor_vector(g, m, f, table::_AKRRelationTable{N}, params) wher
 end
 
 function _akr_cofactor_vector_bigint(g, m, f, table::_AKRRelationTable{N}, params) where {N}
-    d = total_degree(f)
-    degree = d * m - N
-    cofactor_degree = degree - d + 1
-    source_monomials = gen_exp_vec(N, degree, params.termorder)
-    cofactor_monomials = gen_exp_vec(N, cofactor_degree, params.termorder)
-    cofactor_indices = Dict(Tuple(e) => i for (i, e) in enumerate(cofactor_monomials))
-    cofactor_length = length(cofactor_monomials)
+    reduction_map = _akr_bigint_reduction_map(table, m, f, params.termorder)
     R = coefficient_ring(parent(f))
-    cofactor_vector = fill(R(0), N * cofactor_length)
+    cofactor_vector = fill(R(0), N * reduction_map.cofactor_length)
 
-    for (j, exponent) in enumerate(source_monomials)
+    for j = 1:(length(reduction_map.offsets)-1)
         iszero(g[j]) && continue
-        left = table.cutoff
-        h = ntuple(Val(N)) do i
-            part = min(left, exponent[i])
-            left -= part
-            part
-        end
-        left == 0 || error("failed to split a monomial at the AKR Jacobian cutoff")
-        shift = ntuple(i -> exponent[i] - h[i], Val(N))
-        for (i, cofactor, factor) in table.relations[h]
-            shifted = ntuple(l -> shift[l] + cofactor[l], Val(N))
-            index = get(cofactor_indices, shifted, 0)
-            index != 0 || error("AKR cofactor has the wrong degree")
-            position = (i - 1) * cofactor_length + index
-            cofactor_vector[position] += g[j] * R(factor)
+        for k in reduction_map.offsets[j]:(reduction_map.offsets[j+1]-1)
+            position = reduction_map.positions[k]
+            cofactor_vector[position] += g[j] * R(reduction_map.factors[k])
         end
     end
     return cofactor_vector

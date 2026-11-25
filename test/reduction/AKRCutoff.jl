@@ -27,6 +27,47 @@
     end
 end
 
+@testset "AKR cutoff BigInt reduction map" begin
+    precision_modulus = big(7)^23
+    precision_ring, = residue_ring(ZZ, precision_modulus)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
+    table = DeRham._build_akr_relation_table(f, 7, 23)
+    @test table.modulus > typemax(UInt64)
+
+    m = 3
+    params = (; termorder = :invlex)
+    source_degree = 4 * m - 3
+    cofactor_degree = source_degree - 4 + 1
+    source_monomials = DeRham.gen_exp_vec(3, source_degree, params.termorder)
+    cofactor_monomials = DeRham.gen_exp_vec(3, cofactor_degree, params.termorder)
+    cofactor_indices = Dict(Tuple(e) => i for (i, e) in enumerate(cofactor_monomials))
+    g = [precision_ring(i) for i in eachindex(source_monomials)]
+    expected = fill(precision_ring(0), 3 * length(cofactor_monomials))
+
+    for (j, exponent) in enumerate(source_monomials)
+        iszero(g[j]) && continue
+        left = table.cutoff
+        h = ntuple(Val(3)) do i
+            part = min(left, exponent[i])
+            left -= part
+            part
+        end
+        shift = ntuple(i -> exponent[i] - h[i], Val(3))
+        for (i, cofactor, factor) in table.relations[h]
+            shifted = ntuple(l -> shift[l] + cofactor[l], Val(3))
+            position = (i - 1) * length(cofactor_monomials) + cofactor_indices[shifted]
+            expected[position] += g[j] * precision_ring(factor)
+        end
+    end
+
+    actual = DeRham._akr_cofactor_vector(g, m, f, table, params)
+    @test actual == expected
+    cached_map = DeRham._akr_bigint_reduction_map(table, m, f, params.termorder)
+    @test cached_map === DeRham._akr_bigint_reduction_map(table, m, f, params.termorder)
+    @test length(table.bigint_reduction_maps) == 1
+end
+
 @testset "AKR cutoff selectors on a Fermat cubic" begin
     cubic = DeRham.fermat_hypersurface(3, 3, 7)
     expected = BigInt[7, 1, 1]
