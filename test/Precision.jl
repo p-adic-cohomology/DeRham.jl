@@ -473,6 +473,14 @@ function test_certified_series_precision()
             DeRham.zeta_coefficients_with_precision(f, relative_precision)
         @test automatic_coefficients[1] == p^3
         @test automatic_coefficients[end] == 1
+        if p == 3
+            @test_throws ArgumentError DeRham.zeta_coefficients_with_precision(
+                f,
+                relative_precision;
+                dense_reduction = :akr,
+                handoff_pole_order = typemax(Int),
+            )
+        end
 
         cutoffs = [
             DeRham._ibm_certified_tail_cutoff(

@@ -44,6 +44,11 @@ params - the ControlledReductionParamaters
 P - cohomology quotient; defaults to the hypersurface quotient for n and d
 """
 function controlled_reduction_cache(n, d, S, params, P = HypersurfaceQuotient(n, d))
+    degsforward, degsreverse = _controlled_reduction_cache_degrees(n, d, S, params, P)
+    PolyExpCache(n+1, params.termorder, degsforward, degsreverse, vars_reversed = false)
+end
+
+function _controlled_reduction_cache_degrees(n, d, S, params, P)
     g = _reduction_g_degree(P, params)
     s = length(S)
     degsforward = [g, g - 1, g - s, g - s + 1, g + d - s, d]
@@ -60,6 +65,20 @@ function controlled_reduction_cache(n, d, S, params, P = HypersurfaceQuotient(n,
 
     degsreverse = [d, g, g + d - s]
 
-    PolyExpCache(n+1, params.termorder, degsforward, degsreverse, vars_reversed = false)
+    return degsforward, degsreverse
+end
 
+function extend_controlled_reduction_cache!(cache::PolyExpCache, n, d, S, params, P)
+    cache.n == n + 1 || throw(ArgumentError("cache has the wrong number of variables"))
+    cache.termorder == params.termorder || throw(ArgumentError("cache term order differs"))
+    cache.vars_reversed == false || throw(ArgumentError("cache variable order differs"))
+
+    degsforward, degsreverse = _controlled_reduction_cache_degrees(n, d, S, params, P)
+    for degree in degsforward
+        generate_degree_forward(cache, degree)
+    end
+    for degree in degsreverse
+        generate_degree_reverse(cache, degree)
+    end
+    return cache
 end

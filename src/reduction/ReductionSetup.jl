@@ -82,7 +82,11 @@ function _resolve_dense_reduction_options(
     order = if handoff_pole_order !== nothing
         Int(handoff_pole_order)
     elseif method !== nothing && preset === nothing
-        terminal_pole_order(P)
+        throw(
+            ArgumentError(
+                "handoff_pole_order is required when dense_reduction is used with a non-AKR algorithm",
+            ),
+        )
     else
         nothing
     end

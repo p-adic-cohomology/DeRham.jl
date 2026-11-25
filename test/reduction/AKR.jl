@@ -42,6 +42,60 @@ end
     )
 end
 
+@testset "handoff cache extends existing basis data" begin
+    curve = DeRham.fermat_hypersurface(3, 3, 2)
+    frontend = DeRham.ProjectiveHypersurface(curve)
+    quotient = DeRham.cohomology_quotient(frontend)
+    params = DeRham.default_params()
+    handoff_order = DeRham.terminal_pole_order(quotient) + 1
+    handoff_params = DeRham.ZetaFunctionParams(
+        params.verbose,
+        params.givefrobmat,
+        :depthfirst,
+        params.termorder,
+        params.vars_reversed,
+        params.fastevaluation,
+        params.always_use_bigints,
+        params.use_gpu,
+        params.use_threads,
+        :akr_naive,
+        handoff_order,
+    )
+    S = collect(0:quotient.n)
+    cache = DeRham.controlled_reduction_cache(quotient.n, quotient.d, S, params, quotient)
+    terminal_degree = DeRham.numerator_degree(
+        quotient,
+        DeRham.terminal_pole_order(quotient),
+    )
+    cached_terminal_basis = cache[terminal_degree]
+
+    @test DeRham.extend_controlled_reduction_cache!(
+        cache,
+        quotient.n,
+        quotient.d,
+        S,
+        handoff_params,
+        quotient,
+    ) === cache
+    @test cache[terminal_degree] === cached_terminal_basis
+
+    expected_forward, expected_reverse = DeRham._controlled_reduction_cache_degrees(
+        quotient.n,
+        quotient.d,
+        S,
+        handoff_params,
+        quotient,
+    )
+    @test all(
+        degree -> degree <= 0 || degree in DeRham.cached_degrees(cache),
+        expected_forward,
+    )
+    @test all(
+        degree -> degree <= 0 || degree in DeRham.cached_reverse_lookups(cache),
+        expected_reverse,
+    )
+end
+
 @testset "AKR dense reduction split equality" begin
     _, (x, y, z) = polynomial_ring(GF(5), ["x", "y", "z"])
     f = x^3 + y^3 + z^3
@@ -121,6 +175,12 @@ end
         [-1],
         :depthfirst;
         handoff_pole_order = 3,
+    )
+    @test_throws ArgumentError DeRham.reduction_setup(
+        frontend,
+        [-1],
+        :depthfirst;
+        dense_reduction = :akr,
     )
     @test_throws ArgumentError DeRham.reduction_setup(
         frontend,

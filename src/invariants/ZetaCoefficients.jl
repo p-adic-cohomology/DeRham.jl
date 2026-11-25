@@ -56,6 +56,22 @@ function _split_frobenius_at_handoff(FT, handoff_order)
     return controlled, preserved
 end
 
+function _maximum_frobenius_source_order(fe, Basis, N_m, P)
+    maximum_order = terminal_pole_order(P)
+    for basis_entry in Basis
+        pole_order = Int(basis_entry[2])
+        pole_order in eachindex(N_m) ||
+            throw(ArgumentError("series precision is missing pole order $pole_order"))
+        precision = Int(N_m[pole_order])
+        precision > 0 || continue
+        maximum_order = max(
+            maximum_order,
+            Int(frobenius_term_pole_order(fe, pole_order, precision - 1)),
+        )
+    end
+    return maximum_order
+end
+
 function _reduce_handoff_terms_to_terminal(
     reductions,
     method::Symbol,
@@ -151,7 +167,10 @@ Keyword arguments:
 - `handoff_pole_order=nothing`: experimental pole order at which a controlled
   policy stops before the selected dense method. It must be at least the
   quotient's terminal pole order and no greater than the maximum pole order
-  among the generated Frobenius source terms. It requires `dense_reduction`.
+  among the generated Frobenius source terms. A dense method may be selected
+  with this keyword or by an AKR algorithm preset. Mixed controlled policies
+  require an explicit handoff order; AKR presets reduce to the terminal order
+  when this keyword is omitted.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `context`, and `precision_info` keywords are internal or experimental and
@@ -322,17 +341,11 @@ function zeta_coefficients(
     end
 
     if handoff_order !== nothing
-        max_source_order_bound = maximum(
-            (
-                Int(frobenius_term_pole_order(fe, Int(Basis[i][2]), N_m[i] - 1)) for
-                i in eachindex(Basis)
-            );
-            init = terminal_pole_order(P),
-        )
+        max_source_order_bound = _maximum_frobenius_source_order(fe, Basis, N_m, P)
         handoff_order <= max_source_order_bound || throw(
             ArgumentError("handoff_pole_order exceeds the Frobenius source pole order"),
         )
-        cache = controlled_reduction_cache(n, d, S, params, P)
+        cache = extend_controlled_reduction_cache!(cache, n, d, S, params, P)
     end
 
     (1 < verbose) && println("N_m=$N_m")
