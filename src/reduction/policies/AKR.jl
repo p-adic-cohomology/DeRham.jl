@@ -236,6 +236,24 @@ function _akr_derivative_residues(
     return reduced
 end
 
+function _akr_reduce_level_residues(g, m, f, table::_AKRRelationTable, termorder, modulus)
+    reduction_map = _akr_reduction_map(table, m, f, termorder)
+    cofactors = _akr_cofactor_residues(g, reduction_map, modulus)
+    return _akr_derivative_residues(cofactors, reduction_map, modulus)
+end
+
+function _akr_add_residues!(accumulator::Vector{UInt64}, values, modulus::UInt64)
+    length(accumulator) == length(values) || error("AKR residue vector has the wrong length")
+    for i in eachindex(accumulator)
+        value = _akr_residue_uint64(values[i])
+        value == 0 && continue
+        accumulator[i] = UInt64(
+            rem(UInt128(accumulator[i]) + UInt128(value), UInt128(modulus)),
+        )
+    end
+    return accumulator
+end
+
 function _akr_cofactor_vector(g, m, f, table::_AKRRelationTable{N}, params) where {N}
     table.modulus > typemax(UInt64) &&
         return _akr_cofactor_vector_bigint(g, m, f, table, params)
@@ -261,7 +279,43 @@ end
 
 _akr_cofactor_vector(g, m, f, picache::AbstractVector, params) = picache[m] * g
 
-function _reducechain_akr_naive(g, m, f, p, picache, params)
+function _akr_pseudoinverse_derivative(gtemp, m, f, S, params)
+    n = nvars(parent(f)) - 1
+    d = total_degree(f)
+    PR = parent(f)
+    R = coefficient_ring(parent(f))
+    l = d * m - n - 1
+    in_degree = l - d + 1
+    out_degree = l - d
+    in_length = binomial(n + in_degree, n)
+    out_length = binomial(n + out_degree, n)
+    vars = gens(PR)
+    reduced = PR()
+    offset = 1
+
+    for i = 0:n
+        if i in S
+            block = gtemp[offset:(offset + in_length - 1)]
+            component = vector_to_polynomial(block, n, in_degree, PR, params.termorder)
+            offset += in_length
+        else
+            block = gtemp[offset:(offset + out_length - 1)]
+            component =
+                vars[i + 1] * vector_to_polynomial(block, n, out_degree, PR, params.termorder)
+            offset += out_length
+        end
+        reduced += derivative(component, i + 1)
+    end
+
+    offset == length(gtemp) + 1 || error("AKR cofactor blocks have the wrong length")
+    reduced_vector = polynomial_to_vector(reduced, n + 1, params.termorder)
+    if size(reduced_vector)[1] == 0
+        reduced_vector = fill(R(0), binomial(d * (m - 1) - 1, n))
+    end
+    return reduced_vector
+end
+
+function _reducechain_akr_naive(g, m, f, p, picache, S, params)
     if picache isa _AKRRelationTable && picache.modulus <= typemax(UInt64)
         n = nvars(parent(f)) - 1
         current = UInt64[_akr_residue_uint64(coefficient) for coefficient in g]
@@ -276,34 +330,9 @@ function _reducechain_akr_naive(g, m, f, p, picache, params)
     end
 
     n = nvars(parent(f)) - 1
-    d = total_degree(f)
-    PR = parent(f)
-    R = coefficient_ring(parent(f))
-
     while m > n
         gtemp = _akr_cofactor_vector(g, m, f, picache, params)
-        len = Int(length(gtemp)/(n+1))
-        g = derivative(
-            vector_to_polynomial(gtemp[1:len], n, d*(m-1)-n, PR, params.termorder),
-            1,
-        )
-        for i = 1:n
-            gpolytemp = derivative(
-                vector_to_polynomial(
-                    gtemp[(i*len+1):((i+1)*len)],
-                    n,
-                    d*(m-1)-n,
-                    PR,
-                    params.termorder,
-                ),
-                i+1,
-            )
-            g = g + gpolytemp
-        end
-        g = polynomial_to_vector(g, n+1, params.termorder)
-        if size(g)[1] == 0
-            g = fill(R(0), binomial(d*(m-1)-1, n))
-        end
+        g = _akr_pseudoinverse_derivative(gtemp, m, f, S, params)
         m = m - 1
     end
 
@@ -319,7 +348,7 @@ function _reducepoly_akr_naive(pol, S, f, p, picache, params)
         terms = termsoforder(pol, term[2])
         for t in terms
             g = polynomial_to_vector(t[1], n+1, params.termorder)
-            reduced = _reducechain_akr_naive(g, t[2], f, p, picache, params)
+            reduced = _reducechain_akr_naive(g, t[2], f, p, picache, S, params)
             reduced_poly = vector_to_polynomial(reduced, n, d*n-n-1, PR, params.termorder)
             result += reduced_poly
         end
@@ -393,40 +422,23 @@ end
 Apply one AKR reduction step to the combined coefficient vector at pole order
 `m`, returning the coefficient vector for pole order `m - 1`.
 """
-function _reduce_akr_level(g, m, f, picache, params)
+function _reduce_akr_level(g, m, f, picache, params, S = collect(0:(nvars(parent(f)) - 1)))
     if picache isa _AKRRelationTable && picache.modulus <= typemax(UInt64)
         modulus = UInt64(picache.modulus)
-        reduction_map = _akr_reduction_map(picache, m, f, params.termorder)
-        cofactors = _akr_cofactor_residues(g, reduction_map, modulus)
-        reduced = _akr_derivative_residues(cofactors, reduction_map, modulus)
+        residues = UInt64[_akr_residue_uint64(coefficient) for coefficient in g]
+        reduced = _akr_reduce_level_residues(
+            residues,
+            m,
+            f,
+            picache,
+            params.termorder,
+            modulus,
+        )
         return _akr_residues_to_ring(reduced, f)
     end
 
-    n = nvars(parent(f)) - 1
-    d = total_degree(f)
-    PR = parent(f)
-    R = coefficient_ring(parent(f))
     gtemp = _akr_cofactor_vector(g, m, f, picache, params)
-    len = Int(length(gtemp)/(n+1))
-    reduced = derivative(
-        vector_to_polynomial(gtemp[1:len], n, d*(m-1)-n, PR, params.termorder),
-        1,
-    )
-    for i = 1:n
-        component = vector_to_polynomial(
-            gtemp[(i*len+1):((i+1)*len)],
-            n,
-            d*(m-1)-n,
-            PR,
-            params.termorder,
-        )
-        reduced += derivative(component, i+1)
-    end
-    reduced_vector = polynomial_to_vector(reduced, n+1, params.termorder)
-    if size(reduced_vector)[1] == 0
-        reduced_vector = fill(R(0), binomial(d*(m-1)-1, n))
-    end
-    return reduced_vector
+    return _akr_pseudoinverse_derivative(gtemp, m, f, S, params)
 end
 
 """
@@ -443,13 +455,34 @@ function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
     isempty(pol) && return [[PR(), n]]
     highm = maximum(Int(term[2]) for term in pol)
     degree = d*highm - n - 1
-    g = fill(R(0), binomial(degree+n, n))
 
-    for m = highm:-1:(n+1)
-        for term in termsoforder(pol, m)
-            g .+= polynomial_to_vector(term[1], n+1, params.termorder)
+    use_uint64_residues =
+        picache isa _AKRRelationTable && picache.modulus <= typemax(UInt64)
+    if use_uint64_residues
+        modulus = UInt64(picache.modulus)
+        g = zeros(UInt64, binomial(degree + n, n))
+
+        for m = highm:-1:(n+1)
+            for term in termsoforder(pol, m)
+                _akr_add_residues!(
+                    g,
+                    polynomial_to_vector(term[1], n + 1, params.termorder),
+                    modulus,
+                )
+            end
+            g = _akr_reduce_level_residues(g, m, f, picache, params.termorder, modulus)
         end
-        g = _reduce_akr_level(g, m, f, picache, params)
+
+        g = _akr_residues_to_ring(g, f)
+    else
+        g = fill(R(0), binomial(degree + n, n))
+
+        for m = highm:-1:(n+1)
+            for term in termsoforder(pol, m)
+                g .+= polynomial_to_vector(term[1], n + 1, params.termorder)
+            end
+            g = _reduce_akr_level(g, m, f, picache, params, S)
+        end
     end
 
     result = vector_to_polynomial(g, n, d*n-n-1, PR, params.termorder)
