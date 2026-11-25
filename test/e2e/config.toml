@@ -25,6 +25,7 @@ records = [
     "akr_cutoff_prime_akr",
     "akr_cutoff_prime_akr_naive",
     "akr_cutoff_prime_akr_levelbylevel",
+    "akr_cutoff_plane_quartic_p7_akr",
 ]
 
 [tags]
