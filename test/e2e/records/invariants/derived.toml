@@ -2,7 +2,7 @@
 name = "derived_newton_curve_p7"
 type = "newton_polygon"
 tags = []
-runtime = 0.28
+runtime = 1.113
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true }
 
@@ -10,7 +10,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 name = "derived_newton_k3_p5"
 type = "newton_polygon"
 tags = []
-runtime = 1.546
+runtime = 2.651
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -18,7 +18,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_newton_k3f3_full"
 type = "newton_polygon"
 tags = []
-runtime = 28.928
+runtime = 82.067
 example = "dim2_deg_4_k3f3_3"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -26,7 +26,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_point_counts_curve_p7_k2"
 type = "point_counts"
 tags = []
-runtime = 0.297
+runtime = 1.387
 example = "dim_1_deg_3_fermat_1"
 parameters = { k = 2, algorithm = "depthfirst", fastevaluation = true }
 
@@ -34,7 +34,7 @@ parameters = { k = 2, algorithm = "depthfirst", fastevaluation = true }
 name = "derived_point_counts_cubic_surface_p11_k2"
 type = "point_counts"
 tags = []
-runtime = 0.432
+runtime = 0.908
 example = "dim_2_deg_3_fermat_2"
 parameters = { k = 2, S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
@@ -50,7 +50,7 @@ parameters = { k = 2, S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = 
 name = "derived_picard_bound_cubic_surface_p5"
 type = "picard_rank_bound"
 tags = []
-runtime = 0.98
+runtime = 9.301
 example = "p5_cubic_surf_dense_001"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
@@ -74,7 +74,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_k3_geometric_rank_p5"
 type = "k3_geometric_picard_rank"
 tags = []
-runtime = 15.327
+runtime = 101.351
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -82,7 +82,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_k3_geometric_rank_k3f3_p3"
 type = "k3_geometric_picard_rank"
 tags = []
-runtime = 13.969
+runtime = 73.502
 example = "dim2_deg_4_k3f3_1"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -98,7 +98,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_k3_picard_rank_p5_k2"
 type = "k3_picard_rank"
 tags = []
-runtime = 16.063
+runtime = 76.694
 example = "p5_q4K3_sparse_as_002"
 parameters = { k = 2, S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -106,7 +106,7 @@ parameters = { k = 2, S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = 
 name = "derived_k3_picard_rank_k3f3_p3_k1"
 type = "k3_picard_rank"
 tags = []
-runtime = 16.111
+runtime = 47.93
 example = "dim2_deg_4_k3f3_1"
 parameters = { k = 1, S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -122,7 +122,7 @@ parameters = { k = 2, S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = 
 name = "derived_k3_realization_p5"
 type = "k3_picard_realization_degree"
 tags = []
-runtime = 19.933
+runtime = 91.852
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -130,7 +130,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_k3_realization_k3f3_p3"
 type = "k3_picard_realization_degree"
 tags = []
-runtime = 11.79
+runtime = 24.948
 example = "dim2_deg_4_k3f3_1"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -146,7 +146,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_artin_mazur_height_p5"
 type = "artin_mazur_height"
 tags = []
-runtime = 1.206
+runtime = 6.969
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -154,7 +154,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "derived_artin_mazur_height_k3f3_p3"
 type = "artin_mazur_height"
 tags = []
-runtime = 1.923
+runtime = 9.343
 example = "dim2_deg_4_k3f3_1"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 

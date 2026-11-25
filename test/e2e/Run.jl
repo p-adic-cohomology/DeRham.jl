@@ -157,6 +157,7 @@ function run_selected(
     println(
         "[e2e] selected $(length(selected.records)) case(s), running $(length(records)) record(s), estimated total runtime $(round(estimated_total, digits = 3))s",
     )
+    flush(stdout)
 
     outcomes = CaseOutcome[]
     for record in records
@@ -168,6 +169,7 @@ function run_selected(
             if selected.broad ||
                (record.name in primed_names && !(record.name in selected_names))
                 println("[e2e] SKIP $(record.name): $(reason)")
+                flush(stdout)
                 push!(
                     outcomes,
                     CaseOutcome(record.name, false, true, reason, record.runtime, 0.0),
@@ -191,6 +193,7 @@ function run_selected(
             line *= "  $(result.error_message)"
         end
         println(line)
+        flush(stdout)
         if result.errored
             @test "E2E record $(record.name): $(result.error_message)" == ""
         else
@@ -214,20 +217,90 @@ function run_selected(
 end
 
 """
-Runs the selected E2E records and prints the runtime summary table.
+    priming_records_for(catalogue, records, config, selection, selected)
+
+Return the priming records to run before `selected`. The `presubmit` workflow
+primes only the configurations of its selected records; `ci`, `full`, `--name=`
+and `--tag=` selections run the whole priming set.
 """
-function run_e2e(e2e_root::AbstractString, args::AbstractVector{<:AbstractString})
+function priming_records_for(
+    catalogue::ExampleCatalogue,
+    records::Vector{ExecutionRecord},
+    config::CatalogueConfig,
+    selection::Selection,
+    selected::NamedTuple,
+)
+    should_run_priming(selection) || return ExecutionRecord[]
+    records_by_name = Dict(record.name => record for record in records)
+    priming = [records_by_name[name] for name in config.priming_records]
+    selection.mode == :workflow && selection.value == :presubmit || return priming
+    configuration(record) =
+        priming_configuration_key(record, catalogue.examples[record.example])
+    selected_configurations = Set(
+        configuration(record) for
+        record in selected.records if haskey(catalogue.examples, record.example)
+    )
+    return filter(record -> configuration(record) in selected_configurations, priming)
+end
+
+function _load_e2e_selection(
+    e2e_root::AbstractString,
+    args::AbstractVector{<:AbstractString},
+)
     config = load_config(joinpath(e2e_root, "config.toml"))
     catalogue = load_example_catalogue(e2e_root)
     records = load_execution_records(e2e_root)
     expected = validate_catalogue(catalogue, records, config)
     selection = parse_selection(args)
     selected = select_records(records, config, selection)
-    priming_records = if should_run_priming(selection)
-        records_by_name = Dict(record.name => record for record in records)
-        [records_by_name[name] for name in config.priming_records]
-    else
-        ExecutionRecord[]
+    priming_records = priming_records_for(catalogue, records, config, selection, selected)
+    return (; catalogue, expected, selected, priming_records)
+end
+
+"""
+    run_e2e(e2e_root, args; primed = nothing)
+
+Run the selected E2E records and print the runtime summary table. Without
+`primed`, the priming records for the selection run first. With `primed` (the
+names returned by [`prime_e2e`](@ref)), priming is skipped and those records
+are not run again.
+"""
+function run_e2e(
+    e2e_root::AbstractString,
+    args::AbstractVector{<:AbstractString};
+    primed::Union{Nothing,AbstractVector{<:AbstractString}} = nothing,
+)
+    loaded = _load_e2e_selection(e2e_root, args)
+    if primed === nothing
+        return run_selected(
+            loaded.catalogue,
+            loaded.selected,
+            loaded.expected;
+            priming_records = loaded.priming_records,
+        )
     end
-    return run_selected(catalogue, selected, expected; priming_records = priming_records)
+    primed_names = Set(primed)
+    remaining = (
+        broad = loaded.selected.broad,
+        records = filter(record -> !(record.name in primed_names), loaded.selected.records),
+    )
+    return run_selected(loaded.catalogue, remaining, loaded.expected)
+end
+
+"""
+    prime_e2e(e2e_root, args)
+
+Run only the priming records for the selection in `args` and return their
+names, so that other tests can run on the compiled code paths before the
+selected records.
+"""
+function prime_e2e(e2e_root::AbstractString, args::AbstractVector{<:AbstractString})
+    loaded = _load_e2e_selection(e2e_root, args)
+    run_selected(
+        loaded.catalogue,
+        (broad = true, records = ExecutionRecord[]),
+        loaded.expected;
+        priming_records = loaded.priming_records,
+    )
+    return [record.name for record in loaded.priming_records]
 end
