@@ -1,11 +1,11 @@
 # Select.jl — test_args selection: exactly one public mode per invocation
 # (--workflow=, --name=, or --tag=); bare Pkg.test() defaults to ci.
 #
-# Workflow membership uses each record's recorded runtime against the
-# configured strict thresholds; presubmit ⊆ ci ⊆ full by construction, since
-# each is `runtime < threshold` over the same threshold ordering (full has
-# no threshold). Exact name and tag selections ignore runtime thresholds.
-
+"""
+An E2E selector. Workflow thresholds preserve `presubmit ⊆ ci ⊆ full`;
+presubmit can additionally restrict membership to configured smoke records.
+Exact name and tag selections ignore workflow restrictions.
+"""
 struct Selection
     mode::Symbol
     value::Any
@@ -71,13 +71,13 @@ function select_records(
     selection::Selection,
 )
     if selection.mode == :workflow
-        threshold = if selection.value == :presubmit
-            config.presubmit_seconds
-        elseif selection.value == :ci
-            config.ci_seconds
-        else
-            Inf
+        if selection.value == :presubmit
+            return (
+                broad = true,
+                records = filter(record -> is_presubmit_record(record, config), records),
+            )
         end
+        threshold = selection.value == :ci ? config.ci_seconds : Inf
         return (broad = true, records = filter(r -> r.runtime < threshold, records))
     elseif selection.mode == :name
         matches = filter(r -> r.name == selection.value, records)

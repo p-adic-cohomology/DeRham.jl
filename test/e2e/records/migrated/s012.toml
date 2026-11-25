@@ -8,7 +8,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true }
 [[test]]
 name = "s012__dim_2_deg_3_fermat_2"
 type = "zeta_coefficients"
-runtime = 0.621
+runtime = 3.263
 example = "dim_2_deg_3_fermat_2"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true }
 

@@ -155,14 +155,20 @@ Pkg.test("DeRham"; test_args = ["--unit=reduction/AKR.jl"])
 Pkg.test("DeRham"; test_args = ["--unit=reduction/Selection.jl", "--name=pchunk__dim_1_deg_3_fermat_1"])
 ```
 
-`--workflow=` selects by each record's `runtime` against the configured
-`presubmit_seconds` / `ci_seconds` thresholds (`presubmit ⊆ ci ⊆ full`).
-Presubmit has a time budget of one minute after priming, split between its
-unit test files and its E2E records. Catalogue validation fails when the
-presubmit records' declared runtimes add up to more than
-`presubmit_budget_seconds`; lower `presubmit_seconds` or move records out of
-presubmit rather than raising the budget.
-`--name=` and `--tag=` ignore runtime thresholds; a `--tag=` selection (like
+`--workflow=presubmit` runs the explicit smoke records in `[presubmit].records`
+that declare `runtime < presubmit_seconds`. The list must contain known names,
+fit within `presubmit_budget_seconds` (the 35-second E2E share), and exclude
+priming records so that smoke execution stays inside the measured budget.
+Without an explicit list, legacy configurations select by the threshold alone.
+`ci` selects every record below `ci_seconds`, and `full` selects everything;
+`presubmit ⊆ ci ⊆ full` is preserved.
+
+Presubmit fails when the combined wall time of its selected E2E records and
+unit test files after priming exceeds 60 seconds, including any remaining
+compilation. Setup, loading and priming are reported separately. Choose fewer
+or faster smoke records when the tier exceeds its budget; do not raise the
+budget or move selected computations into priming.
+`--name=` and `--tag=` ignore workflow restrictions; a `--tag=` selection (like
 a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
 
@@ -250,11 +256,16 @@ The November 25, 2026 tier refresh uses 346 measured records from the loaded-hos
 CI logs `20261124T142034Z-land-main-34f2ccb.log` and
 `20261125T042125Z-epic4-supportcone-0ea3750.log` (kept in the coordinator's
 `dispatch/medium-test-runs/logs/` evidence directory). Each declaration uses the
-smaller available post-priming measurement, rounded to milliseconds; records
-without a measurement retain their existing declaration. Sixteen formerly
-CI-eligible records cross the unchanged 30-second CI threshold into `full`.
-At the 0.7-second presubmit threshold, 45 records declare 27.355 seconds in total;
-three GPU records account for 1.5 seconds and skip when GPU is unavailable.
-The ten presubmit unit files took 13.268 seconds in the first loaded-host tier
-measurement. Files taking more than three seconds in that run remain in CI/full;
-their tests are still available individually through `--unit=<file>`.
+smaller available post-priming measurement, rounded to milliseconds. Forty-two
+of those declarations are replaced by the newer post-priming measurements in
+`tiers-presubmit-codex-2.log`, on source `59bb6df` under the usual shared-host
+load; priming measurements are excluded. Records without a measurement retain
+their existing declaration. Sixteen formerly CI-eligible records cross the
+unchanged 30-second CI threshold into `full`.
+
+The smoke case `double_cover_hyperelliptic_g2_p11` took 18.902 seconds as the
+first selected E2E computation after priming, before other selected cases could
+warm its paths. The eight presubmit unit files took about 11 seconds together
+in that run. Slower files remain in CI/full and are available individually
+through `--unit=<file>`. The complete smoke-plus-unit budget is checked again
+in each presubmit run.

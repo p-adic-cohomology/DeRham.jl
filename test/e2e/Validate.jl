@@ -61,14 +61,41 @@ end
 
 function presubmit_budget_errors(records::Vector{ExecutionRecord}, config::CatalogueConfig)
     isfinite(config.presubmit_budget_seconds) || return String[]
-    presubmit = filter(record -> record.runtime < config.presubmit_seconds, records)
+    presubmit = filter(record -> is_presubmit_record(record, config), records)
     total = isempty(presubmit) ? 0.0 : sum(record.runtime for record in presubmit)
     total <= config.presubmit_budget_seconds && return String[]
     return [
         "test/e2e/config.toml: the $(length(presubmit)) presubmit records declare " *
         "$(round(total, digits = 3))s in total, above presubmit_budget_seconds=" *
-        "$(config.presubmit_budget_seconds); lower presubmit_seconds or re-time records",
+        "$(config.presubmit_budget_seconds); choose fewer smoke records, lower presubmit_seconds or re-time records",
     ]
+end
+
+function presubmit_record_errors(records::Vector{ExecutionRecord}, config::CatalogueConfig)
+    config.presubmit_records === nothing && return String[]
+    by_name = Dict(record.name => record for record in records)
+    errors = String[]
+    for name in config.presubmit_records
+        record = get(by_name, name, nothing)
+        if record === nothing
+            push!(
+                errors,
+                "test/e2e/config.toml: presubmit.records contains unknown record $(repr(name))",
+            )
+        elseif record.runtime >= config.presubmit_seconds
+            push!(
+                errors,
+                "test/e2e/config.toml: presubmit record $(repr(name)) must declare runtime < presubmit_seconds=$(config.presubmit_seconds)",
+            )
+        end
+        if name in config.priming_records
+            push!(
+                errors,
+                "test/e2e/config.toml: presubmit record $(repr(name)) is also a priming record; choose a separate smoke record to measure after priming",
+            )
+        end
+    end
+    return errors
 end
 
 function priming_coverage_errors(
@@ -212,6 +239,7 @@ function validate_catalogue(
 
     append!(errors, priming_record_errors(config.priming_records, records))
     append!(errors, priming_coverage_errors(catalogue, records, config))
+    append!(errors, presubmit_record_errors(records, config))
     append!(errors, presubmit_budget_errors(records, config))
 
     isempty(errors) || throw(CatalogueValidationError(errors))

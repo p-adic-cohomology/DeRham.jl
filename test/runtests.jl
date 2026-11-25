@@ -41,12 +41,12 @@ const UNIT_TEST_TIERS = [
     "reduction/AKR.jl" => :ci,
     "reduction/FrontendMethods.jl" => :ci,
     "reduction/EngineInterfaces.jl" => :presubmit,
-    "reduction/AccountingEngine.jl" => :presubmit,
+    "reduction/AccountingEngine.jl" => :ci,
     "reduction/MatrixEngine.jl" => :ci,
     "reduction/RuvRebinding.jl" => :ci,
     "reduction/DepthFirstPolicy.jl" => :presubmit,
     "reduction/VarByVarPolicy.jl" => :presubmit,
-    "reduction/PChunkDirection.jl" => :presubmit,
+    "reduction/PChunkDirection.jl" => :ci,
     "reduction/PChunkLimits.jl" => :presubmit,
     "reduction/PChunkThreading.jl" => :ci,
     "graded_ring/GradedExpCache.jl" => :presubmit,
@@ -117,6 +117,12 @@ function run_de_rham_test_suite!(args::AbstractVector{<:AbstractString})
         "compile=$(round(unit_timing.compile_time + e2e_timing.compile_time, digits = 3))s",
     )
     flush(stdout)
+
+    if workflow == :presubmit
+        @testset "Presubmit execution budget" begin
+            @test elapsed <= 60.0
+        end
+    end
 
     workflow in (:ci, :full) && include_unit_test("quality_gates.jl")
     return nothing

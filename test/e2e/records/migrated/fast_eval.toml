@@ -22,28 +22,28 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_3_fermat_4"
 type = "zeta_coefficients"
-runtime = 0.667
+runtime = 15.253
 example = "dim_1_deg_3_fermat_4"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_3_random_1"
 type = "zeta_coefficients"
-runtime = 0.595
+runtime = 21.461
 example = "dim_1_deg_3_random_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_3_random_2"
 type = "zeta_coefficients"
-runtime = 0.584
+runtime = 11.104
 example = "dim_1_deg_3_random_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_3_random_3"
 type = "zeta_coefficients"
-runtime = 0.541
+runtime = 9.46
 example = "dim_1_deg_3_random_3"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -85,14 +85,14 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_3_random_9"
 type = "zeta_coefficients"
-runtime = 0.676
+runtime = 12.496
 example = "dim_1_deg_3_random_9"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_3_many_1"
 type = "zeta_coefficients"
-runtime = 0.672
+runtime = 9.343
 example = "dim_1_deg_3_many_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -106,7 +106,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_3_many_3"
 type = "zeta_coefficients"
-runtime = 0.683
+runtime = 10.595
 example = "dim_1_deg_3_many_3"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -148,21 +148,21 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_3_many_9"
 type = "zeta_coefficients"
-runtime = 0.563
+runtime = 6.274
 example = "dim_1_deg_3_many_9"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_3_many_10"
 type = "zeta_coefficients"
-runtime = 0.587
+runtime = 12.569
 example = "dim_1_deg_3_many_10"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "fast_eval__dim_1_deg_3_many_11"
 type = "zeta_coefficients"
-runtime = 0.679
+runtime = 11.809
 example = "dim_1_deg_3_many_11"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -204,7 +204,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "fast_eval__dim_1_deg_4_random_2"
 type = "zeta_coefficients"
-runtime = 0.686
+runtime = 11.173
 example = "dim_1_deg_4_random_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 

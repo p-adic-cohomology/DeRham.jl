@@ -26,7 +26,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigin
 name = "bigints__dim_1_deg_3_fermat_4"
 type = "zeta_coefficients"
 tags = ["bigint"]
-runtime = 0.657
+runtime = 15.931
 example = "dim_1_deg_3_fermat_4"
 parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigints = true }
 
@@ -42,7 +42,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigin
 name = "bigints__dim_1_deg_3_random_2"
 type = "zeta_coefficients"
 tags = ["bigint"]
-runtime = 0.664
+runtime = 26.532
 example = "dim_1_deg_3_random_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigints = true }
 
@@ -82,7 +82,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigin
 name = "bigints__dim_1_deg_3_random_7"
 type = "zeta_coefficients"
 tags = ["bigint"]
-runtime = 0.555
+runtime = 17.356
 example = "dim_1_deg_3_random_7"
 parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigints = true }
 
@@ -154,7 +154,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigin
 name = "bigints__dim_1_deg_3_many_7"
 type = "zeta_coefficients"
 tags = ["bigint"]
-runtime = 0.602
+runtime = 27.502
 example = "dim_1_deg_3_many_7"
 parameters = { algorithm = "depthfirst", fastevaluation = true, always_use_bigints = true }
 

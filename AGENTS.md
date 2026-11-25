@@ -22,7 +22,10 @@ notes-tag rules, records, and runtime measurement.
 
 - `presubmit` has a budget of one minute after priming. It runs the unit test
   files marked `:presubmit` in `UNIT_TEST_TIERS` (`test/runtests.jl`) and the
-  E2E records below `presubmit_seconds`. `ci` runs every unit test file, the
+  E2E smoke records named in `[presubmit].records` and below
+  `presubmit_seconds`. The combined post-priming wall time, including remaining
+  compilation, must be at most 60 seconds or presubmit fails.
+  `ci` runs every unit test file, the
   quality gates and the records below `ci_seconds`; `full` runs everything.
 - New unit test files go in `UNIT_TEST_TIERS`. Mark a file `:presubmit` only if
   it takes a few seconds on the shared host under its usual load.

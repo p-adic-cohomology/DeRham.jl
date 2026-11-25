@@ -20,7 +20,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 2], series_pre
 name = "double_cover_hyperelliptic_g2_p11"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.661
+runtime = 18.902
 example = "g2_d5_b"
 p = 11
 parameters = { algorithm = "depthfirst", relative_precision = [1, 2], series_precision = [2, 2], algorithm_precision = 3 }
@@ -29,7 +29,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [1, 2], series_pre
 name = "double_cover_hyperelliptic_g3_p3"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.686
+runtime = 6.544
 example = "g3_d7_a"
 p = 3
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3], series_precision = [3, 3], algorithm_precision = 6 }
