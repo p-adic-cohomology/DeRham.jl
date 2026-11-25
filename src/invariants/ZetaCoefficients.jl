@@ -40,6 +40,71 @@ function _default_reduction_selection(f, P, S)
     return _default_reduction_selection(fe, S)
 end
 
+function _dense_reduction_strategy(method::Symbol)
+    method === :akr_naive && return AKRNaiveDenseReduction()
+    method === :akr_levelbylevel && return AKRLevelByLevelDenseReduction()
+    throw(ArgumentError("unsupported dense reduction method $method"))
+end
+
+function _split_frobenius_at_handoff(FT, handoff_order)
+    controlled = similar(FT)
+    preserved = similar(FT)
+    for i in eachindex(FT)
+        controlled[i] = [term for term in FT[i] if Int(term[2]) > handoff_order]
+        preserved[i] = [term for term in FT[i] if Int(term[2]) <= handoff_order]
+    end
+    return controlled, preserved
+end
+
+function _reduce_handoff_terms_to_terminal(
+    reductions,
+    method::Symbol,
+    handoff_order,
+    f,
+    P,
+    S,
+    pseudoInverseMat,
+    p,
+    cache,
+    params,
+)
+    terminal_order = terminal_pole_order(P)
+    n = P.n
+    d = P.d
+    picache = _build_akr_picache(
+        handoff_order,
+        n,
+        d,
+        S,
+        f,
+        pseudoInverseMat,
+        cache,
+        params,
+        p;
+        target_order = terminal_order,
+    )
+    dense_strategy = _dense_reduction_strategy(method)
+    reduction_context = (; S, f, p, picache, params, terminal_order)
+    PR = parent(f)
+    for i in eachindex(reductions)
+        terms = dense_reduce(
+            dense_strategy,
+            reductions[i],
+            handoff_order,
+            terminal_order,
+            reduction_context,
+        )
+        result = PR()
+        for (poly, order) in terms
+            order <= terminal_order ||
+                throw(ArgumentError("dense reduction left a term above the terminal order"))
+            result += poly * f^(terminal_order - order)
+        end
+        reductions[i] = [[result, terminal_order]]
+    end
+    return reductions
+end
+
 """
     zeta_coefficients(fe::ZetaFrontend; ...)
 
@@ -80,6 +145,12 @@ Keyword arguments:
   values are not accepted for any explicit precision keyword.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
+- `dense_reduction=nothing`: experimental AKR method to apply after the
+  controlled-reduction handoff; accepts `:akr`, `:akr_naive`, or
+  `:akr_levelbylevel` (`:akr` aliases `:akr_naive`).
+- `handoff_pole_order=nothing`: experimental pole order at which a controlled
+  policy stops before the selected dense method. It must be at least the
+  quotient's terminal pole order and requires `dense_reduction`.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `context`, and `precision_info` keywords are internal or experimental and
@@ -116,6 +187,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    dense_reduction = nothing,
+    handoff_pole_order = nothing,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -151,7 +224,6 @@ function zeta_coefficients(
     q = p
     n = P.n
     d = P.d
-
     if S == [-1]
         S = collect(0:n)
     end
@@ -169,8 +241,13 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         fastevaluation = fastevaluation,
         context = context,
+        dense_reduction = dense_reduction,
+        handoff_pole_order = handoff_pole_order,
     )
     algorithm = configuration.policy
+    dense_method = configuration.dense_reduction
+    handoff_order = configuration.handoff_pole_order
+    smooth_target_order = something(handoff_order, terminal_pole_order(P))
     S = configuration.S
     if configuration.selected_variable !== nothing
         selected_variable = configuration.selected_variable
@@ -195,6 +272,8 @@ function zeta_coefficients(
         always_use_bigints,
         use_gpu,
         use_threads,
+        dense_method,
+        handoff_order,
     )
 
     cache = controlled_reduction_cache(n, d, S, params, P)
@@ -247,11 +326,27 @@ function zeta_coefficients(
 
     if (0 < verbose)
         println("Computing the relations matrix...")
-        @time f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, P, M, S, params, changef, cache)
+        @time f_changed, f, pseudo_inverse_mat_new = find_Ssmooth_model(
+            f,
+            P,
+            M,
+            S,
+            params,
+            changef,
+            cache;
+            target_order = smooth_target_order,
+        )
     else
-        f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, P, M, S, params, changef, cache)
+        f_changed, f, pseudo_inverse_mat_new = find_Ssmooth_model(
+            f,
+            P,
+            M,
+            S,
+            params,
+            changef,
+            cache;
+            target_order = smooth_target_order,
+        )
     end
 
     # For large examples, force a GC here; Julia's GC doesn't seem to automatically cause the
@@ -323,11 +418,11 @@ function zeta_coefficients(
 
     if (0 < verbose)
         println("Computing T matrix...")
-        @time dense_reduction = _precomputed_dense_reduction(fe, basis, M, params, cache)
+        @time final_reduction = _precomputed_dense_reduction(fe, basis, M, params, cache)
     else
-        dense_reduction = _precomputed_dense_reduction(fe, basis, M, params, cache)
+        final_reduction = _precomputed_dense_reduction(fe, basis, M, params, cache)
     end
-    T = dense_reduction.matrix
+    T = final_reduction.matrix
     (9 < verbose) && println("T matrix is $T")
 
     for i = 1:nrows(pseudo_inverse_mat_new)
@@ -336,10 +431,25 @@ function zeta_coefficients(
         end
     end
 
-    #TODO: check which algorithm we're using
+    controlled_input = FBasis
+    preserved_terms = nothing
+    if dense_method !== nothing && handoff_order !== nothing
+        max_source_order = maximum(
+            (Int(term[2]) for column in FBasis for term in column);
+            init = terminal_pole_order(P),
+        )
+        handoff_order <= max_source_order || throw(
+            ArgumentError("handoff_pole_order exceeds the Frobenius source pole order"),
+        )
+        if !(algorithm in (:akr, :akr_naive, :akr_levelbylevel))
+            controlled_input, preserved_terms =
+                _split_frobenius_at_handoff(FBasis, handoff_order)
+        end
+    end
+
     (0 < verbose) && println("\nStarting controlled reduction...")
     Reductions = reducetransform(
-        FBasis,
+        controlled_input,
         N_m,
         S,
         fLift,
@@ -352,6 +462,25 @@ function zeta_coefficients(
         context,
         setup = configuration,
     )
+    if preserved_terms !== nothing
+        for i in eachindex(Reductions)
+            append!(Reductions[i], preserved_terms[i])
+        end
+    end
+    if dense_method !== nothing && handoff_order !== nothing
+        Reductions = _reduce_handoff_terms_to_terminal(
+            Reductions,
+            dense_method,
+            handoff_order,
+            fLift,
+            P,
+            S,
+            pseudo_inverse_mat,
+            p,
+            cache,
+            params,
+        )
+    end
     (2 < verbose) && println(Reductions)
 
     ev = cache[numerator_degree(P, terminal_pole_order(P))]
@@ -361,7 +490,7 @@ function zeta_coefficients(
         p,
         N_m,
         Reductions,
-        dense_reduction,
+        final_reduction,
         Basis,
         params,
         cache,
@@ -424,6 +553,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    dense_reduction = nothing,
+    handoff_pole_order = nothing,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -443,6 +574,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        dense_reduction = dense_reduction,
+        handoff_pole_order = handoff_pole_order,
         context = context,
         precision_info = precision_info,
         relative_precision = relative_precision,
@@ -473,6 +606,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    dense_reduction = nothing,
+    handoff_pole_order = nothing,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -495,6 +630,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        dense_reduction = dense_reduction,
+        handoff_pole_order = handoff_pole_order,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,
@@ -516,6 +653,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    dense_reduction = nothing,
+    handoff_pole_order = nothing,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -535,6 +674,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        dense_reduction = dense_reduction,
+        handoff_pole_order = handoff_pole_order,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,

@@ -73,9 +73,9 @@ Return the distinct `(u, order)` chain keys with their input terms, grouped by
 pole order. The exponent vector `u` is shifted by `x^S` and tweaked to the
 reduction degree.
 """
-function reduction_input_keys(fe::ZetaFrontend, frobenius_output, S)
+function reduction_input_keys(fe::ZetaFrontend, frobenius_output, S, params)
     P = cohomology_quotient(fe)
-    reduction_degree = _reduction_g_degree(P)
+    reduction_degree = _reduction_g_degree(P, params)
     Stilda = zeros(Int, P.n + 1)
     for i in S
         Stilda[i+1] = 1
@@ -109,6 +109,9 @@ function reduction_input_keys(fe::ZetaFrontend, frobenius_output, S)
     return groups
 end
 
+reduction_input_keys(fe::ZetaFrontend, frobenius_output, S) =
+    reduction_input_keys(fe, frobenius_output, S, default_params())
+
 function _zero_reduction_vector(g::Vector{ZZRingElem})
     return [ZZ(0) for _ in eachindex(g)]
 end
@@ -132,7 +135,7 @@ Fill `g` with the summed contribution of the input terms belonging to `key`.
 """
 function reduction_input_vector!(g, fe::ZetaFrontend, input, S, cache, params)
     P = cohomology_quotient(fe)
-    reduction_degree = _reduction_g_degree(P)
+    reduction_degree = _reduction_g_degree(P, params)
     basis_lookup = cache[reduction_degree, :reverse]
     Stilda = zeros(Int, P.n + 1)
     for i in S
@@ -165,7 +168,7 @@ function reduction_terminal_polynomial(fe::ZetaFrontend, chains, PR, S, params)
     for chain in chains
         result = reduction_add_terminal_chain(fe, result, chain, PR, params)
     end
-    return _finish_reduction_terminal_polynomial(fe, result, PR, S)
+    return _finish_reduction_terminal_polynomial(fe, result, PR, S, params)
 end
 
 """
@@ -175,7 +178,7 @@ Add one finished terminal chain to a partially assembled reduced polynomial.
 """
 function reduction_add_terminal_chain(fe::ZetaFrontend, result, chain, PR, params)
     P = cohomology_quotient(fe)
-    reduction_degree = _reduction_g_degree(P)
+    reduction_degree = _reduction_g_degree(P, params)
     u, g_vec = chain
     cpu_g = Array(g_vec)
     CUDA.@allowscalar g =
@@ -184,9 +187,9 @@ function reduction_add_terminal_chain(fe::ZetaFrontend, result, chain, PR, param
     return result + prod(vars .^ u) * g
 end
 
-function _finish_reduction_terminal_polynomial(fe::ZetaFrontend, result, PR, S)
+function _finish_reduction_terminal_polynomial(fe::ZetaFrontend, result, PR, S, params)
     P = cohomology_quotient(fe)
     vars = gens(PR)
     XS = prod(PR(vars[i+1]) for i in S; init = PR(1))
-    return [[div(result, XS), terminal_pole_order(P)]]
+    return [[div(result, XS), _reduction_handoff_order(P, params)]]
 end

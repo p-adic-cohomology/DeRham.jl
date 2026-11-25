@@ -1,5 +1,15 @@
 _reduction_g_degree(P::CohomologyQuotient) = numerator_degree(P, terminal_pole_order(P)) + 1
 
+function _reduction_handoff_order(P::CohomologyQuotient, params)
+    order = something(params.handoff_pole_order, terminal_pole_order(P))
+    order >= terminal_pole_order(P) ||
+        throw(ArgumentError("handoff pole order is below the terminal pole order"))
+    return order
+end
+
+_reduction_g_degree(P::CohomologyQuotient, params) =
+    numerator_degree(P, _reduction_handoff_order(P, params)) + 1
+
 """
     controlled_reduction_cache
 
@@ -8,7 +18,8 @@ as in Prop 1.15 of Costa's thesis.
 
 n in this function is the number of variables minus one.
 
-With `g = _reduction_g_degree(P)` and `s = length(S)`, the degrees needed are
+With `g = _reduction_g_degree(P, params)` and `s = length(S)`, the degrees
+needed are
 
 FORWARD:
 For h in pole_orders(P), numerator_degree(P, h) and numerator_degree(P, h) - (d - 1), when nonnegative
@@ -33,7 +44,7 @@ params - the ControlledReductionParamaters
 P - cohomology quotient; defaults to the hypersurface quotient for n and d
 """
 function controlled_reduction_cache(n, d, S, params, P = HypersurfaceQuotient(n, d))
-    g = _reduction_g_degree(P)
+    g = _reduction_g_degree(P, params)
     s = length(S)
     degsforward = [g, g - 1, g - s, g - s + 1, g + d - s, d]
     for h in pole_orders(P)

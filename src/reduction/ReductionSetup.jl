@@ -27,6 +27,8 @@ end
 struct ReductionSetup{F,S}
     frontend::F
     policy::Symbol
+    dense_reduction::Union{Nothing,Symbol}
+    handoff_pole_order::Union{Nothing,Int}
     S::S
     selected_variable::Union{Nothing,Int}
     required_S::Vector{Int}
@@ -36,6 +38,67 @@ struct ReductionSetup{F,S}
     use_threads::Bool
     always_use_bigints::Bool
     fastevaluation::Bool
+end
+
+function _normalize_dense_reduction_method(method)
+    method === nothing && return nothing
+    method === :akr && return :akr_naive
+    method in (:akr_naive, :akr_levelbylevel) && return method
+    throw(ArgumentError("dense_reduction must be :akr_naive or :akr_levelbylevel"))
+end
+
+function _resolve_dense_reduction_options(
+    fe,
+    algorithm,
+    dense_reduction,
+    handoff_pole_order,
+    P;
+    context = nothing,
+)
+    method = _normalize_dense_reduction_method(dense_reduction)
+    preset = if algorithm in (:akr, :akr_naive)
+        :akr_naive
+    elseif algorithm === :akr_levelbylevel
+        :akr_levelbylevel
+    else
+        nothing
+    end
+    if preset !== nothing
+        method !== nothing &&
+            method !== preset &&
+            throw(ArgumentError("algorithm=$algorithm selects dense_reduction=$preset"))
+        method = preset
+    end
+
+    if handoff_pole_order !== nothing
+        handoff_pole_order isa Integer && !(handoff_pole_order isa Bool) ||
+            throw(ArgumentError("handoff_pole_order must be an integer"))
+        typemin(Int) <= handoff_pole_order <= typemax(Int) ||
+            throw(ArgumentError("handoff_pole_order is outside the supported range"))
+        method !== nothing ||
+            throw(ArgumentError("handoff_pole_order requires dense_reduction"))
+    end
+
+    order =
+        handoff_pole_order === nothing ?
+        (preset === nothing ? terminal_pole_order(P) : nothing) : Int(handoff_pole_order)
+    order === nothing ||
+        order >= terminal_pole_order(P) ||
+        throw(ArgumentError("handoff_pole_order is below the terminal pole order"))
+    method === nothing ||
+        fe isa ProjectiveHypersurface ||
+        throw(
+            ArgumentError("dense_reduction is only supported for projective hypersurfaces"),
+        )
+    context === nothing ||
+        order === nothing ||
+        order == terminal_pole_order(P) ||
+        throw(
+            ArgumentError(
+                "handoff_pole_order is not supported with a preconfigured context",
+            ),
+        )
+    return method, order
 end
 
 struct ReductionExecutionSetup{C}
@@ -83,11 +146,12 @@ end
 """
     reduction_setup(fe, S, algorithm; kwargs...)
 
-Resolve the frontend's allowed policy, automatic policy and variable selection,
-and policy-specific R_uv storage strategy. `reduction_execution_setup` completes
-the runtime choices once the precision ring is available. The runtime setup
-preserves the existing PEP and evaluation-kernel selectors, including their
-different GPU Karatsuba eligibility rules.
+Resolve the frontend's controlled policy, dense-reduction method and handoff
+order, automatic policy and variable selection, and policy-specific R_uv
+storage strategy. `reduction_execution_setup` completes the runtime choices
+once the precision ring is available. The runtime setup preserves the existing
+PEP and evaluation-kernel selectors, including their different GPU Karatsuba
+eligibility rules.
 """
 function reduction_setup(
     fe::ZetaFrontend,
@@ -98,6 +162,8 @@ function reduction_setup(
     always_use_bigints = false,
     fastevaluation = true,
     context = nothing,
+    dense_reduction = nothing,
+    handoff_pole_order = nothing,
 )
     allowed_policies = _reduction_allowed_policies(fe)
     _validate_reduction_setup(fe, algorithm; use_gpu = use_gpu, context = context)
@@ -116,6 +182,14 @@ function reduction_setup(
     end
 
     P = cohomology_quotient(fe)
+    selected_dense_reduction, selected_handoff_order = _resolve_dense_reduction_options(
+        fe,
+        algorithm,
+        dense_reduction,
+        handoff_pole_order,
+        P;
+        context = context,
+    )
     d = P.d
     n = P.n
     lazy_Ruv = if policy == :varbyvar
@@ -129,6 +203,8 @@ function reduction_setup(
     return ReductionSetup(
         fe,
         policy,
+        selected_dense_reduction,
+        selected_handoff_order,
         selected_S,
         selected_variable,
         required_S,
@@ -171,6 +247,21 @@ function _validate_reduction_execution_setup(configuration, fe, params)
         throw(ArgumentError("the frontend does not match the reduction setup"))
     params.algorithm == configuration.policy ||
         throw(ArgumentError("the algorithm does not match the reduction setup"))
+    implicit_dense_preset =
+        params.dense_reduction === nothing &&
+        configuration.policy in (:akr, :akr_naive, :akr_levelbylevel)
+    (params.dense_reduction == configuration.dense_reduction || implicit_dense_preset) ||
+        throw(
+            ArgumentError("the dense-reduction method does not match the reduction setup"),
+        )
+    effective_params_handoff =
+        something(params.handoff_pole_order, terminal_pole_order(cohomology_quotient(fe)))
+    effective_setup_handoff = something(
+        configuration.handoff_pole_order,
+        terminal_pole_order(cohomology_quotient(fe)),
+    )
+    effective_params_handoff == effective_setup_handoff ||
+        throw(ArgumentError("the handoff pole order does not match the reduction setup"))
     params.use_gpu == configuration.use_gpu ||
         throw(ArgumentError("the GPU option does not match the reduction setup"))
     params.use_threads == configuration.use_threads ||
@@ -199,7 +290,7 @@ function reduction_execution_setup(
     _validate_reduction_execution_setup(configuration, fe, params)
     d = total_degree(f)
     n = nvars(parent(f)) - 1
-    g = _reduction_g_degree(P)
+    g = _reduction_g_degree(P, params)
     g_length = binomial(g + n, n)
     MS1 = matrix_space(coefficient_ring(parent(f)), g_length, g_length)
     m = Integer(modulus(base_ring(MS1)))

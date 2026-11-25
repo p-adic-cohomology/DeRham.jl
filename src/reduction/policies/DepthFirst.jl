@@ -13,7 +13,7 @@ function _depthfirst_engine_factory(execution_setup, fe, P, S, cache, params, di
             execution_setup.preconfigured_engine
         end
         engine = MatrixReductionEngine(
-            ReductionEngineGeometry(P),
+            ReductionEngineGeometry(P, params),
             directions,
             preconfigured,
             fill_vector!;
@@ -36,7 +36,7 @@ function _reducepoly_depthfirst!(
     policy,
     directions,
 )
-    keys_by_order = reduction_input_keys(fe, pol, S)
+    keys_by_order = reduction_input_keys(fe, pol, S, params)
     terminal_polynomial = Ref(PR())
     on_terminal =
         chain -> begin
@@ -49,7 +49,7 @@ function _reducepoly_depthfirst!(
             )
         end
     run_reduction_policy!(policy, runtime.engine, keys_by_order, directions, on_terminal)
-    return _finish_reduction_terminal_polynomial(fe, terminal_polynomial[], PR, S)
+    return _finish_reduction_terminal_polynomial(fe, terminal_polynomial[], PR, S, params)
 end
 
 function reducetransform_depthfirst(

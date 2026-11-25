@@ -59,7 +59,16 @@ Inputs:
 * "changef" -- bool
 * "cache" -- the GradedExpCache used for this controlled reduction
 """
-function find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
+function find_Ssmooth_model(
+    f,
+    P,
+    M,
+    S_target,
+    params,
+    changef,
+    cache;
+    target_order = terminal_pole_order(P),
+)
     p = Int64(characteristic(parent(f)))
     q = p
     PR = parent(f)
@@ -68,7 +77,7 @@ function find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
     SLn = special_linear_group(n + 1, GF(q))
     d = total_degree(f)
     vars = gens(PR)
-    l = _reduction_g_degree(P) + d - length(S_target)
+    l = numerator_degree(P, target_order) + 1 + d - length(S_target)
 
     f_transformed = f
     num_iter = min(2*p, 100)
@@ -114,9 +123,26 @@ function find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
 
 end
 
-function find_Ssmooth_model(f, M, S_target, params, changef, cache)
+function find_Ssmooth_model(
+    f,
+    M,
+    S_target,
+    params,
+    changef,
+    cache;
+    target_order = nvars(parent(f)) - 1,
+)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
     P = HypersurfaceQuotient(n, d)
-    return find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
+    return find_Ssmooth_model(
+        f,
+        P,
+        M,
+        S_target,
+        params,
+        changef,
+        cache;
+        target_order = target_order,
+    )
 end

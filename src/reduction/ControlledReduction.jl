@@ -23,6 +23,8 @@ function reducetransform(
             always_use_bigints = params.always_use_bigints,
             fastevaluation = params.fastevaluation,
             context = context,
+            dense_reduction = params.dense_reduction,
+            handoff_pole_order = params.handoff_pole_order,
         )
     )
     if setup.policy == :pchunk
@@ -71,9 +73,29 @@ function reducetransform(
             setup,
         )
     elseif setup.policy == :akr || setup.policy == :akr_naive
-        reducetransform_akr_naive(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
+        reducetransform_akr_naive(
+            FT,
+            N_m,
+            S,
+            f,
+            pseudoInverseMat,
+            p,
+            cache,
+            params;
+            target_order = something(setup.handoff_pole_order, terminal_pole_order(P)),
+        )
     elseif setup.policy == :akr_levelbylevel
-        reducetransform_akr_levelbylevel(FT, N_m, S, f, pseudoInverseMat, p, cache, params)
+        reducetransform_akr_levelbylevel(
+            FT,
+            N_m,
+            S,
+            f,
+            pseudoInverseMat,
+            p,
+            cache,
+            params;
+            target_order = something(setup.handoff_pole_order, terminal_pole_order(P)),
+        )
     else
         println(setup.policy)
         throw(ArgumentError("Unsupported Algorithm: "))
@@ -206,7 +228,7 @@ function _matrix_reduction_runtime_factory(
             execution_setup.preconfigured_engine
         end
         engine = MatrixReductionEngine(
-            ReductionEngineGeometry(P),
+            ReductionEngineGeometry(P, params),
             directions,
             preconfigured,
             fill_vector!;
@@ -229,7 +251,7 @@ function _reducepoly_matrix_policy!(
     policy,
     directions,
 )
-    keys_by_order = reduction_input_keys(fe, pol, S)
+    keys_by_order = reduction_input_keys(fe, pol, S, params)
     terminal_polynomial = Ref(PR())
     on_terminal =
         chain -> begin
@@ -242,7 +264,7 @@ function _reducepoly_matrix_policy!(
             )
         end
     run_reduction_policy!(policy, runtime.engine, keys_by_order, directions, on_terminal)
-    return _finish_reduction_terminal_polynomial(fe, terminal_polynomial[], PR, S)
+    return _finish_reduction_terminal_polynomial(fe, terminal_polynomial[], PR, S, params)
 end
 
 function _reducetransform_matrix_policy(
