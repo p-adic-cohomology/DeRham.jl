@@ -182,11 +182,7 @@ end
 _akr_residue_uint64(value::UInt64) = value
 _akr_residue_uint64(value) = UInt64(lift(ZZ, value))
 
-function _akr_cofactor_residues(
-    g,
-    reduction_map::_AKRReductionMap{UInt64},
-    modulus::UInt64,
-)
+function _akr_cofactor_residues(g, reduction_map::_AKRReductionMap{UInt64}, modulus::UInt64)
     accumulators = zeros(UInt64, length(reduction_map.derivative_positions))
     for j in eachindex(g)
         coefficient = _akr_residue_uint64(g[j])
@@ -243,13 +239,13 @@ function _akr_reduce_level_residues(g, m, f, table::_AKRRelationTable, termorder
 end
 
 function _akr_add_residues!(accumulator::Vector{UInt64}, values, modulus::UInt64)
-    length(accumulator) == length(values) || error("AKR residue vector has the wrong length")
+    length(accumulator) == length(values) ||
+        error("AKR residue vector has the wrong length")
     for i in eachindex(accumulator)
         value = _akr_residue_uint64(values[i])
         value == 0 && continue
-        accumulator[i] = UInt64(
-            rem(UInt128(accumulator[i]) + UInt128(value), UInt128(modulus)),
-        )
+        accumulator[i] =
+            UInt64(rem(UInt128(accumulator[i]) + UInt128(value), UInt128(modulus)))
     end
     return accumulator
 end
@@ -269,7 +265,7 @@ function _akr_cofactor_vector_bigint(g, m, f, table::_AKRRelationTable{N}, param
 
     for j = 1:(length(reduction_map.offsets)-1)
         iszero(g[j]) && continue
-        for k in reduction_map.offsets[j]:(reduction_map.offsets[j+1]-1)
+        for k = reduction_map.offsets[j]:(reduction_map.offsets[j+1]-1)
             position = reduction_map.positions[k]
             cofactor_vector[position] += g[j] * R(reduction_map.factors[k])
         end
@@ -295,13 +291,13 @@ function _akr_pseudoinverse_derivative(gtemp, m, f, S, params)
 
     for i = 0:n
         if i in S
-            block = gtemp[offset:(offset + in_length - 1)]
+            block = gtemp[offset:(offset+in_length-1)]
             component = vector_to_polynomial(block, n, in_degree, PR, params.termorder)
             offset += in_length
         else
-            block = gtemp[offset:(offset + out_length - 1)]
+            block = gtemp[offset:(offset+out_length-1)]
             component =
-                vars[i + 1] * vector_to_polynomial(block, n, out_degree, PR, params.termorder)
+                vars[i+1] * vector_to_polynomial(block, n, out_degree, PR, params.termorder)
             offset += out_length
         end
         reduced += derivative(component, i + 1)
@@ -422,18 +418,12 @@ end
 Apply one AKR reduction step to the combined coefficient vector at pole order
 `m`, returning the coefficient vector for pole order `m - 1`.
 """
-function _reduce_akr_level(g, m, f, picache, params, S = collect(0:(nvars(parent(f)) - 1)))
+function _reduce_akr_level(g, m, f, picache, params, S = collect(0:(nvars(parent(f))-1)))
     if picache isa _AKRRelationTable && picache.modulus <= typemax(UInt64)
         modulus = UInt64(picache.modulus)
         residues = UInt64[_akr_residue_uint64(coefficient) for coefficient in g]
-        reduced = _akr_reduce_level_residues(
-            residues,
-            m,
-            f,
-            picache,
-            params.termorder,
-            modulus,
-        )
+        reduced =
+            _akr_reduce_level_residues(residues, m, f, picache, params.termorder, modulus)
         return _akr_residues_to_ring(reduced, f)
     end
 

@@ -111,17 +111,7 @@ end
     cache = DeRham.controlled_reduction_cache(n, d, S, params)
     l = d * n - n + d - length(S)
     pseudo_inverse = DeRham.pseudo_inverse_controlled_lifted(f, S, l, 1, params, cache)
-    picache = DeRham._build_akr_picache(
-        n,
-        n,
-        d,
-        S,
-        f,
-        pseudo_inverse,
-        cache,
-        params,
-        p,
-    )
+    picache = DeRham._build_akr_picache(n, n, d, S, f, pseudo_inverse, cache, params, p)
 
     @test !(picache isa DeRham._AKRRelationTable)
     @test picache[n] === pseudo_inverse
