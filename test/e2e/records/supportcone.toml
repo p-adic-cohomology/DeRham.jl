@@ -1,20 +1,20 @@
 [[test]]
 name = "supportcone__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
-runtime = 2.789
+runtime = 8.714
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "supportcone", changef = false }
 
 [[test]]
 name = "supportcone__dim_1_deg_4_random_1"
 type = "zeta_coefficients"
-runtime = 0.547
+runtime = 6.204
 example = "dim_1_deg_4_random_1"
 parameters = { algorithm = "supportcone", changef = false }
 
 [[test]]
 name = "supportcone__dim_1_deg_3_transformed_fermat_1"
 type = "zeta_coefficients"
-runtime = 0.377
+runtime = 5.711
 example = "supportcone_transformed_fermat_curve_1"
 parameters = { algorithm = "supportcone" }
