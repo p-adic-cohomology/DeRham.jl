@@ -117,8 +117,10 @@ end
     @test picache[n] === pseudo_inverse
 
     curve = DeRham.fermat_hypersurface(3, 3, p)
-    expected = DeRham.zeta_coefficients(curve; algorithm = :default, S = S)
-    @test DeRham.zeta_coefficients(curve; algorithm = :akr_levelbylevel, S = S) == expected
+    expected = BigInt[2, 0, 1]
+    for algorithm in (:akr_naive, :akr_levelbylevel)
+        @test DeRham.zeta_coefficients(curve; algorithm = algorithm, S = S) == expected
+    end
 end
 
 @testset "AKR BigInt multi-level reduction" begin
@@ -128,7 +130,7 @@ end
     big_precision = (hodge_polygon, relative_precision, series_precision, 24)
     @test big(7)^24 > typemax(UInt64)
 
-    expected = DeRham.zeta_coefficients(curve; algorithm = :default)
+    expected = BigInt[7, 1, 1]
     for algorithm in (:akr_naive, :akr_levelbylevel)
         @test DeRham.zeta_coefficients(
             curve;
