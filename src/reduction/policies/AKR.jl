@@ -72,8 +72,7 @@ function _build_akr_relation_table(f, p, M, ::Val{N}) where {N}
     for j in eachindex(monomials)
         row_index = 0
         for i in column_rows[j]
-            if active[i] && !iszero(mod(rows[i][j], p)) &&
-               (row_index == 0 || i < row_index)
+            if active[i] && !iszero(mod(rows[i][j], p)) && (row_index == 0 || i < row_index)
                 row_index = i
             end
         end
