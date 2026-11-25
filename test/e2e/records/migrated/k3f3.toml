@@ -1,7 +1,7 @@
 [[test]]
 name = "k3f3__dim2_deg_4_k3f3_1"
 type = "zeta_coefficients"
-runtime = 14.643
+runtime = 27.09
 example = "dim2_deg_4_k3f3_1"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -22,7 +22,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 [[test]]
 name = "k3f3__dim2_deg_4_k3f3_4"
 type = "zeta_coefficients"
-runtime = 15.504
+runtime = 28.249
 example = "dim2_deg_4_k3f3_4"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 

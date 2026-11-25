@@ -2,7 +2,7 @@
 name = "artifact_k3_small_sparse_p5"
 type = "zeta_coefficients"
 tags = []
-runtime = 14.567
+runtime = 123.924
 example = "p5_q4K3_sparse_as_002"
 parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -10,7 +10,7 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 name = "artifact_cubic_surface_small_sparse_p5"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.260
+runtime = 2.374
 example = "p5_cubic_surf_sparse_fk_001"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
@@ -18,6 +18,6 @@ parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 name = "artifact_cubic_surface_small_dense_p5"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.366
+runtime = 1.41
 example = "p5_cubic_surf_dense_001"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }

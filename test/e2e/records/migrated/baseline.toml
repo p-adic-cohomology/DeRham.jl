@@ -8,56 +8,56 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "baseline__dim_2_deg_4_many_1"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 13.472
 example = "dim_2_deg_4_many_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_2"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 12.134
 example = "dim_2_deg_4_many_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_3"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 13.484
 example = "dim_2_deg_4_many_3"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_4"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 20.019
 example = "dim_2_deg_4_many_4"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_5"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 211.701
 example = "dim_2_deg_4_many_5"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_6"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 268.721
 example = "dim_2_deg_4_many_6"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_7"
 type = "zeta_coefficients"
-runtime = 4.4
+runtime = 14.328
 example = "dim_2_deg_4_many_7"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
 [[test]]
 name = "baseline__dim_2_deg_4_many_8"
 type = "zeta_coefficients"
-runtime = 15.0
+runtime = 13.788
 example = "dim_2_deg_4_many_8"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -85,7 +85,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false 
 [[test]]
 name = "baseline__vanishing_2"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 3.131
 example = "vanishing_2"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
 
@@ -106,6 +106,6 @@ parameters = { S = [0, 1, 2], algorithm = "depthfirst", fastevaluation = true, c
 [[test]]
 name = "baseline__dim_1_deg_5_many_5"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 0.734
 example = "dim_1_deg_5_many_5"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false }
