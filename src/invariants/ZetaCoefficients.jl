@@ -155,6 +155,7 @@ function zeta_coefficients(
     if S == [-1]
         S = collect(0:n)
     end
+    _validate_controlled_selection(n, S)
 
     if length(S) > d
         error("Length of S must be <= $d")
@@ -230,28 +231,25 @@ function zeta_coefficients(
         "We work modulo $p^$M, and compute up to the $N_m-th term of the Frobenius power series",
     )
 
-    if always_use_bigints || BigInt(2)^64 < BigInt(p)^M
-        residue = BigInt(p)^M
-    elseif BigInt(2)^63 < BigInt(p)^M
-        # If we use UInt, we get things between 2^63 and 2^64
-        residue = UInt(p)^M
+    working_modulus = BigInt(p)^M
+    residue = if always_use_bigints || working_modulus > typemax(UInt)
+        working_modulus
+    elseif working_modulus > typemax(Int)
+        UInt(working_modulus)
     else
-        residue = p^M
+        Int(working_modulus)
     end
-
-    # FOR DEBUGGING
-    #residue = BigInt(p)^M
 
     precisionring, = residue_ring(ZZ, residue)
     precisionringpoly, pvars = polynomial_ring(precisionring, ["x$i" for i = 0:n])
 
     if (0 < verbose)
-        println("Computing the relations matrix...")
-        @time f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, P, M, S, params, changef, cache)
+        println("Computing reduction setup...")
+        @time f_changed, f, model_setup =
+            _find_reduction_model(f, P, p, M, S, params, changef, cache, precisionringpoly)
     else
-        f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, P, M, S, params, changef, cache)
+        f_changed, f, model_setup =
+            _find_reduction_model(f, P, p, M, S, params, changef, cache, precisionringpoly)
     end
 
     # For large examples, force a GC here; Julia's GC doesn't seem to automatically cause the
@@ -270,7 +268,7 @@ function zeta_coefficients(
         return false
     end
 
-    (9 < verbose) && println("pseudo_inverse_mat is $pseudo_inverse_mat_new")
+    (; lifted, right_inverse) = model_setup
 
     # recomputes basis if f is different
     if f_changed
@@ -303,23 +301,14 @@ function zeta_coefficients(
     (9 < verbose) && println("Basis of cohomology is $Basis")
 
 
-    fLift = liftCoefficients(precisionring, precisionringpoly, f)
+    fLift =
+        lifted === nothing ? liftCoefficients(precisionring, precisionringpoly, f) : lifted
     if (0 < verbose)
         println("\nApplying Frobenius to basis elements")
         @time FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     else
         FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     end
-
-    l = d * n - n + d - length(S)
-
-
-    MS = matrix_space(
-        precisionring,
-        nrows(pseudo_inverse_mat_new),
-        ncols(pseudo_inverse_mat_new),
-    )
-    pseudo_inverse_mat = MS()
 
     if (0 < verbose)
         println("Computing T matrix...")
@@ -328,12 +317,6 @@ function zeta_coefficients(
         T = computeT(fe, basis, M, params, cache)
     end
     (9 < verbose) && println("T matrix is $T")
-
-    for i = 1:nrows(pseudo_inverse_mat_new)
-        for j = 1:ncols(pseudo_inverse_mat_new)
-            pseudo_inverse_mat[i, j] = ZZ(pseudo_inverse_mat_new[i, j])
-        end
-    end
 
     #TODO: check which algorithm we're using
     (0 < verbose) && println("\nStarting controlled reduction...")
@@ -344,7 +327,7 @@ function zeta_coefficients(
         fLift,
         P,
         fe,
-        pseudo_inverse_mat,
+        right_inverse,
         p,
         params,
         cache,

@@ -55,3 +55,24 @@
     @test DeRham.get_basis_of_cohomology(DeRham.ProjectiveHypersurface(f)) ==
           DeRham.get_basis_of_cohomology(f)
 end
+@testset "Graded monomial lookup" begin
+    lex = [[0, 0, 2], [0, 1, 1], [0, 2, 0], [1, 0, 1], [1, 1, 0], [2, 0, 0]]
+    for (order, expected) in
+        (:lex => lex, :neglex => reverse(lex), :invlex => reverse.(lex))
+        ordering = DeRham._graded_monomial_order(order)
+        @test DeRham.gen_exp_vec(3, 2, order) == expected
+        buffer = zeros(Int, 3)
+        for (index, exponent) in enumerate(expected)
+            @test DeRham._graded_exponent_at!(buffer, 2, index, ordering) == exponent
+            @test DeRham._graded_monomial_index(exponent, 2, ordering) == index
+        end
+    end
+    buffer = zeros(Int, 4)
+    for order in (:lex, :neglex, :invlex), degree in (0, 1, 3, 6)
+        ordering = DeRham._graded_monomial_order(order)
+        for (index, exponent) in enumerate(DeRham.gen_exp_vec(4, degree, order))
+            @test DeRham._graded_exponent_at!(buffer, degree, index, ordering) == exponent
+            @test DeRham._graded_monomial_index(exponent, degree, ordering) == index
+        end
+    end
+end

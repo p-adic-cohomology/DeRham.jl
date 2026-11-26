@@ -1,0 +1,489 @@
+function akr_relation_identities_hold(table, f)
+    partials = [derivative(f, i) for i = 1:3]
+    for (monomial, cofactors) in table.relations
+        reconstructed = Dict{NTuple{3,Int},BigInt}()
+        for (i, cofactor, relation_coefficient) in cofactors
+            for term in terms(partials[i])
+                exponent = ntuple(j -> cofactor[j] + exponent_vector(term, 1)[j], Val(3))
+                coefficient = mod(
+                    get(reconstructed, exponent, big(0)) +
+                    relation_coefficient * BigInt(lift(ZZ, coeff(term, 1))),
+                    table.modulus,
+                )
+                if iszero(coefficient)
+                    delete!(reconstructed, exponent)
+                else
+                    reconstructed[exponent] = coefficient
+                end
+            end
+        end
+        reconstructed == Dict(monomial => big(1)) || return false
+    end
+    return true
+end
+
+@testset "AKR cutoff relation table" begin
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
+    table = DeRham._build_akr_relation_table(f, 7, 1)
+
+    @test table.cutoff == 7
+    @test length(table.relations) == 36
+    @test akr_relation_identities_hold(table, f)
+end
+
+@testset "AKR cutoff model setup reuses lifted relations" begin
+    p = 7
+    M = 2
+    _, (x, y, z) = polynomial_ring(GF(p), ["x", "y", "z"])
+    f = x^3 + y^3 - z^3
+    precision_ring, = residue_ring(ZZ, p^M)
+    precision_poly, (u, v, w) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    P = DeRham.HypersurfaceQuotient(2, 3)
+    params =
+        DeRham.ZetaFunctionParams(0, false, :akr, :invlex, false, true, false, false, false)
+    S = [2, 0, 1]
+
+    changed, model, setup =
+        DeRham._find_reduction_model(f, P, p, M, S, params, true, nothing, precision_poly)
+    @test !changed
+    @test model == f
+    @test setup.lifted == u^3 + v^3 - w^3
+    @test setup.right_inverse isa DeRham._SparseJacobianRightInverse
+    @test akr_relation_identities_hold(setup.right_inverse, setup.lifted)
+    picache = DeRham._build_akr_picache(
+        3,
+        P.n,
+        P.d,
+        S,
+        setup.lifted,
+        setup.right_inverse,
+        nothing,
+        params,
+        p,
+    )
+    @test picache.relations === setup.right_inverse.relations
+    bigint_params = (; params.termorder, always_use_bigints = true)
+    bigint_table = DeRham._build_akr_picache(
+        3,
+        P.n,
+        P.d,
+        S,
+        setup.lifted,
+        setup.right_inverse,
+        nothing,
+        bigint_params,
+        p,
+    )
+    @test bigint_table.relations === setup.right_inverse.relations
+    bigint_map = DeRham._akr_reduction_map(bigint_table, 3, setup.lifted, params.termorder)
+    @test eltype(bigint_map.factors) === BigInt
+
+    S = [0, 1]
+    cache = DeRham.controlled_reduction_cache(P.n, P.d, S, params, P)
+    _, _, fallback =
+        DeRham._find_reduction_model(f, P, p, M, S, params, true, cache, precision_poly)
+    @test fallback.lifted === nothing
+    @test nrows(fallback.right_inverse) > 0
+end
+
+@testset "AKR cutoff model failure" begin
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    singular = x^3 + y^3 + x * y * z
+    S = [2, 0, 1]
+    @test DeRham.zeta_coefficients(singular; algorithm = :akr, S, changef = true) === false
+    @test_throws ArgumentError("f is not smooth") DeRham.zeta_coefficients(
+        singular;
+        algorithm = :akr,
+        S,
+        changef = false,
+    )
+end
+
+@testset "AKR cutoff BigInt reduction map" begin
+    precision_modulus = big(7)^23
+    precision_ring, = residue_ring(ZZ, precision_modulus)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
+    table = DeRham._build_akr_relation_table(f, 7, 23)
+    @test table.modulus > typemax(UInt64)
+    @test akr_relation_identities_hold(table, f)
+
+    m = 3
+    params = (; termorder = :invlex)
+    source_degree = 4 * m - 3
+    cofactor_degree = source_degree - 4 + 1
+    source_monomials = DeRham.gen_exp_vec(3, source_degree, params.termorder)
+    cofactor_monomials = DeRham.gen_exp_vec(3, cofactor_degree, params.termorder)
+    cofactor_indices = Dict(Tuple(e) => i for (i, e) in enumerate(cofactor_monomials))
+    g = [precision_ring(i) for i in eachindex(source_monomials)]
+    expected = fill(precision_ring(0), 3 * length(cofactor_monomials))
+
+    for (j, exponent) in enumerate(source_monomials)
+        iszero(g[j]) && continue
+        left = table.cutoff
+        h = ntuple(Val(3)) do i
+            part = min(left, exponent[i])
+            left -= part
+            part
+        end
+        shift = ntuple(i -> exponent[i] - h[i], Val(3))
+        for (i, cofactor, factor) in table.relations[h]
+            shifted = ntuple(l -> shift[l] + cofactor[l], Val(3))
+            position = (i - 1) * length(cofactor_monomials) + cofactor_indices[shifted]
+            expected[position] += g[j] * precision_ring(factor)
+        end
+    end
+
+    cached_map = DeRham._akr_reduction_map(table, m, f, params.termorder)
+    actual = DeRham._akr_cofactor_vector(g, f, table, cached_map)
+    @test actual == expected
+    cofactor_length = length(cofactor_monomials)
+    expected_reduced_polynomial = derivative(
+        DeRham.vector_to_polynomial(
+            expected[1:cofactor_length],
+            2,
+            cofactor_degree,
+            parent(f),
+            params.termorder,
+        ),
+        1,
+    )
+    for i = 1:2
+        component = DeRham.vector_to_polynomial(
+            expected[(i*cofactor_length+1):((i+1)*cofactor_length)],
+            2,
+            cofactor_degree,
+            parent(f),
+            params.termorder,
+        )
+        expected_reduced_polynomial += derivative(component, i + 1)
+    end
+    expected_reduced =
+        DeRham.polynomial_to_vector(expected_reduced_polynomial, 3, params.termorder)
+    @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
+
+    @test cached_map === DeRham._akr_reduction_map(table, m, f, params.termorder)
+    @test length(table.reduction_maps) == 1
+    @test isempty(cached_map.derivative_positions)
+    @test isempty(cached_map.derivative_factors)
+
+    table.cached_map_bytes = DeRham._AKR_REDUCTION_MAP_CACHE_BYTES
+    @test DeRham._akr_reduction_map(table, m + 1, f, params.termorder) === nothing
+    @test length(table.reduction_maps) == 1
+    @test !haskey(table.reduction_maps, (m + 1, params.termorder))
+end
+
+@testset "AKR UInt64 reduction path" begin
+    p = 7
+    precision = 12
+    modulus = big(p)^precision
+    precision_ring, = residue_ring(ZZ, modulus)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    table = DeRham._build_akr_relation_table(f, p, precision)
+
+    @test table.modulus <= typemax(UInt64)
+
+    m = 3
+    params = (; termorder = :invlex)
+    source_monomials = DeRham.gen_exp_vec(3, 3 * m - 3, params.termorder)
+    g = fill(precision_ring(modulus - 1), length(source_monomials))
+    reduction_map = DeRham._akr_reduction_map(table, m, f, params.termorder)
+    source_residue = UInt64(modulus - 1)
+    @test any(
+        UInt128(source_residue) * UInt128(reduction_map.factors[k]) > typemax(UInt64) for
+        j in eachindex(g) for k = reduction_map.offsets[j]:(reduction_map.offsets[j+1]-1)
+    )
+
+    cofactor_degree = 3 * m - 3 - 3 + 1
+    cofactor_monomials = DeRham.gen_exp_vec(3, cofactor_degree, params.termorder)
+    cofactor_indices = Dict(Tuple(e) => i for (i, e) in enumerate(cofactor_monomials))
+    expected_cofactors_bigint = fill(big(0), 3 * length(cofactor_monomials))
+    for (j, exponent) in enumerate(source_monomials)
+        left = table.cutoff
+        h = ntuple(Val(3)) do i
+            part = min(left, exponent[i])
+            left -= part
+            part
+        end
+        @test left == 0
+        shift = ntuple(i -> exponent[i] - h[i], Val(3))
+        for (i, cofactor, factor) in table.relations[h]
+            shifted = ntuple(l -> shift[l] + cofactor[l], Val(3))
+            position = (i - 1) * length(cofactor_monomials) + cofactor_indices[shifted]
+            expected_cofactors_bigint[position] =
+                mod(expected_cofactors_bigint[position] + (modulus - 1) * factor, modulus)
+        end
+    end
+
+    actual_cofactors = DeRham._akr_cofactor_residues(g, reduction_map, UInt64(modulus))
+    @test BigInt.(actual_cofactors) == expected_cofactors_bigint
+
+    expected_cofactors = precision_ring.(expected_cofactors_bigint)
+    expected_reduced =
+        DeRham._akr_pseudoinverse_derivative(expected_cofactors, m, f, [0, 1, 2], params)
+    @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
+
+    forced = (; params.termorder, always_use_bigints = true)
+    forced_table =
+        DeRham._build_akr_picache(m, 2, 3, [0, 1, 2], f, nothing, nothing, forced, p)
+    forced_map = DeRham._akr_reduction_map(forced_table, m, f, params.termorder)
+    @test eltype(forced_map.factors) === BigInt
+    @test DeRham._reduce_akr_level(g, m, f, forced_table, forced) == expected_reduced
+
+    sparse = zeros(Int, length(source_monomials))
+    sparse[findfirst(==([0, 0, 6]), source_monomials)] = 3
+    sparse_expected = zeros(Int, length(DeRham.gen_exp_vec(3, 3, params.termorder)))
+    sparse_expected[findfirst(==([0, 0, 3]), DeRham.gen_exp_vec(3, 3, params.termorder))] =
+        4
+    for always_use_bigints in (false, true)
+        sparse_table = DeRham._build_akr_relation_table(f, p, precision; always_use_bigints)
+        @test DeRham._reducechain_akr_naive(
+            precision_ring.(sparse),
+            m,
+            f,
+            p,
+            sparse_table,
+            0:2,
+            params,
+        ) == precision_ring.(sparse_expected)
+        @test all(
+            iszero,
+            DeRham._reduce_akr_level(
+                fill(precision_ring(0), length(sparse)),
+                m,
+                f,
+                sparse_table,
+                params,
+            ),
+        )
+        @test isempty(sparse_table.reduction_maps)
+        @test isempty(sparse_table.rejected_maps)
+        @test iszero(sparse_table.cached_map_bytes)
+    end
+end
+
+@testset "AKR terminal pole contributions" begin
+    p, M = 3, 2
+    precision_ring, = residue_ring(ZZ, p^M)
+    _, (x, y, z, w) = polynomial_ring(precision_ring, ["x", "y", "z", "w"])
+    f = x^4 + y^4 + z^4 + w^4
+    terminal = x^2 * y^2 * z^2 * w^2
+    higher = 4 * x^4 * terminal
+    params = DeRham.default_params()
+
+    for always_use_bigints in (false, true)
+        table = DeRham._build_akr_relation_table(f, p, M; always_use_bigints)
+        for reduce in (DeRham._reducepoly_akr_naive, DeRham._reducepoly_akr_levelbylevel)
+            @test reduce([[terminal, 3]], 0:3, f, p, table, params) == [[terminal, 3]]
+            @test reduce([[terminal, 3], [higher, 4]], 0:3, f, p, table, params) ==
+                  [[4 * terminal, 3]]
+        end
+    end
+end
+
+@testset "AKR uncached cutoff reduction" begin
+    p, M = 7, 12
+    R, = residue_ring(ZZ, p^M)
+    _, (x, y, z) = polynomial_ring(R, ["x", "y", "z"])
+    f = x^4 + y^4 + z^4 + x*y*z*(x+y+z)
+    inverse = DeRham._build_sparse_jacobian_right_inverse(f, p, M)
+    m = 3
+    source_length = binomial(4 * m - 1, 2)
+    g = [R(i % 3 == 0 ? p^M - i : 0) for i = 1:source_length]
+    budget = DeRham._AKR_REDUCTION_MAP_CACHE_BYTES
+    map_bytes(map) = sum(
+        sizeof,
+        (
+            map.offsets,
+            map.positions,
+            map.factors,
+            map.derivative_positions,
+            map.derivative_factors,
+        ),
+    )
+
+    for always_use_bigints in (false, true), termorder in (:lex, :neglex, :invlex)
+        table = DeRham._AKRRelationTable(inverse, always_use_bigints)
+        params = (; termorder)
+        map = DeRham._akr_reduction_map(table, m, f, termorder)
+        bytes = map_bytes(map)
+        @test table.cached_map_bytes == bytes
+        next_map = DeRham._akr_reduction_map(table, m + 1, f, termorder)
+        @test table.cached_map_bytes == bytes + map_bytes(next_map)
+        expected_reduced = DeRham._reduce_akr_level(g, m, f, table, params)
+
+        empty!(table.reduction_maps)
+        table.cached_map_bytes = budget - bytes + 1
+        @test DeRham._akr_reduction_map(table, m, f, termorder) === nothing
+        @test (m, termorder) in table.rejected_maps
+        @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
+        @test isempty(table.reduction_maps)
+    end
+end
+
+@testset "AKR UInt64 derivative and level-sum overflow" begin
+    modulus = UInt64(3)^40
+    precision_ring, = residue_ring(ZZ, modulus)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^4 + y^4 + z^4
+    table = DeRham._build_akr_relation_table(f, 3, 40)
+    reduction_map = DeRham._akr_reduction_map(table, 3, f, :invlex)
+
+    cofactors = zeros(UInt64, 3 * reduction_map.cofactor_length)
+    source = findfirst(==([6, 0, 0]), DeRham.gen_exp_vec(3, 6, :invlex))
+    cofactors[source] = modulus - 1
+    expected = zeros(UInt64, reduction_map.reduced_length)
+    target = findfirst(==([5, 0, 0]), DeRham.gen_exp_vec(3, 5, :invlex))
+    expected[target] = modulus - 6
+
+    @test DeRham._akr_derivative_residues(cofactors, reduction_map, modulus) == expected
+    @test DeRham._akr_add_residues!(UInt64[modulus-1], UInt64[modulus-1], modulus) ==
+          UInt64[modulus-2]
+    @test DeRham._akr_add_residues!(
+        UInt64[1, modulus-1, 3],
+        precision_ring.([0, modulus-1, 0]),
+        modulus,
+    ) == UInt64[1, modulus-2, 3]
+end
+
+@testset "AKR partial-variable fallback" begin
+    p = 2
+    coefficient_ring, = residue_ring(ZZ, p)
+    _, (x, y, z) = polynomial_ring(coefficient_ring, ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    n = 2
+    d = 3
+    S = [0, 1]
+    params = DeRham.default_params()
+    cache = DeRham.controlled_reduction_cache(n, d, S, params)
+    l = d * n - n + d - length(S)
+    pseudo_inverse = DeRham.pseudo_inverse_controlled_lifted(f, S, l, 1, params, cache)
+    picache = DeRham._build_akr_picache(n, n, d, S, f, pseudo_inverse, cache, params, p)
+
+    @test !(picache isa DeRham._AKRRelationTable)
+    @test picache[n] === pseudo_inverse
+end
+
+@testset "AKR interleaved cofactor blocks" begin
+    precision_ring, = residue_ring(ZZ, 5)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    params = DeRham.default_params()
+    cofactor_blocks = vcat(
+        DeRham.polynomial_to_vector(x^4, 3, params.termorder),
+        DeRham.polynomial_to_vector(y^3, 3, params.termorder),
+        DeRham.polynomial_to_vector(z^4, 3, params.termorder),
+    )
+    expected = DeRham.polynomial_to_vector(4 * f, 3, params.termorder)
+    @test DeRham._akr_pseudoinverse_derivative(cofactor_blocks, 3, f, [0, 2], params) ==
+          expected
+    cache = DeRham.PolyExpCache(3, params.termorder, 6)
+    controlled = DeRham.compute_controlled_matrix(
+        f,
+        6,
+        [0, 2],
+        precision_ring,
+        parent(f),
+        params,
+        cache,
+    )
+    image = DeRham.polynomial_to_vector(3 * (x^6 + y^6 + z^6), 3, params.termorder)
+    @test controlled * cofactor_blocks == image
+    for invalid in ([0, 3], [0, -1], [0, 0])
+        @test_throws r"S must contain distinct variable indices in 0:2" DeRham.compute_controlled_matrix(
+            f,
+            6,
+            invalid,
+            precision_ring,
+            parent(f),
+            params,
+            nothing,
+        )
+        @test_throws r"S must contain distinct variable indices in 0:2" DeRham.zeta_coefficients(
+            DeRham.fermat_hypersurface(3, 3, 5);
+            algorithm = :akr,
+            S = invalid,
+        )
+    end
+end
+
+@testset "AKR full-variable fallback when characteristic divides degree" begin
+    p, M = 2, 2
+    _, (x, y) = polynomial_ring(GF(p), ["x", "y"])
+    f = x * y
+    coefficient_ring, = residue_ring(ZZ, p^M)
+    precision_poly, (u, v) = polynomial_ring(coefficient_ring, ["x", "y"])
+    P = DeRham.HypersurfaceQuotient(1, 2)
+    S = [0, 1]
+    params =
+        DeRham.ZetaFunctionParams(0, false, :akr, :invlex, false, true, false, false, false)
+    cache = DeRham.controlled_reduction_cache(P.n, P.d, S, params, P)
+    changed, model, setup =
+        DeRham._find_reduction_model(f, P, p, M, S, params, false, cache, precision_poly)
+
+    @test !changed
+    @test model == f
+    @test setup.lifted === nothing
+    lifted = u * v
+    picache = DeRham._build_akr_picache(
+        2,
+        P.n,
+        P.d,
+        S,
+        lifted,
+        setup.right_inverse,
+        cache,
+        params,
+        p,
+    )
+    @test picache isa AbstractVector
+    @test picache[1] === setup.right_inverse
+    @test size(picache[2]) == (4, 3)
+    numerator = DeRham.polynomial_to_vector(lifted, 2, params.termorder)
+    @test DeRham._reduce_akr_level(numerator, 2, lifted, picache, params, S) ==
+          [coefficient_ring(1)]
+end
+
+@testset "AKR BigInt multi-level reduction" begin
+    curve = DeRham.fermat_hypersurface(3, 3, 7)
+    hodge_polygon, relative_precision, series_precision, _ =
+        DeRham.calculate_precision_information(curve, DeRham.get_basis_of_cohomology(curve))
+    big_precision = (hodge_polygon, relative_precision, series_precision, 24)
+    @test big(7)^24 > typemax(UInt64)
+
+    expected = BigInt[7, 1, 1]
+    for algorithm in (:akr_naive, :akr_levelbylevel)
+        @test DeRham.zeta_coefficients(
+            curve;
+            algorithm = algorithm,
+            precision_info = big_precision,
+        ) == expected
+    end
+end
+
+@testset "AKR cutoff selectors on a Fermat cubic" begin
+    cubic = DeRham.fermat_hypersurface(3, 3, 7)
+    expected = BigInt[7, 1, 1]
+    for algorithm in (:akr, :akr_naive, :akr_levelbylevel)
+        @test DeRham.zeta_coefficients(cubic; algorithm = algorithm) == expected
+    end
+    for S in (Set([2, 0, 1]), (2, 0, 1))
+        @test DeRham._akr_cutoff_eligible(2, 3, S, 7)
+        @test DeRham.zeta_coefficients(cubic; algorithm = :akr, S) == expected
+    end
+end
+
+@testset "AKR cutoff Frobenius matrix in the internal basis" begin
+    cubic = DeRham.fermat_hypersurface(3, 3, 7)
+    matrix = DeRham.frobenius_matrix_with_precision(
+        cubic,
+        1;
+        algorithm = :akr,
+        S = [0, 1, 2],
+        changef = false,
+    )
+    expected_from_default = [42 0; 0 6]
+    @test [lift(ZZ, matrix[i, j]) for i in axes(matrix, 1), j in axes(matrix, 2)] == expected_from_default
+end

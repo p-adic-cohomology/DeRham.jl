@@ -39,6 +39,7 @@ const UNIT_TEST_TIERS = [
     "frontends/Refusals.jl" => :presubmit,
     "reduction/Selection.jl" => :ci,
     "reduction/AKR.jl" => :ci,
+    "reduction/AKRCutoff.jl" => :ci,
     "reduction/FrontendMethods.jl" => :ci,
     "reduction/EngineInterfaces.jl" => :ci,
     "reduction/AccountingEngine.jl" => :ci,

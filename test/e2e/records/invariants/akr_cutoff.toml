@@ -1,0 +1,91 @@
+[[test]]
+name = "akr_cutoff_prime_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.004
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "akr" }
+
+[[test]]
+name = "akr_cutoff_prime_akr_naive"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.003
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "akr_naive" }
+
+[[test]]
+name = "akr_cutoff_prime_akr_levelbylevel"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.026
+example = "dim_1_deg_3_fermat_1"
+parameters = { algorithm = "akr_levelbylevel" }
+
+[[test]]
+name = "akr_cutoff_uint64_modulus_akr_naive"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.034
+example = "dim_1_deg_3_fermat_1"
+p = 7
+parameters = { algorithm = "akr_naive", algorithm_precision = 12 }
+
+[[test]]
+name = "akr_cutoff_uint64_modulus_akr_levelbylevel"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.020
+example = "dim_1_deg_3_fermat_1"
+p = 7
+parameters = { algorithm = "akr_levelbylevel", algorithm_precision = 12 }
+
+[[test]]
+name = "akr_cutoff_plane_quartic_p7_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.815
+example = "akr_nonfermat_plane_quartic_cutoff"
+p = 7
+parameters = { algorithm = "akr" }
+
+[[test]]
+name = "akr_cutoff_plane_quartic_p11_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 6.173
+example = "akr_nonfermat_plane_quartic_cutoff"
+p = 11
+parameters = { algorithm = "akr" }
+
+[[test]]
+name = "akr_cutoff_modulus_2_63_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 0.006
+example = "akr_fermat_cubic_p2"
+parameters = { algorithm = "akr", algorithm_precision = 63 }
+
+[[test]]
+name = "akr_cutoff_modulus_2_64_akr"
+type = "zeta_coefficients"
+tags = []
+runtime = 2.060
+example = "akr_fermat_cubic_p2"
+parameters = { algorithm = "akr", algorithm_precision = 64 }
+
+[[test]]
+name = "akr_partial_s_fermat_cubic_p2_akr_naive"
+type = "zeta_coefficients"
+tags = []
+runtime = 33.363
+example = "akr_fermat_cubic_p2"
+parameters = { algorithm = "akr_naive", S = [0, 1] }
+
+[[test]]
+name = "akr_partial_s_fermat_cubic_p2_akr_levelbylevel"
+type = "zeta_coefficients"
+tags = []
+runtime = 33.149
+example = "akr_fermat_cubic_p2"
+parameters = { algorithm = "akr_levelbylevel", S = [0, 1] }

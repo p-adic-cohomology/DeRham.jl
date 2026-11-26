@@ -1,13 +1,35 @@
+function _validate_controlled_selection(n, S)
+    if !all(i -> i isa Integer && 0 <= i <= n, S) || length(S) != count(in(S), 0:n)
+        throw(ArgumentError("S must contain distinct variable indices in 0:$n"))
+    end
+    return nothing
+end
 
+function _controlled_cofactor_blocks(n, d, l, S)
+    _validate_controlled_selection(n, S)
+    selected_degree = l - d + 1
+    other_degree = l - d
+    selected_width = binomial(n + selected_degree, n)
+    other_width = binomial(n + other_degree, n)
+    offset = 0
+    return map(0:n) do i
+        selected = i in S
+        degree, width =
+            selected ? (selected_degree, selected_width) : (other_degree, other_width)
+        columns = (offset+1):(offset+width)
+        offset += width
+        return (; variable = i + 1, degree, selected, columns)
+    end
+end
 
 """
     compute_controlled_matrix(f, l, S, R, PR, params)
 
 Given f, m, l, over the ring PR = R[x_0, ..., x_n], and the set S subseteq {0, ..., n}, computes
 the matrix for the map
-(mu_0, ..., mu_n) |--> sum_{i in S} mu_i partial_i f + sum_{i notin S} mu_i x_i partial_i f
- where mu_i for 0<= i < |S| are of degree l - (d - 1) and mu_i for
- |S| <= i <= n are of degree l - d.
+(mu_0, ..., mu_n) |--> sum_{i in S} mu_i partial_i f + sum_{i notin S} mu_i x_i partial_i f.
+Blocks are in variable order. Cofactors for variables in S have degree
+l - (d - 1), and the others have degree l - d.
 
  fields
  ------
@@ -22,20 +44,10 @@ the matrix for the map
 function compute_controlled_matrix(f, l, S, R, PR, params, cache)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
+    blocks = _controlled_cofactor_blocks(n, d, l, S)
     vars = gens(PR)
 
     len_S = length(S)
-    notS = setdiff(collect(0:n), S)
-    # notS = [2]
-    # Stilda = [1,1,0]
-    len_notS = length(notS)
-
-    @assert(len_S >= 0 && len_S <= n+1)
-
-    Stilda = zeros(Int, n+1)
-    for i in S
-        Stilda[i+1] = 1
-    end
 
     # The code that was formerly here looked as follows:
     #
@@ -63,9 +75,7 @@ function compute_controlled_matrix(f, l, S, R, PR, params, cache)
     #     reverse!.(not_in_S_mons_vec)
     # end
 
-    in_set_section = binomial(n + l - (d-1), n)
-    not_in_set_section = binomial(n + l - d, n)
-    cols = len_S * in_set_section + (n + 1 - len_S) * not_in_set_section
+    cols = last(last(blocks).columns)
 
     if len_S > 0
         @assert(length(in_S_mons_vec) > 0)
@@ -101,10 +111,10 @@ function compute_controlled_matrix(f, l, S, R, PR, params, cache)
 
     v = fill(R(0), length(cache[l]))
 
-    col_idx = 1
-    for i = 1:(n+1)
-        if Stilda[i] == 1
-            for monomial in eachindex(in_S_mons)
+    for block in blocks
+        i = block.variable
+        if block.selected
+            for (col_idx, monomial) in zip(block.columns, eachindex(in_S_mons))
                 #M[:, col_idx] = polynomial_to_vector(in_S_mons[monomial] * partials[i], n+1, params.termorder, cache, vars_reversed=cache.vars_reversed)
                 polynomial_to_vector!(
                     v,
@@ -114,10 +124,9 @@ function compute_controlled_matrix(f, l, S, R, PR, params, cache)
                     cache,
                 )#), vars_reversed=cache.vars_reversed)
                 M[:, col_idx] = v
-                col_idx = col_idx + 1
             end
         else
-            for monomial in eachindex(not_in_S_mons)
+            for (col_idx, monomial) in zip(block.columns, eachindex(not_in_S_mons))
                 #M[:, col_idx] = polynomial_to_vector(not_in_S_mons[monomial] * vars[i] * partials[i], n+1, params.termorder, cache, vars_reversed=cache.vars_reversed)
                 polynomial_to_vector!(
                     v,
@@ -127,7 +136,6 @@ function compute_controlled_matrix(f, l, S, R, PR, params, cache)
                     cache,
                 )#, vars_reversed=cache.vars_reversed)
                 M[:, col_idx] = v
-                col_idx = col_idx + 1
             end
         end
     end

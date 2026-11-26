@@ -100,6 +100,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 | `type` | Expected value and input | Record-specific parameters |
 | --- | --- | --- |
 | `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
+| `akr_frobenius_matrix` | Frobenius matrix stored in `derham-invariants` notes; quartic K3 | `algorithm`, `relative_precision = 1`, `changef = false` |
 | `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
 | `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |
 | `picard_rank_bound` | Stored `Lpoly`; projective surface | None required |
@@ -109,6 +110,21 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 | `artin_mazur_height` | Stored `Lpoly`; quartic K3 surface | None required |
 | `a_number` | `derham-invariants` notes value; plane curve | None |
 | `artin_invariant` | `derham-invariants` notes value; supersingular quartic K3 over an odd prime | None; note value must be in `1:10` |
+
+An `akr_frobenius_matrix` fixture stores a 21 × 21 array of matrix rows in
+the `derham-invariants` notes. Entries are integer residues lifted to
+`ZZ`, in DeRham's internal cohomology basis with `termorder = "invlex"` and
+relative precision 1. Use a fixed model
+`F` that is already smooth for the selected `S`, and set `changef=false`
+in the record and in the reference computation. Generate the reference with
+`DeRham.frobenius_matrix_with_precision(F, 1; algorithm = :default, changef = false, termorder = :invlex)`
+and the same remaining options as the record. Lift and store each row in the
+returned order. The record accepts `akr`, `akr_naive`, or `akr_levelbylevel`
+as the algorithm. The executor fixes the basis order, precision request and
+return type. For a column whose basis vector has pole order `m`, the
+comparison uses modulus `p^(4 - m)` from requested relative precision 1.
+Leave `algorithm_precision`, `series_precision`, and `givefrobmat` unset for
+these records.
 
 All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
@@ -122,6 +138,10 @@ common option parser also accepts
 integers, while `algorithm_precision` takes an integer. For a double-cover
 zeta record, `series_precision` and `algorithm_precision` are required;
 `relative_precision` defaults to the existing Weil-bound formula.
+For a projective `zeta_coefficients` record with `akr`, `akr_naive`, or
+`akr_levelbylevel`, a positive `algorithm_precision` overrides working precision and
+the executor computes the relative and series precisions automatically. Use
+only `algorithm_precision` when setting a projective precision override.
 
 ## Reference an example from the pinned artifact
 

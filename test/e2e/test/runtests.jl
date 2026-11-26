@@ -78,6 +78,28 @@ end
     end
 end
 
+struct ProjectivePrecisionProbe end
+
+DeRham.calculate_precision_information(::ProjectivePrecisionProbe) =
+    ((; slopelengths = [1, 1]), [2, 1], [3, 2], 4)
+
+function DeRham.zeta_coefficients_with_precision(
+    ::ProjectivePrecisionProbe,
+    hodge_numbers::AbstractVector,
+    relative_precision::AbstractVector,
+    series_precision::AbstractVector,
+    algorithm_precision::Integer;
+    kwargs...,
+)
+    return (;
+        hodge_numbers,
+        relative_precision,
+        series_precision,
+        algorithm_precision,
+        options = Dict(kwargs),
+    )
+end
+
 module StubE2EExecutor
 const execute_calls = Ref(0)
 const compare_calls = Ref(0)
@@ -753,6 +775,109 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         @test only(skipped_primer).skipped
     end
 
+    @testset "projective zeta working precision" begin
+        exec = E2E.ZetaCoefficientsExecutor
+        probe = ProjectivePrecisionProbe()
+        for algorithm in ("akr", "akr_naive", "akr_levelbylevel")
+            worked = exec.execute(
+                probe,
+                Dict(
+                    "algorithm" => algorithm,
+                    "algorithm_precision" => 12,
+                    "termorder" => "lex",
+                ),
+            )
+            @test worked.hodge_numbers == [1, 1]
+            @test worked.relative_precision == [2, 1]
+            @test worked.series_precision == [3, 2]
+            @test worked.algorithm_precision == 12
+            @test worked.options ==
+                  Dict(:algorithm => Symbol(algorithm), :termorder => :lex)
+        end
+        @test_throws r"only for AKR" exec.execute(probe, Dict("algorithm_precision" => 12))
+        @test_throws r"only for AKR" exec.execute(
+            probe,
+            Dict("algorithm" => "depthfirst", "algorithm_precision" => 12),
+        )
+        @test_throws r"use automatic relative and series precisions" exec.execute(
+            probe,
+            Dict(
+                "algorithm" => "akr",
+                "algorithm_precision" => 12,
+                "series_precision" => 1,
+            ),
+        )
+        @test_throws r"only accept the AKR algorithm_precision override" exec.execute(
+            probe,
+            Dict("relative_precision" => 1),
+        )
+    end
+
+    @testset "AKR matrix executor validation" begin
+        exec = E2E.AKRFrobeniusMatrixAgreementExecutor
+        base_parameters = Dict("algorithm" => "akr", "relative_precision" => 1)
+        parameters = merge(base_parameters, Dict("changef" => false))
+        @test exec.validate_parameters("matrix", parameters) === nothing
+        @test exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("termorder" => "invlex")),
+        ) === nothing
+        @test_throws r"termorder must be" exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("termorder" => "neglex")),
+        )
+        @test_throws r"relative_precision must be 1" exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("relative_precision" => 2)),
+        )
+        @test_throws r"changef must be false" exec.validate_parameters(
+            "matrix",
+            base_parameters,
+        )
+        @test_throws r"changef must be false" exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("changef" => true)),
+        )
+        for (key, value) in
+            ("algorithm_precision" => 12, "series_precision" => 2, "givefrobmat" => false)
+            @test_throws r"parameter .* is unsupported" exec.validate_parameters(
+                "matrix",
+                merge(parameters, Dict(key => value)),
+            )
+        end
+        path = joinpath(@__DIR__, "..", "examples", "migrated", "dim_2_deg_4_many.json")
+        cases = E2E._read_example_document(path)
+        case = only(filter(case -> case["id"] == "dim_2_deg_4_many_1", cases))
+        example = E2E._parse_example_case(case, path, 1)
+        record = E2E.ExecutionRecord(
+            "matrix",
+            "akr_frobenius_matrix",
+            String[],
+            0.1,
+            example.id,
+            7,
+            parameters,
+            "synthetic.toml",
+        )
+        for value in ("[\"12\",\"34\"]", "[[98]]")
+            malformed = E2E.ExampleCase(
+                example.id,
+                example.source_path,
+                example.variety,
+                example.results,
+                "derham-invariants: {\"7\":{\"akr_frobenius_matrix\":$value}}",
+            )
+            @test_throws r"must be a 21 × 21 matrix" exec.expected(malformed, record)
+        end
+        expected = [zeros(BigInt, 21) for _ = 1:21]
+        rows = deepcopy(expected)
+        column_moduli = BigInt[27; fill(9, 19); 3]
+        rows[21][2] = 9
+        @test exec.compare(expected, (; rows, column_moduli))
+        rows[21][1] = 9
+        @test !exec.compare(expected, (; rows, column_moduli))
+    end
+
     @testset "zeta_coefficients executor validation" begin
         exec = E2E.ZetaCoefficientsExecutor
 
@@ -795,6 +920,30 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
         @test exec.expected(ex, record()) == BigInt[7, 1, 1]
+        catalogue = E2E.ExampleCatalogue(Dict(ex.id => ex))
+        config = E2E.CatalogueConfig(0.05, 0.2, Set{String}(), ["rec1"])
+        override = Dict("algorithm" => "akr", "algorithm_precision" => 12)
+        @test E2E.validate_catalogue(catalogue, [record(; params = override)], config)["rec1"] ==
+              BigInt[7, 1, 1]
+        for (params, expected_message) in (
+            (merge(override, Dict("algorithm" => "depthfirst")), r"only for AKR"),
+            (merge(override, Dict("algorithm_precision" => 0)), r"must be positive"),
+            (merge(override, Dict("algorithm_precision" => -1)), r"must be positive"),
+            (
+                merge(override, Dict("series_precision" => 1)),
+                r"use automatic relative and series precisions",
+            ),
+            (
+                Dict("relative_precision" => 1),
+                r"only accept the AKR algorithm_precision override",
+            ),
+        )
+            @test_throws expected_message E2E.validate_catalogue(
+                catalogue,
+                [record(; params)],
+                config,
+            )
+        end
         bool_lpoly = example(
             good_variety(),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => Any[1, true, 7]))],

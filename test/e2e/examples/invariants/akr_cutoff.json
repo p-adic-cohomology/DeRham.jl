@@ -1,0 +1,67 @@
+{
+  "schema_version": "3",
+  "cases": [
+    {
+      "id": "akr_nonfermat_plane_quartic_cutoff",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 1,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "full"
+        },
+        "model": {
+          "kind": "plane_curve",
+          "pretty": "x^4 + y^4 + z^4 + x^2*y*z + x*y^2*z + x*y*z^2 = 0",
+          "vars": ["x", "y", "z"],
+          "monomials": [
+            [4, 0, 0],
+            [0, 4, 0],
+            [0, 0, 4],
+            [2, 1, 1],
+            [1, 2, 1],
+            [1, 1, 2]
+          ],
+          "coeffs": [1, 1, 1, 1, 1, 1]
+        }
+      },
+      "results": [
+        {
+          "p": 7,
+          "Lpoly": {
+            "coeffs_asc": [1, 3, 21, 38, 147, 147, 343]
+          }
+        },
+        {
+          "p": 11,
+          "Lpoly": {
+            "coeffs_asc": [1, -6, 33, -100, 363, -726, 1331]
+          }
+        }
+      ],
+      "notes": "Non-Fermat quartic used to compare full-precision AKR zeta coefficients with the default reduction."
+    },
+    {
+      "id": "akr_fermat_cubic_p2",
+      "variety": {
+        "coeff_domain": { "kind": "integer" },
+        "dim": 1,
+        "non_middle_factors": {
+          "kind": "projective_lefschetz",
+          "middle_factor_content": "full"
+        },
+        "model": {
+          "kind": "plane_curve",
+          "pretty": "x^3 + y^3 + z^3 = 0",
+          "vars": ["x", "y", "z"],
+          "monomials": [[3, 0, 0], [0, 3, 0], [0, 0, 3]],
+          "coeffs": [1, 1, 1]
+        }
+      },
+      "results": [
+        { "p": 2, "Lpoly": { "coeffs_asc": [1, 0, 2] } }
+      ],
+      "notes": "The three rational points over F2 give trace zero for this smooth plane cubic."
+    }
+  ]
+}
