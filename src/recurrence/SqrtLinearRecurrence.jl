@@ -4,13 +4,21 @@
 Evaluate the linear recurrence `v[x] = F(x) * v[x+1]` with the experimental
 square-root-time Bostan–Gaudry–Schost method. For `F(x) = a*x + b`, overwrite
 `g` with `F(start) * ... * F(stop) * g` using a product tree and fast multipoint
-evaluation over the modulus ring.
+evaluation over the modulus ring. The inclusive indices and the run length must
+fit in an `Int`.
+
+Use square `zzModMatrix` inputs with `Vector{UInt}` vectors, or square
+`ZZModMatrix` inputs with `Vector{ZZRingElem}` vectors. The scratch matrix
+`temp` must match the input dimensions and modulus. Both vectors must have
+one entry per row. Supply separate scratch storage for `temp` and `g_temp`.
+With `ZZRingElem` vectors, initialize each input and scratch entry as a
+distinct object.
 """
 function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     start = Int(start)
     stop = Int(stop)
-    interval_length = stop - start + 1
-    interval_length <= 0 && return g
+    start > stop && return g
+    interval_length = Base.Checked.checked_add(Base.Checked.checked_sub(stop, start), 1)
 
     rows = nrows(a)
     cols = ncols(a)
@@ -33,14 +41,20 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     length(g_temp) == rows || throw(
         DimensionMismatch("linear recurrence temporary vector must match the matrix rows"),
     )
+    if big_modulus && !all(i -> isassigned(g, i) && isassigned(g_temp, i), eachindex(g))
+        throw(ArgumentError("linear recurrence BigInt vectors require initialized entries"))
+    end
 
     backend = small_modulus ? _NmodBGSEvaluationBackend() : _FmpzModBGSEvaluationBackend()
     ring = base_ring(parent(a))
+    m = modulus(ring)
+    m == modulus(base_ring(b)) == modulus(base_ring(temp)) ||
+        throw(ArgumentError("linear recurrence matrices must share a modulus"))
     poly_ring, x = polynomial_ring(ring, "x"; cached = false)
     polynomial_matrix_space = matrix_space(poly_ring, rows, cols)
 
     block_length = isqrt(interval_length)
-    blocks, _ = divrem(interval_length, block_length)
+    blocks, tail_length = divrem(interval_length, block_length)
     factors = [polynomial_matrix_space() for _ = 1:block_length]
     for offset = 0:(block_length-1)
         factor = factors[offset+1]
@@ -85,20 +99,16 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
         _release_bgs_evaluation_points!(backend, evaluation_points)
     end
 
-    product = evaluated_blocks[1]
-    for k = 2:blocks
-        product = product * evaluated_blocks[k]
-    end
-
-    tail_start = start + blocks * block_length
-    for value = stop:-1:tail_start
-        my_mul!(temp, a, value)
+    for offset = 0:(tail_length-1)
+        my_mul!(temp, a, stop - offset)
         my_add!(temp, temp, b)
         my_matvecmul!(g_temp, temp, g)
         my_copy!(g, g_temp)
     end
-    my_matvecmul!(g_temp, product, g)
-    my_copy!(g, g_temp)
+    for k = blocks:-1:1
+        my_matvecmul!(g_temp, evaluated_blocks[k], g)
+        my_copy!(g, g_temp)
+    end
     return g
 end
 

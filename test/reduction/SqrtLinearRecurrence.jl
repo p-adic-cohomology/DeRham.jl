@@ -44,12 +44,12 @@ end
             for interval_length in cases
                 start = 11
                 stop = start + interval_length - 1
-                expected = copy(g)
+                expected = deepcopy(g)
                 expected_temp = matrixspace()
-                expected_g_temp = copy(g)
-                actual = copy(g)
+                expected_g_temp = deepcopy(g)
+                actual = deepcopy(g)
                 actual_temp = matrixspace()
-                actual_g_temp = copy(g)
+                actual_g_temp = deepcopy(g)
 
                 DeRham.finitediff_prodeval_linear!(
                     a,
@@ -111,6 +111,68 @@ end
         temp,
         g_temp,
     )
+    other_ring, = residue_ring(ZZ, 103)
+    @test_throws ArgumentError DeRham.sqrt_linear_recurrence!(
+        a,
+        b,
+        0,
+        0,
+        g,
+        matrix_space(other_ring, 2, 2)(),
+        g_temp,
+    )
+end
+
+@testset "square-root linear recurrence interval bounds" begin
+    ring, = residue_ring(ZZ, 101)
+    matrixspace = matrix_space(ring, 1, 1)
+    a = matrixspace()
+    b = matrixspace()
+    b[1, 1] = ring(2)
+    g = UInt[3]
+    temp = matrixspace()
+    g_temp = similar(g)
+
+    DeRham.sqrt_linear_recurrence!(a, b, typemax(Int), typemax(Int), g, temp, g_temp)
+    @test g == UInt[6]
+    @test_throws OverflowError DeRham.sqrt_linear_recurrence!(
+        a,
+        b,
+        typemin(Int),
+        0,
+        g,
+        temp,
+        g_temp,
+    )
+end
+
+@testset "square-root linear recurrence requires initialized BigInt entries" begin
+    ring = Oscar.Nemo.ZZModRing(ZZ(49), false)
+    matrixspace = matrix_space(ring, 1, 1)
+    a = matrixspace()
+    b = matrixspace()
+    temp = matrixspace()
+    g = ZZRingElem[ZZ(1)]
+    g_temp = ZZRingElem[ZZ(0)]
+
+    @test_throws ArgumentError DeRham.sqrt_linear_recurrence!(
+        a,
+        b,
+        0,
+        0,
+        g,
+        temp,
+        similar(g),
+    )
+    @test_throws ArgumentError DeRham.sqrt_linear_recurrence!(
+        a,
+        b,
+        0,
+        0,
+        similar(g),
+        temp,
+        g_temp,
+    )
 end
 
 @testset "BGS reduces giant-step points modulo the working modulus" begin
@@ -127,11 +189,19 @@ end
     g = ZZRingElem[ZZ(i + 1) for i = 1:3]
     start = 11
     stop = 138
-    expected = copy(g)
-    actual = copy(g)
+    expected = deepcopy(g)
+    actual = deepcopy(g)
 
-    DeRham.finitediff_prodeval_linear!(a, b, start, stop, expected, matrixspace(), copy(g))
-    DeRham.sqrt_linear_recurrence!(a, b, start, stop, actual, matrixspace(), copy(g))
+    DeRham.finitediff_prodeval_linear!(
+        a,
+        b,
+        start,
+        stop,
+        expected,
+        matrixspace(),
+        deepcopy(g),
+    )
+    DeRham.sqrt_linear_recurrence!(a, b, start, stop, actual, matrixspace(), deepcopy(g))
     @test actual == expected
 end
 
@@ -270,7 +340,7 @@ end
         big_b[i, j] = big_ring(2i + j)
     end
     big_g = ZZRingElem[ZZ(i) for i = 1:2]
-    big_expected = copy(big_g)
+    big_expected = deepcopy(big_g)
     DeRham.finitediff_prodeval_linear!(
         big_a,
         big_b,
@@ -278,9 +348,9 @@ end
         3,
         big_expected,
         big_matrixspace(),
-        copy(big_g),
+        deepcopy(big_g),
     )
-    big_actual = copy(big_g)
+    big_actual = deepcopy(big_g)
     big_sqrt_calls = Ref(0)
     DeRham._with_sqrt_linear_recurrence_test_hook(() -> (big_sqrt_calls[] += 1)) do
         DeRham.evaluate_linear_recurrence!(
@@ -290,7 +360,7 @@ end
             3,
             big_actual,
             big_matrixspace(),
-            copy(big_g),
+            deepcopy(big_g),
             :sqrt,
             4,
         )

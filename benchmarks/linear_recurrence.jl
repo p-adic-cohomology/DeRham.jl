@@ -22,9 +22,9 @@ function linear_recurrence_time(method, case, run_length; repetitions = 3)
     _, matrixspace, a, b, initial = case
     times = Float64[]
     for _ = 1:repetitions
-        g = copy(initial)
+        g = deepcopy(initial)
         temp = matrixspace()
-        g_temp = copy(initial)
+        g_temp = deepcopy(initial)
         GC.gc()
         elapsed = @elapsed if method === :sqrt
             DeRham.sqrt_linear_recurrence!(a, b, 0, run_length - 1, g, temp, g_temp)
@@ -61,8 +61,8 @@ function run_linear_recurrence_benchmarks()
             square_root = Float64[]
             measured_lengths = Int[]
             for run_length in lengths
-                expected = copy(case[5])
-                actual = copy(case[5])
+                expected = deepcopy(case[5])
+                actual = deepcopy(case[5])
                 DeRham.finitediff_prodeval_linear!(
                     case[3],
                     case[4],
@@ -70,7 +70,7 @@ function run_linear_recurrence_benchmarks()
                     run_length - 1,
                     expected,
                     case[2](),
-                    copy(expected),
+                    deepcopy(expected),
                 )
                 DeRham.sqrt_linear_recurrence!(
                     case[3],
@@ -79,7 +79,7 @@ function run_linear_recurrence_benchmarks()
                     run_length - 1,
                     actual,
                     case[2](),
-                    copy(actual),
+                    deepcopy(actual),
                 )
                 @assert actual == expected
                 finite_time = linear_recurrence_time(

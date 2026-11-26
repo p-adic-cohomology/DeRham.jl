@@ -14,9 +14,15 @@ maximum of 64 and the square of the matrix width, which delays the
 cubic-cost polynomial matrix products for wider matrices. Unsupported matrix
 and vector types continue through finite-difference evaluation.
 
-The linear recurrence algorithm selection is used only when `fastevaluation=true` (the
-default). With `fastevaluation=false`, the DepthFirst and PChunk reduction
-loops use their stepwise path and ignore the linear recurrence settings.
+Linear recurrence selection requires `fastevaluation=true`. This is the
+default for inputs already defined over a finite field. With the separate-prime
+overload `zeta_coefficients(f, p)`, pass `fastevaluation=true` together with
+`linear_recurrence_algorithm=:sqrt`. With `fastevaluation=false`, DepthFirst
+and PChunk use stepwise reduction.
 
 The crossover still depends on the workload. Measure representative cases and
 raise `sqrt_linear_recurrence_min_length` when the product tree remains slower.
+
+```@docs
+DeRham.sqrt_linear_recurrence!
+```
