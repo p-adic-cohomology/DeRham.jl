@@ -6,19 +6,40 @@
     end
 end
 
-@testset "AKR plane curve full-precision equality" begin
+@testset "AKR plane curve known output" begin
     curve = DeRham.fermat_hypersurface(3, 3, 2)
-    _, naive = DeRham.zeta_coefficients(curve; givefrobmat = true, algorithm = :akr_naive)
-    @test naive == BigInt[2, 0, 1]
-    @test DeRham.zeta_coefficients(curve; algorithm = :akr) == naive
-    @test DeRham.zeta_coefficients(curve; algorithm = :akr_levelbylevel) == naive
-    @test DeRham.zeta_coefficients(curve) == naive
-    @test DeRham.zeta_coefficients(curve; algorithm = :akr_naive, termorder = :lex) == naive
-    @test DeRham.zeta_coefficients(
-        curve;
+    expected_coefficients = BigInt[2, 0, 1]
+    @test DeRham.zeta_coefficients(curve; algorithm = :akr) == expected_coefficients
+    @test DeRham.zeta_coefficients_with_precision(
+        curve,
+        1;
+        S = Int[],
+        algorithm = :depthfirst,
+        dense_reduction = :akr,
+        handoff_pole_order = 3,
+    ) == expected_coefficients
+
+    expected_lex_matrix = BigInt[0 1; 2 0]
+    naive_lex_matrix = DeRham.frobenius_matrix_with_precision(
+        curve,
+        1;
+        algorithm = :akr_naive,
+        termorder = :lex,
+    )
+    levelbylevel_lex_matrix = DeRham.frobenius_matrix_with_precision(
+        curve,
+        1;
         algorithm = :akr_levelbylevel,
         termorder = :lex,
-    ) == naive
+    )
+    @test [
+        BigInt(lift(naive_lex_matrix[i, j])) for
+        i in axes(naive_lex_matrix, 1), j in axes(naive_lex_matrix, 2)
+    ] == expected_lex_matrix
+    @test [
+        BigInt(lift(levelbylevel_lex_matrix[i, j])) for
+        i in axes(levelbylevel_lex_matrix, 1), j in axes(levelbylevel_lex_matrix, 2)
+    ] == expected_lex_matrix
 end
 
 @testset "AKR quartic K3 limited-precision matrices" begin
@@ -159,6 +180,13 @@ end
         dense_reduction = :akr,
         handoff_pole_order = handoff_order,
     )
+    empty_S_mixed = DeRham.reduction_setup(
+        frontend,
+        Int[],
+        :depthfirst;
+        dense_reduction = :akr,
+        handoff_pole_order = handoff_order,
+    )
 
     @test default.dense_reduction === nothing
     @test default.handoff_pole_order === nothing
@@ -168,6 +196,8 @@ end
     @test mixed.policy == :depthfirst
     @test mixed.dense_reduction == :akr_naive
     @test mixed.handoff_pole_order == handoff_order
+    @test isempty(empty_S_mixed.S)
+    @test empty_S_mixed.handoff_pole_order == n + 1
     @test_throws ArgumentError DeRham.reduction_setup(
         frontend,
         [-1],
@@ -177,6 +207,12 @@ end
     @test_throws ArgumentError DeRham.reduction_setup(
         frontend,
         [-1],
+        :depthfirst;
+        dense_reduction = :akr,
+    )
+    @test_throws ArgumentError DeRham.reduction_setup(
+        frontend,
+        Int[],
         :depthfirst;
         dense_reduction = :akr,
     )

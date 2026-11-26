@@ -264,7 +264,10 @@ function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params; target_orde
     end
 
     result = vector_to_polynomial(g, n, d * target_order - n - 1, PR, params.termorder)
-    result_by_order[target_order] = get(result_by_order, target_order, PR()) + result
+    target_result = get!(result_by_order, target_order) do
+        PR()
+    end
+    result_by_order[target_order] = target_result + result
     return [
         [result_by_order[order], order] for order in sort!(collect(keys(result_by_order)))
     ]
