@@ -212,7 +212,8 @@ function _matrix_reduction_runtime_factory(
             fill_vector!;
             evaluation_kernel = execution_setup.kernel,
             fastevaluation = params.fastevaluation,
-            params = params,
+            linear_recurrence_algorithm = params.linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length = params.sqrt_linear_recurrence_min_length,
         )
         return MatrixReductionRuntime(engine)
     end

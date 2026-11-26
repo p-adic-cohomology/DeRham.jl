@@ -12,10 +12,10 @@ its context supplies shared matrix and scratch buffers for sequential moves.
 `fill_vector!(vector, key)` fills each new chain in the frontend's prescaled
 normalization.
 
-Keyword arguments:
-`evaluation_kernel = eval_to_linear!`, `fastevaluation = false`, and
-`params`, which selects the linear recurrence algorithm when fast evaluation is
-enabled.
+Fast evaluation uses `evaluation_kernel`, which defaults to `eval_to_linear!`.
+With `fastevaluation = true`, the engine uses the resolved
+`linear_recurrence_algorithm` and `sqrt_linear_recurrence_min_length`. A direct
+constructor call defaults to finite differences and the automatic cutoff.
 """
 mutable struct MatrixReductionEngine{D,C,F,K,V} <: AbstractReductionEngine
     geometry::ReductionEngineGeometry
@@ -24,7 +24,8 @@ mutable struct MatrixReductionEngine{D,C,F,K,V} <: AbstractReductionEngine
     fill_vector!::F
     evaluation_kernel::K
     fastevaluation::Bool
-    params::ZetaFunctionParams
+    linear_recurrence_algorithm::Symbol
+    sqrt_linear_recurrence_min_length::Union{Nothing,Int}
     live::Dict{Int,MatrixReductionChainState{V}}
     next_identifier::Int
 end
@@ -36,23 +37,11 @@ function MatrixReductionEngine(
     fill_vector!;
     evaluation_kernel = eval_to_linear!,
     fastevaluation = false,
-    params = nothing,
+    linear_recurrence_algorithm = :finitediff,
+    sqrt_linear_recurrence_min_length = nothing,
 )
     vector_type = typeof(_matrix_engine_vector(context.g))
     live = Dict{Int,MatrixReductionChainState{vector_type}}()
-    linear_recurrence_params =
-        params === nothing ?
-        ZetaFunctionParams(
-            0,
-            false,
-            :default,
-            :invlex,
-            false,
-            fastevaluation,
-            false,
-            false,
-            false,
-        ) : params
     return MatrixReductionEngine(
         geometry,
         directions,
@@ -60,7 +49,8 @@ function MatrixReductionEngine(
         fill_vector!,
         evaluation_kernel,
         fastevaluation,
-        linear_recurrence_params,
+        linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length,
         live,
         1,
     )
@@ -165,7 +155,8 @@ function reduce!(engine::MatrixReductionEngine, chain::ReductionChainHandle, v, 
             state.vector,
             engine.context.temp,
             engine.context.g_temp,
-            engine.params,
+            engine.linear_recurrence_algorithm,
+            engine.sqrt_linear_recurrence_min_length,
         )
     else
         for i = 1:k

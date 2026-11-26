@@ -73,7 +73,6 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     try
         for j = 1:cols, i = 1:rows
             values = _evaluate_bgs_polynomial!(
-                backend,
                 evaluation_buffer,
                 block_polynomial[i, j],
                 evaluation_points,
@@ -130,10 +129,13 @@ struct _FmpzModBGSEvaluationPoints
     count::Int
 end
 
-function _nmod_bgs_evaluation_points(
+function _bgs_evaluation_points(
+    ::_NmodBGSEvaluationBackend,
+    ring,
+    points::Vector{Int},
     poly::Oscar.Nemo.zzModPolyRingElem,
-    values::Vector{UInt},
 )
+    values = UInt[data(ring(point)) for point in points]
     modulus = _NmodBGSModulus(poly.mod_n, poly.mod_ninv, poly.mod_norm)
     isempty(values) && return _NmodBGSEvaluationPoints(C_NULL, 0, modulus)
 
@@ -158,16 +160,6 @@ function _nmod_bgs_evaluation_points(
         rethrow()
     end
     return _NmodBGSEvaluationPoints(tree, length(values), modulus)
-end
-
-function _bgs_evaluation_points(
-    ::_NmodBGSEvaluationBackend,
-    ring,
-    points::Vector{Int},
-    poly::Oscar.Nemo.zzModPolyRingElem,
-)
-    values = UInt[data(ring(point)) for point in points]
-    return _nmod_bgs_evaluation_points(poly, values)
 end
 
 function _bgs_evaluation_points(
@@ -219,41 +211,10 @@ function _bgs_evaluation_points(
     return _FmpzModBGSEvaluationPoints(tree, length(points))
 end
 
-_evaluate_bgs_polynomial(
-    ::_NmodBGSEvaluationBackend,
-    poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodBGSEvaluationPoints,
-) = _fast_nmod_evaluate(poly, points)
-
-_evaluate_bgs_polynomial(
-    ::_FmpzModBGSEvaluationBackend,
-    poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModBGSEvaluationPoints,
-) = _fast_fmpz_mod_evaluate(poly, points)
-
 _bgs_evaluation_buffer(::_NmodBGSEvaluationBackend, count::Int) = Vector{UInt}(undef, count)
 
 _bgs_evaluation_buffer(::_FmpzModBGSEvaluationBackend, count::Int) =
     (zeros(Int, count), ZZRingElem[ZZ(0) for _ = 1:count])
-
-function _evaluate_bgs_polynomial!(
-    ::_NmodBGSEvaluationBackend,
-    values::Vector{UInt},
-    poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodBGSEvaluationPoints,
-)
-    return _fast_nmod_evaluate!(values, poly, points)
-end
-
-function _evaluate_bgs_polynomial!(
-    ::_FmpzModBGSEvaluationBackend,
-    buffers::Tuple{Vector{Int},Vector{ZZRingElem}},
-    poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModBGSEvaluationPoints,
-)
-    raw_values, values = buffers
-    return _fast_fmpz_mod_evaluate!(values, raw_values, poly, points)
-end
 
 function _release_bgs_evaluation_points!(
     ::_NmodBGSEvaluationBackend,
@@ -281,15 +242,7 @@ function _release_bgs_evaluation_points!(
     return nothing
 end
 
-function _fast_nmod_evaluate(
-    poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodBGSEvaluationPoints,
-)
-    values = Vector{UInt}(undef, points.count)
-    return _fast_nmod_evaluate!(values, poly, points)
-end
-
-function _fast_nmod_evaluate!(
+function _evaluate_bgs_polynomial!(
     values::Vector{UInt},
     poly::Oscar.Nemo.zzModPolyRingElem,
     points::_NmodBGSEvaluationPoints,
@@ -314,42 +267,12 @@ function _fast_nmod_evaluate!(
     return values
 end
 
-function _fast_nmod_evaluate(poly::Oscar.Nemo.zzModPolyRingElem, points::Vector{UInt})
-    backend = _NmodBGSEvaluationBackend()
-    evaluation_points = _nmod_bgs_evaluation_points(poly, points)
-    try
-        return _evaluate_bgs_polynomial(backend, poly, evaluation_points)
-    finally
-        _release_bgs_evaluation_points!(backend, evaluation_points)
-    end
-end
-
-function _fast_fmpz_mod_evaluate(poly::Oscar.Nemo.ZZModPolyRingElem, points::Vector{Int})
-    backend = _FmpzModBGSEvaluationBackend()
-    evaluation_points =
-        _bgs_evaluation_points(backend, base_ring(parent(poly)), points, poly)
-    try
-        return _fast_fmpz_mod_evaluate(poly, evaluation_points)
-    finally
-        _release_bgs_evaluation_points!(backend, evaluation_points)
-    end
-end
-
-function _fast_fmpz_mod_evaluate(
+function _evaluate_bgs_polynomial!(
+    buffers::Tuple{Vector{Int},Vector{ZZRingElem}},
     poly::Oscar.Nemo.ZZModPolyRingElem,
     points::_FmpzModBGSEvaluationPoints,
 )
-    raw_values = zeros(Int, points.count)
-    values = ZZRingElem[ZZ(0) for _ = 1:points.count]
-    return _fast_fmpz_mod_evaluate!(values, raw_values, poly, points)
-end
-
-function _fast_fmpz_mod_evaluate!(
-    values::Vector{ZZRingElem},
-    raw_values::Vector{Int},
-    poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModBGSEvaluationPoints,
-)
+    raw_values, values = buffers
     length(values) == points.count && length(raw_values) == points.count ||
         throw(DimensionMismatch("evaluation buffers must match the evaluation points"))
     points.count == 0 && return values
@@ -451,14 +374,19 @@ function _notify_sqrt_linear_recurrence_test_hook()
     return nothing
 end
 
-function _use_sqrt_linear_recurrence(a, b, g, temp, g_temp, params, interval_length)
-    params.linear_recurrence_algorithm === :sqrt || return false
+function _use_sqrt_linear_recurrence(
+    a,
+    b,
+    g,
+    temp,
+    g_temp,
+    algorithm,
+    configured_min,
+    interval_length,
+)
+    algorithm === :sqrt || return false
     _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp) || return false
-    min_length = _sqrt_linear_recurrence_min_length(
-        nrows(a),
-        params.sqrt_linear_recurrence_min_length,
-    )
-    return interval_length >= min_length
+    return interval_length >= _sqrt_linear_recurrence_min_length(nrows(a), configured_min)
 end
 
 function evaluate_linear_recurrence!(
@@ -469,10 +397,20 @@ function evaluate_linear_recurrence!(
     g,
     temp,
     g_temp,
-    params::ZetaFunctionParams,
+    algorithm::Symbol,
+    configured_min::Union{Nothing,Int},
 )
     interval_length = stop - start + 1
-    if _use_sqrt_linear_recurrence(a, b, g, temp, g_temp, params, interval_length)
+    if _use_sqrt_linear_recurrence(
+        a,
+        b,
+        g,
+        temp,
+        g_temp,
+        algorithm,
+        configured_min,
+        interval_length,
+    )
         _notify_sqrt_linear_recurrence_test_hook()
         return sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     end

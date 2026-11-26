@@ -12,6 +12,8 @@
             false,
             false,
             false,
+            :sqrt,
+            1,
         )
         compute = _ -> begin
             constant = matspace()
@@ -33,13 +35,14 @@
             preconfigured,
             fill_vector!;
             fastevaluation,
-            params,
         )
         return engine
     end
 
     for fastevaluation in (false, true)
         engine = test_engine(fastevaluation)
+        @test engine.linear_recurrence_algorithm === :finitediff
+        @test engine.sqrt_linear_recurrence_min_length === nothing
         first = DeRham.materialize(engine, DeRham.ReductionChainKey([3], 3))
         second = DeRham.materialize(engine, DeRham.ReductionChainKey([3], 3))
         state = @inferred DeRham._matrix_chain_state(engine, first)

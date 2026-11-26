@@ -1,6 +1,7 @@
 [[test]]
 name = "sqrt_depthfirst__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
+tags = ["sqrt_linear_recurrence"]
 runtime = 8.244
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false, linear_recurrence_algorithm = "sqrt", sqrt_linear_recurrence_min_length = 1 }
@@ -8,6 +9,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true, changef = false,
 [[test]]
 name = "sqrt_pchunk__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
+tags = ["sqrt_linear_recurrence"]
 runtime = 0.968
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "pchunk", linear_recurrence_algorithm = "sqrt", sqrt_linear_recurrence_min_length = 1 }
@@ -15,7 +17,7 @@ parameters = { algorithm = "pchunk", linear_recurrence_algorithm = "sqrt", sqrt_
 [[test]]
 name = "sqrt_bigints_depthfirst__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
-tags = ["bigint"]
+tags = ["bigint", "sqrt_linear_recurrence"]
 runtime = 1.326
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "depthfirst", always_use_bigints = true, linear_recurrence_algorithm = "sqrt", sqrt_linear_recurrence_min_length = 1 }
@@ -23,7 +25,7 @@ parameters = { algorithm = "depthfirst", always_use_bigints = true, linear_recur
 [[test]]
 name = "sqrt_bigints_pchunk__dim_1_deg_3_fermat_1"
 type = "zeta_coefficients"
-tags = ["bigint"]
+tags = ["bigint", "sqrt_linear_recurrence"]
 runtime = 1.854
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "pchunk", always_use_bigints = true, linear_recurrence_algorithm = "sqrt", sqrt_linear_recurrence_min_length = 1 }

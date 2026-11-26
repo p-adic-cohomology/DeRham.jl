@@ -19,7 +19,8 @@ function _depthfirst_engine_factory(execution_setup, fe, P, S, cache, params, di
             fill_vector!;
             evaluation_kernel = execution_setup.kernel,
             fastevaluation = params.fastevaluation,
-            params = params,
+            linear_recurrence_algorithm = params.linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length = params.sqrt_linear_recurrence_min_length,
         )
         return DepthFirstEngineState(engine)
     end

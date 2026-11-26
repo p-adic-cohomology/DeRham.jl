@@ -85,11 +85,11 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
   their speed.
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
-- `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
-  `gpu`, `multithreading`, `uint`, `bigint`, `karatsuba`, `sextic_k3`). The
-  `sextic_k3` tag selects the degree-2 K3 sextic records for an on-demand run.
-  A `gpu` tag (or `parameters.use_gpu = true`) marks the record as requiring a
-  functional CUDA device.
+- `tags` must be a subset of the `[tags]` allowed list in `config.toml`.
+  Use `--tag=sqrt_linear_recurrence` for the square-root DepthFirst and PChunk
+  cases, and `--tag=sextic_k3` for the degree-2 K3 sextic records. A `gpu` tag
+  (or `parameters.use_gpu = true`) marks the record as requiring a functional
+  CUDA device.
 - For `Lpoly`-derived records, common computation options are passed through as
   keyword arguments to the selected DeRham invariant. `point_counts` and
   `k3_picard_rank` also require a positive integer `k`; the notes-based

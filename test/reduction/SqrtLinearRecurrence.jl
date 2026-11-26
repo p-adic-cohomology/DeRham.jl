@@ -136,59 +136,44 @@ end
 end
 
 @testset "BGS multipoint polynomial evaluation" begin
+    points = [-3, 0, 1, 104]
     for modulus in (101, ZZ(101)^25)
         modular_ring, = residue_ring(ZZ, modulus)
         poly_ring, x = polynomial_ring(modular_ring, "x"; cached = false)
         polynomial = poly_ring(3) * x^3 + poly_ring(5) * x + poly_ring(7)
         second_polynomial = poly_ring(2) * x^2 + poly_ring(11) * x + poly_ring(13)
-        points = [-3, 0, 1, 104]
-        actual = nothing
-        actual_second = nothing
-
-        if modulus < ZZ(2)^64
-            point_data = UInt[data(modular_ring(point)) for point in points]
-            backend = DeRham._NmodBGSEvaluationBackend()
-            evaluation_points = DeRham._nmod_bgs_evaluation_points(polynomial, point_data)
-            try
-                actual =
-                    DeRham._evaluate_bgs_polynomial(backend, polynomial, evaluation_points)
-                actual_second = DeRham._evaluate_bgs_polynomial(
-                    backend,
-                    second_polynomial,
+        word_modulus = modulus < ZZ(2)^64
+        backend =
+            word_modulus ? DeRham._NmodBGSEvaluationBackend() :
+            DeRham._FmpzModBGSEvaluationBackend()
+        coefficient = word_modulus ? data : lift
+        buffer = DeRham._bgs_evaluation_buffer(backend, length(points))
+        short_buffer = DeRham._bgs_evaluation_buffer(backend, length(points) - 1)
+        output = word_modulus ? buffer : last(buffer)
+        evaluation_points =
+            DeRham._bgs_evaluation_points(backend, modular_ring, points, polynomial)
+        try
+            @test_throws DimensionMismatch DeRham._evaluate_bgs_polynomial!(
+                short_buffer,
+                polynomial,
+                evaluation_points,
+            )
+            if !word_modulus
+                @test_throws DimensionMismatch DeRham._evaluate_bgs_polynomial!(
+                    (Int[], output),
+                    polynomial,
                     evaluation_points,
                 )
-            finally
-                DeRham._release_bgs_evaluation_points!(backend, evaluation_points)
             end
-            expected =
-                UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
-            expected_second = UInt[
-                data(evaluate(second_polynomial, modular_ring(point))) for point in points
-            ]
-        else
-            backend = DeRham._FmpzModBGSEvaluationBackend()
-            evaluation_points =
-                DeRham._bgs_evaluation_points(backend, modular_ring, points, polynomial)
-            try
-                actual =
-                    DeRham._evaluate_bgs_polynomial(backend, polynomial, evaluation_points)
-                actual_second = DeRham._evaluate_bgs_polynomial(
-                    backend,
-                    second_polynomial,
-                    evaluation_points,
-                )
-            finally
-                DeRham._release_bgs_evaluation_points!(backend, evaluation_points)
+            for poly in (polynomial, second_polynomial, zero(polynomial))
+                actual = DeRham._evaluate_bgs_polynomial!(buffer, poly, evaluation_points)
+                @test actual === output
+                @test actual ==
+                      [coefficient(evaluate(poly, modular_ring(point))) for point in points]
             end
-            expected = ZZRingElem[
-                lift(evaluate(polynomial, modular_ring(point))) for point in points
-            ]
-            expected_second = ZZRingElem[
-                lift(evaluate(second_polynomial, modular_ring(point))) for point in points
-            ]
+        finally
+            DeRham._release_bgs_evaluation_points!(backend, evaluation_points)
         end
-        @test actual == expected
-        @test actual_second == expected_second
     end
 end
 
@@ -204,44 +189,10 @@ end
     g = UInt[data(ring(i)) for i = 1:2]
     temp = matrixspace()
     g_temp = copy(g)
-    sqrt_params = DeRham.ZetaFunctionParams(
-        0,
-        false,
-        :pchunk,
-        :invlex,
-        false,
-        true,
-        false,
-        false,
-        false,
-        :sqrt,
-        4,
-    )
-    finite_difference_params = DeRham.ZetaFunctionParams(
-        0,
-        false,
-        :pchunk,
-        :invlex,
-        false,
-        true,
-        false,
-        false,
-        false,
-        :finitediff,
-        1,
-    )
 
-    @test !DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, sqrt_params, 3)
-    @test DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, sqrt_params, 4)
-    @test !DeRham._use_sqrt_linear_recurrence(
-        a,
-        b,
-        g,
-        temp,
-        g_temp,
-        finite_difference_params,
-        4,
-    )
+    @test !DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, :sqrt, 4, 3)
+    @test DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, :sqrt, 4, 4)
+    @test !DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, :finitediff, 1, 4)
 
     wide_matrixspace = matrix_space(ring, 28, 28)
     wide_a = wide_matrixspace()
@@ -249,19 +200,6 @@ end
     wide_g = UInt[data(ring(i)) for i = 1:28]
     wide_temp = wide_matrixspace()
     wide_g_temp = copy(wide_g)
-    wide_params = DeRham.ZetaFunctionParams(
-        0,
-        false,
-        :pchunk,
-        :invlex,
-        false,
-        true,
-        false,
-        false,
-        false,
-        :sqrt,
-        64,
-    )
 
     @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
@@ -269,7 +207,8 @@ end
         wide_g,
         wide_temp,
         wide_g_temp,
-        wide_params,
+        :sqrt,
+        64,
         64,
     )
     @test DeRham._use_sqrt_linear_recurrence(
@@ -278,45 +217,21 @@ end
         wide_g,
         wide_temp,
         wide_g_temp,
-        wide_params,
-        28^2,
-    )
-    automatic_params = DeRham.ZetaFunctionParams(
-        0,
-        false,
-        :pchunk,
-        :invlex,
-        false,
-        true,
-        false,
-        false,
-        false,
         :sqrt,
-        nothing,
+        64,
+        28^2,
     )
     @test DeRham._sqrt_linear_recurrence_min_length(2, nothing) == 64
     @test DeRham._sqrt_linear_recurrence_min_length(28, nothing) == 28^2
     @test DeRham._sqrt_linear_recurrence_min_length(28, 1) == 1
-    explicit_params = DeRham.ZetaFunctionParams(
-        0,
-        false,
-        :pchunk,
-        :invlex,
-        false,
-        true,
-        false,
-        false,
-        false,
-        :sqrt,
-        1,
-    )
     @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
         wide_temp,
         wide_g_temp,
-        explicit_params,
+        :sqrt,
+        1,
         1,
     )
     @test !DeRham._use_sqrt_linear_recurrence(
@@ -325,7 +240,8 @@ end
         wide_g,
         wide_temp,
         wide_g_temp,
-        automatic_params,
+        :sqrt,
+        nothing,
         28^2 - 1,
     )
     @test DeRham._use_sqrt_linear_recurrence(
@@ -334,23 +250,15 @@ end
         wide_g,
         wide_temp,
         wide_g_temp,
-        automatic_params,
+        :sqrt,
+        nothing,
         28^2,
     )
 
     expected = copy(g)
     DeRham.finitediff_prodeval_linear!(a, b, 0, 2, expected, matrixspace(), copy(g))
     actual = copy(g)
-    DeRham.evaluate_linear_recurrence!(
-        a,
-        b,
-        0,
-        2,
-        actual,
-        matrixspace(),
-        copy(g),
-        sqrt_params,
-    )
+    DeRham.evaluate_linear_recurrence!(a, b, 0, 2, actual, matrixspace(), copy(g), :sqrt, 4)
     @test actual == expected
 
     big_ring, = residue_ring(ZZ, ZZ(101)^25)
@@ -383,7 +291,8 @@ end
             big_actual,
             big_matrixspace(),
             copy(big_g),
-            sqrt_params,
+            :sqrt,
+            4,
         )
     end
     @test big_actual == big_expected
@@ -400,7 +309,8 @@ end
         unsupported_g,
         unsupported_temp,
         unsupported_g_temp,
-        sqrt_params,
+        :sqrt,
+        4,
         4,
     )
 
@@ -423,7 +333,8 @@ end
         actual_unsupported,
         similar(unsupported_a),
         similar(unsupported_g),
-        sqrt_params,
+        :sqrt,
+        4,
     )
     @test actual_unsupported == expected_unsupported
 end
@@ -476,16 +387,16 @@ end
         [-1];
         algorithm = :depthfirst,
         linear_recurrence_algorithm = :sqrt,
-        sqrt_linear_recurrence_min_length = 12,
+        sqrt_linear_recurrence_min_length = 1,
         lazy = true,
     )
     @test context.linear_recurrence_algorithm === :sqrt
-    @test context.sqrt_linear_recurrence_min_length == 12
+    @test context.sqrt_linear_recurrence_min_length == 1
     @test DeRham._resolve_linear_recurrence_options(
         context,
         nothing,
         DeRham._UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
-    ) == (:sqrt, 12)
+    ) == (:sqrt, 1)
     @test DeRham._resolve_linear_recurrence_options(context, nothing, nothing) ==
           (:sqrt, nothing)
     @test DeRham._resolve_linear_recurrence_options(context, :finitediff, 64) ==
@@ -509,30 +420,39 @@ end
         DeRham._UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     ) == (:sqrt, nothing)
 
-    inherited_coefficients = zeta_coefficients(
-        frontend;
-        algorithm = :depthfirst,
-        changef = false,
-        context = context,
-    )
-    @test inherited_coefficients == BigInt[7, 1, 1]
-    automatic_cutoff_coefficients = zeta_coefficients(
-        frontend;
-        algorithm = :depthfirst,
-        changef = false,
-        context = context,
-        sqrt_linear_recurrence_min_length = nothing,
-    )
-    @test automatic_cutoff_coefficients == BigInt[7, 1, 1]
-    overridden_coefficients = zeta_coefficients(
-        frontend;
-        algorithm = :depthfirst,
-        changef = false,
-        context = context,
-        linear_recurrence_algorithm = :finitediff,
-        sqrt_linear_recurrence_min_length = 64,
-    )
-    @test overridden_coefficients == BigInt[7, 1, 1]
+    sqrt_calls = Ref(0)
+    DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
+        inherited_coefficients = zeta_coefficients(
+            frontend;
+            algorithm = :depthfirst,
+            changef = false,
+            context = context,
+        )
+        @test inherited_coefficients == BigInt[7, 1, 1]
+        @test sqrt_calls[] > 0
+
+        sqrt_calls[] = 0
+        automatic_cutoff_coefficients = zeta_coefficients(
+            frontend;
+            algorithm = :depthfirst,
+            changef = false,
+            context = context,
+            sqrt_linear_recurrence_min_length = nothing,
+        )
+        @test automatic_cutoff_coefficients == inherited_coefficients
+        @test sqrt_calls[] == 0
+
+        overridden_coefficients = zeta_coefficients(
+            frontend;
+            algorithm = :depthfirst,
+            changef = false,
+            context = context,
+            linear_recurrence_algorithm = :finitediff,
+            sqrt_linear_recurrence_min_length = 1,
+        )
+        @test overridden_coefficients == inherited_coefficients
+        @test sqrt_calls[] == 0
+    end
     @test_throws ArgumentError zeta_coefficients(
         frontend;
         context = context,
