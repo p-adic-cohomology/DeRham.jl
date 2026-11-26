@@ -40,6 +40,25 @@ function _default_reduction_selection(f, P, S)
     return _default_reduction_selection(fe, S)
 end
 
+function _find_reduction_model(f, P, p, M, S, params, changef, cache, precision_poly)
+    if params.algorithm in (:akr, :akr_naive, :akr_levelbylevel) &&
+       _akr_cutoff_eligible(P.n, P.d, S, p)
+        return _find_Ssmooth_model(f, params, changef) do model
+            lifted = liftCoefficients(base_ring(precision_poly), precision_poly, model)
+            right_inverse = _build_sparse_jacobian_right_inverse(lifted, p, M)
+            if right_inverse === nothing
+                message = S == collect(0:P.n) ?
+                    "f is not smooth" : "matrix from f is not right invertible"
+                throw(ArgumentError(message))
+            end
+            return (; lifted, right_inverse)
+        end
+    end
+
+    changed, model, right_inverse = find_Ssmooth_model(f, P, M, S, params, changef, cache)
+    return changed, model, (; lifted = nothing, right_inverse)
+end
+
 """
     zeta_coefficients(fe::ZetaFrontend; ...)
 
@@ -246,12 +265,12 @@ function zeta_coefficients(
     precisionringpoly, pvars = polynomial_ring(precisionring, ["x$i" for i = 0:n])
 
     if (0 < verbose)
-        println("Computing the relations matrix...")
-        @time f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, P, M, S, params, changef, cache)
+        println("Computing reduction setup...")
+        @time f_changed, f, model_setup =
+            _find_reduction_model(f, P, p, M, S, params, changef, cache, precisionringpoly)
     else
-        f_changed, f, pseudo_inverse_mat_new =
-            find_Ssmooth_model(f, P, M, S, params, changef, cache)
+        f_changed, f, model_setup =
+            _find_reduction_model(f, P, p, M, S, params, changef, cache, precisionringpoly)
     end
 
     # For large examples, force a GC here; Julia's GC doesn't seem to automatically cause the
@@ -270,7 +289,7 @@ function zeta_coefficients(
         return false
     end
 
-    (9 < verbose) && println("pseudo_inverse_mat is $pseudo_inverse_mat_new")
+    (; lifted, right_inverse) = model_setup
 
     # recomputes basis if f is different
     if f_changed
@@ -303,23 +322,13 @@ function zeta_coefficients(
     (9 < verbose) && println("Basis of cohomology is $Basis")
 
 
-    fLift = liftCoefficients(precisionring, precisionringpoly, f)
+    fLift = lifted === nothing ? liftCoefficients(precisionring, precisionringpoly, f) : lifted
     if (0 < verbose)
         println("\nApplying Frobenius to basis elements")
         @time FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     else
         FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
     end
-
-    l = d * n - n + d - length(S)
-
-
-    MS = matrix_space(
-        precisionring,
-        nrows(pseudo_inverse_mat_new),
-        ncols(pseudo_inverse_mat_new),
-    )
-    pseudo_inverse_mat = MS()
 
     if (0 < verbose)
         println("Computing T matrix...")
@@ -329,10 +338,15 @@ function zeta_coefficients(
     end
     (9 < verbose) && println("T matrix is $T")
 
-    for i = 1:nrows(pseudo_inverse_mat_new)
-        for j = 1:ncols(pseudo_inverse_mat_new)
-            pseudo_inverse_mat[i, j] = ZZ(pseudo_inverse_mat_new[i, j])
+    reduction_inverse = if right_inverse isa _SparseJacobianRightInverse
+        right_inverse
+    else
+        rows, cols = size(right_inverse)
+        inverse_matrix = matrix_space(precisionring, rows, cols)()
+        for i in 1:rows, j in 1:cols
+            inverse_matrix[i, j] = ZZ(right_inverse[i, j])
         end
+        inverse_matrix
     end
 
     #TODO: check which algorithm we're using
@@ -344,7 +358,7 @@ function zeta_coefficients(
         fLift,
         P,
         fe,
-        pseudo_inverse_mat,
+        reduction_inverse,
         p,
         params,
         cache,

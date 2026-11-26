@@ -60,43 +60,30 @@ Inputs:
 * "cache" -- the GradedExpCache used for this controlled reduction
 """
 function find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
+    l = _reduction_g_degree(P) + total_degree(f) - length(S_target)
+    return _find_Ssmooth_model(f, params, changef) do model
+        pseudo_inverse_controlled_lifted(model, S_target, l, M, params, cache)
+    end
+end
+
+function _find_Ssmooth_model(build_setup, f, params, changef)
     p = Int64(characteristic(parent(f)))
-    q = p
     PR = parent(f)
-    R = coefficient_ring(PR)
     n = nvars(PR) - 1
-    SLn = special_linear_group(n + 1, GF(q))
-    d = total_degree(f)
+    SLn = special_linear_group(n + 1, GF(p))
     vars = gens(PR)
-    l = _reduction_g_degree(P) + d - length(S_target)
 
     f_transformed = f
     num_iter = min(2*p, 100)
     f_changed = false
     if !changef
-        pseudo_inverse_mat_new =
-            pseudo_inverse_controlled_lifted(f_transformed, S_target, l, M, params, cache)
-
-        return f_changed, f_transformed, pseudo_inverse_mat_new
+        return f_changed, f_transformed, build_setup(f_transformed)
     end
 
     for i = 1:num_iter
         try
-            pseudo_inverse_mat_new = pseudo_inverse_controlled_lifted(
-                f_transformed,
-                S_target,
-                l,
-                M,
-                params,
-                cache,
-            )
-
-            return f_changed, f_transformed, pseudo_inverse_mat_new
+            return f_changed, f_transformed, build_setup(f_transformed)
         catch e
-            if !changef
-                throw(ArgumentError("f is not $S_target smooth"))
-                return false, false, false
-            end
             (0 < params.verbose) &&
                 println("This f is not S-smooth, changing to one that is")
             if isa(e, ArgumentError) && e.msg == "f is not smooth"

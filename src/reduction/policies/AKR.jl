@@ -18,120 +18,32 @@ mutable struct _AKRRelationTable{T<:Integer,N}
     cached_map_bytes::Int
 end
 
-_akr_bigint(value) = parse(BigInt, string(value))
-
-function _akr_relation_axpy!(row, row_index, multiple, pivot, modulus, column_rows)
-    for (j, value) in pivot
-        old = get(row, j, big(0))
-        a = mod(old - multiple * value, modulus)
-        if iszero(a)
-            delete!(row, j)
-            j > 0 && delete!(column_rows[j], row_index)
-        else
-            if iszero(old) && j > 0
-                push!(column_rows[j], row_index)
-            end
-            row[j] = a
-        end
-    end
-    return row
-end
-
-"""
-Build a sparse table expressing cutoff monomials in the Jacobian ideal.
-
-Each row uses positive keys for target monomials and negative keys for the
-weights of the gradient generators. The target part equals the weighted sum
-of the generators modulo `p^M`. Elimination transforms both parts together,
-so a row whose target part is a single unit monomial gives its relation.
-"""
-function _build_akr_relation_table(f, p, M, ::Val{N}; always_use_bigints = false) where {N}
-    d = total_degree(f)
-    cutoff = N * (d - 2) + 1
-    modulus = big(p)^M
-    monomials = NTuple{N,Int}[Tuple(e) for e in gen_exp_vec(N, cutoff, :lex)]
-    monomial_indices = Dict(u => i for (i, u) in enumerate(monomials))
-    cofactor_monomials =
-        NTuple{N,Int}[Tuple(e) for e in gen_exp_vec(N, cutoff - d + 1, :lex)]
-    generators = [(i, g) for i = 1:N for g in cofactor_monomials]
-    partials = [Dict{NTuple{N,Int},BigInt}() for _ = 1:N]
-    for i = 1:N, monomial in terms(derivative(f, i))
-        exponent = Tuple(Int.(exponent_vector(monomial, 1)))
-        coefficient = mod(_akr_bigint(lift(ZZ, coeff(monomial, 1))), modulus)
-        iszero(coefficient) || (partials[i][exponent] = coefficient)
-    end
-
-    rows = Dict{Int,BigInt}[]
-    for (j, (i, g)) in enumerate(generators)
-        row = Dict(-j => big(1))
-        for (exponent, coefficient) in partials[i]
-            product = ntuple(l -> g[l] + exponent[l], Val(N))
-            row[monomial_indices[product]] = coefficient
-        end
-        push!(rows, row)
-    end
-
-    column_rows = [Set{Int}() for _ in eachindex(monomials)]
-    for (i, row) in enumerate(rows), j in keys(row)
-        j > 0 && push!(column_rows[j], i)
-    end
-
-    pivots = zeros(Int, length(monomials))
-    active = trues(length(rows))
-    rank = 0
-    for j in eachindex(monomials)
-        row_index = 0
-        for i in column_rows[j]
-            if active[i] && !iszero(mod(rows[i][j], p)) && (row_index == 0 || i < row_index)
-                row_index = i
-            end
-        end
-        row_index == 0 && continue
-        rank += 1
-        active[row_index] = false
-        pivot = rows[row_index]
-        scale = invmod(pivot[j], modulus)
-        for l in keys(pivot)
-            pivot[l] = mod(pivot[l] * scale, modulus)
-        end
-        for i in collect(column_rows[j])
-            if i != row_index && haskey(rows[i], j)
-                row = rows[i]
-                _akr_relation_axpy!(row, i, row[j], pivot, modulus, column_rows)
-            end
-        end
-        pivots[j] = row_index
-    end
-
-    rank == length(monomials) || throw(
-        ArgumentError(
-            "the Jacobian ideal does not reach every degree-$cutoff monomial; the input may be singular or $p may be bad",
-        ),
-    )
-
-    relations = Dict{NTuple{N,Int},Vector{Tuple{Int,NTuple{N,Int},BigInt}}}()
-    for (j, monomial) in enumerate(monomials)
-        cofactors = Tuple{Int,NTuple{N,Int},BigInt}[]
-        for (column, coefficient) in rows[pivots[j]]
-            if column < 0
-                i, exponent = generators[-column]
-                push!(cofactors, (i, exponent, coefficient))
-            end
-        end
-        relations[monomial] = cofactors
-    end
-    T = always_use_bigints || modulus > typemax(UInt64) ? BigInt : UInt64
+function _AKRRelationTable(
+    inverse::_SparseJacobianRightInverse{N},
+    always_use_bigints,
+) where {N}
+    T = always_use_bigints || inverse.modulus > typemax(UInt64) ? BigInt : UInt64
     return _AKRRelationTable{T,N}(
-        cutoff,
-        modulus,
-        relations,
+        inverse.cutoff,
+        inverse.modulus,
+        inverse.relations,
         Dict{Tuple{Int,Symbol},_AKRReductionMap{T}}(),
         0,
     )
 end
 
-_build_akr_relation_table(f, p, M; always_use_bigints = false) =
-    _build_akr_relation_table(f, p, M, Val(nvars(parent(f))); always_use_bigints)
+function _build_akr_relation_table(f, p, M; always_use_bigints = false)
+    inverse = _build_sparse_jacobian_right_inverse(f, p, M)
+    if inverse === nothing
+        cutoff = nvars(parent(f)) * (total_degree(f) - 2) + 1
+        throw(
+            ArgumentError(
+                "the Jacobian ideal does not reach every degree-$cutoff monomial; the input may be singular or $p may be bad",
+            ),
+        )
+    end
+    return _AKRRelationTable(inverse, always_use_bigints)
+end
 
 function _build_akr_reduction_map(
     table::_AKRRelationTable{T,N},
@@ -399,9 +311,25 @@ function _reducepoly_akr_naive(pol, S, f, p, picache, params)
     return [[result, n]]
 end
 
+_akr_cutoff_eligible(n, d, S, p) = sort(S) == collect(0:n) && mod(d, p) != 0
+
+function _build_akr_picache(
+    highm,
+    n,
+    d,
+    S,
+    f,
+    inverse::_SparseJacobianRightInverse,
+    cache,
+    params,
+    p,
+)
+    return _AKRRelationTable(inverse, params.always_use_bigints)
+end
+
 function _build_akr_picache(highm, n, d, S, f, pseudoInverseMat, cache, params, p)
     M = factor(modulus(base_ring(parent(f))))[p]
-    if sort(S) == collect(0:n) && mod(d, p) != 0
+    if _akr_cutoff_eligible(n, d, S, p)
         return _build_akr_relation_table(f, p, M; always_use_bigints = params.always_use_bigints)
     end
     picache = Vector{typeof(pseudoInverseMat)}(undef, highm)

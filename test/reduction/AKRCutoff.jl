@@ -7,7 +7,7 @@ function akr_relation_identities_hold(table, f)
                 exponent = ntuple(j -> cofactor[j] + exponent_vector(term, 1)[j], Val(3))
                 coefficient = mod(
                     get(reconstructed, exponent, big(0)) +
-                    relation_coefficient * DeRham._akr_bigint(lift(ZZ, coeff(term, 1))),
+                    relation_coefficient * BigInt(lift(ZZ, coeff(term, 1))),
                     table.modulus,
                 )
                 if iszero(coefficient)
@@ -30,6 +30,48 @@ end
     @test table.cutoff == 7
     @test length(table.relations) == 36
     @test akr_relation_identities_hold(table, f)
+end
+
+@testset "AKR cutoff model setup reuses lifted relations" begin
+    p = 7
+    M = 2
+    _, (x, y, z) = polynomial_ring(GF(p), ["x", "y", "z"])
+    f = x^3 + y^3 - z^3
+    precision_ring, = residue_ring(ZZ, p^M)
+    precision_poly, (u, v, w) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    P = DeRham.HypersurfaceQuotient(2, 3)
+    params = DeRham.ZetaFunctionParams(0, false, :akr, :invlex, false, true, false, false, false)
+    S = [2, 0, 1]
+
+    changed, model, setup =
+        DeRham._find_reduction_model(f, P, p, M, S, params, true, nothing, precision_poly)
+    @test !changed
+    @test model == f
+    @test setup.lifted == u^3 + v^3 - w^3
+    @test setup.right_inverse isa DeRham._SparseJacobianRightInverse
+    @test akr_relation_identities_hold(setup.right_inverse, setup.lifted)
+    picache = DeRham._build_akr_picache(
+        3, P.n, P.d, S, setup.lifted, setup.right_inverse, nothing, params, p,
+    )
+    @test picache.relations === setup.right_inverse.relations
+
+    S = [0, 1]
+    cache = DeRham.controlled_reduction_cache(P.n, P.d, S, params, P)
+    _, _, fallback =
+        DeRham._find_reduction_model(f, P, p, M, S, params, true, cache, precision_poly)
+    @test fallback.lifted === nothing
+    @test nrows(fallback.right_inverse) > 0
+end
+
+@testset "AKR cutoff model failure" begin
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    singular = x^3 + y^3 + x * y * z
+    @test DeRham.zeta_coefficients(singular; algorithm = :akr, changef = true) === false
+    @test_throws ArgumentError("f is not smooth") DeRham.zeta_coefficients(
+        singular;
+        algorithm = :akr,
+        changef = false,
+    )
 end
 
 @testset "AKR cutoff BigInt reduction map" begin
@@ -150,7 +192,7 @@ end
     end
 
     actual_cofactors = DeRham._akr_cofactor_vector(g, m, f, table, params)
-    @test [DeRham._akr_bigint(lift(ZZ, c)) for c in actual_cofactors] == expected_cofactors_bigint
+    @test [BigInt(lift(ZZ, c)) for c in actual_cofactors] == expected_cofactors_bigint
 
     expected_cofactors = precision_ring.(expected_cofactors_bigint)
     expected_reduced =
