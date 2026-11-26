@@ -1,4 +1,4 @@
-using Logging: Debug, with_logger
+using Base.CoreLogging: Debug, with_logger
 
 function logged_sqrt_recurrences(f)
     logger = Test.TestLogger(; min_level = Debug)

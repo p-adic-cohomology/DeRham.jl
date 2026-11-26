@@ -1,4 +1,8 @@
-function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
+function _pchunk_execution_setup_at_modulus(
+    modulus;
+    always_use_bigints = false,
+    use_threads = false,
+)
     residue = DeRham._precision_residue_modulus(modulus, 1, always_use_bigints)
     ring, = residue_ring(ZZ, residue)
     _, variables = polynomial_ring(ring, ["x0", "x1", "x2"])
@@ -6,7 +10,7 @@ function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
     fe = DeRham.ProjectiveHypersurface(f)
     P = DeRham.cohomology_quotient(fe)
     configuration =
-        DeRham.reduction_setup(fe, [2], :pchunk; always_use_bigints = always_use_bigints)
+        DeRham.reduction_setup(fe, [2], :pchunk; always_use_bigints, use_threads)
     params = DeRham.ZetaFunctionParams(
         0,
         false,
@@ -16,7 +20,7 @@ function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
         true,
         always_use_bigints,
         false,
-        false,
+        use_threads,
     )
     cache = DeRham.controlled_reduction_cache(2, 3, [2], params, P)
     g_length = binomial(DeRham._reduction_g_degree(P) + P.n, P.n)
@@ -68,11 +72,15 @@ end
     @test big_modulus_context.A isa DeRham.ZZModMatrix
     @test big_modulus_context.g isa Vector{DeRham.ZZRingElem}
 
-    forced_bigint_setup = _pchunk_execution_setup_at_modulus(5; always_use_bigints = true)
-    @test forced_bigint_setup.backend == :cpu_bigint
-    @test forced_bigint_setup.representation == :bigint
-    forced_bigint_context = forced_bigint_setup.context_factory()
-    @test forced_bigint_context.g isa Vector{DeRham.ZZRingElem}
-    @test DeRham._matrix_engine_vector(forced_bigint_context.g) isa
-          Vector{DeRham.ZZRingElem}
+    for use_threads in (false, true)
+        forced_bigint_setup =
+            _pchunk_execution_setup_at_modulus(5; always_use_bigints = true, use_threads)
+        @test forced_bigint_setup.backend == :cpu_bigint
+        @test forced_bigint_setup.representation == :bigint
+        @test forced_bigint_setup.threads === use_threads
+        forced_bigint_context = forced_bigint_setup.context_factory()
+        @test forced_bigint_context.g isa Vector{DeRham.ZZRingElem}
+        @test DeRham._matrix_engine_vector(forced_bigint_context.g) isa
+              Vector{DeRham.ZZRingElem}
+    end
 end

@@ -206,9 +206,9 @@ uses variety dimension and the code-path options `algorithm`,
 `fastevaluation`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
 `termorder`, and `k`. The cutoff contributes when the record requests
 `linear_recurrence_algorithm="sqrt"`, enables fast evaluation on the CPU, and
-records `algorithm` as `default`, `depthfirst`, or `pchunk`. This uses the recorded
-algorithm even if `default` selects VarByVar at runtime, as it can for a
-projective hypersurface with `S=[n]`. Executors share the compiled pipeline
+its `algorithm` is `default`, `depthfirst`, or `pchunk`. An omitted `algorithm`
+counts as `default` in the key even when it selects VarByVar at runtime, as it
+can for a projective hypersurface with `S=[n]`. Executors share the compiled pipeline
 for a dimension and option set, so executor type does not split configurations.
 Integer `k` values are keyed by type, so `k=1` and `k=2` share a configuration
 while an absent `k` remains distinct. `S` is record data and does not split
