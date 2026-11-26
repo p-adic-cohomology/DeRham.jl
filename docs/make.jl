@@ -40,7 +40,7 @@ makedocs(
         "Experimental" => [
             "Experimental algorithms" => "experimental/index.md",
             "Double covers" => "experimental/double_covers.md",
-            "Interval products" => "experimental/interval_products.md",
+            "Square-root linear recurrence evaluation" => "experimental/sqrt_linear_recurrence.md",
         ],
     ],
     format = Documenter.HTML(

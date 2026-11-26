@@ -1,11 +1,12 @@
 """
-    sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
+    sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
 
-Experimental square-root-time interval product for the affine matrices
-`F(x) = a*x + b`. It computes `F(start) * ... * F(stop) * g` using a product
-tree and fast multipoint evaluation over the modulus ring.
+Evaluate the linear recurrence `v[x] = F(x) * v[x+1]` with the experimental
+square-root-time Bostan–Gaudry–Schost method. For `F(x) = a*x + b`, overwrite
+`g` with `F(start) * ... * F(stop) * g` using a product tree and fast multipoint
+evaluation over the modulus ring.
 """
-function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
+function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     start = Int(start)
     stop = Int(stop)
     interval_length = stop - start + 1
@@ -13,29 +14,27 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
 
     rows = nrows(a)
     cols = ncols(a)
-    rows == cols || throw(ArgumentError("interval product matrices must be square"))
+    rows == cols || throw(ArgumentError("linear recurrence matrices must be square"))
     nrows(b) == rows && ncols(b) == cols ||
-        throw(ArgumentError("interval product matrices must have matching sizes"))
+        throw(ArgumentError("linear recurrence matrices must have matching sizes"))
 
     small_modulus = a isa zzModMatrix
     big_modulus = a isa ZZModMatrix
     (small_modulus || big_modulus) &&
-    _supports_sqrt_interval_product(a, b, g, temp, g_temp) || throw(
+    _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp) || throw(
         ArgumentError(
-            "square-root interval products require compatible CPU modular arrays",
+            "square-root linear recurrence requires compatible CPU modular arrays",
         ),
     )
     nrows(temp) == rows && ncols(temp) == cols ||
-        throw(DimensionMismatch("interval product temporary matrix must match the inputs"))
+        throw(DimensionMismatch("linear recurrence temporary matrix must match the inputs"))
     length(g) == cols ||
-        throw(DimensionMismatch("interval product vector must match the matrix columns"))
+        throw(DimensionMismatch("linear recurrence vector must match the matrix columns"))
     length(g_temp) == rows || throw(
-        DimensionMismatch("interval product temporary vector must match the matrix rows"),
+        DimensionMismatch("linear recurrence temporary vector must match the matrix rows"),
     )
 
-    backend =
-        small_modulus ? _NmodIntervalProductEvaluationBackend() :
-        _FmpzModIntervalProductEvaluationBackend()
+    backend = small_modulus ? _NmodBGSEvaluationBackend() : _FmpzModBGSEvaluationBackend()
     ring = base_ring(parent(a))
     poly_ring, x = polynomial_ring(ring, "x"; cached = false)
     polynomial_matrix_space = matrix_space(poly_ring, rows, cols)
@@ -68,12 +67,12 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
 
     points = Int[start + i * block_length for i = 0:(blocks-1)]
     evaluated_blocks = [matrix_space(ring, rows, cols)() for _ = 1:blocks]
-    evaluation_buffer = _interval_product_evaluation_buffer(backend, blocks)
+    evaluation_buffer = _bgs_evaluation_buffer(backend, blocks)
     evaluation_points =
-        _interval_product_evaluation_points(backend, ring, points, block_polynomial[1, 1])
+        _bgs_evaluation_points(backend, ring, points, block_polynomial[1, 1])
     try
         for j = 1:cols, i = 1:rows
-            values = _evaluate_interval_product_polynomial!(
+            values = _evaluate_bgs_polynomial!(
                 backend,
                 evaluation_buffer,
                 block_polynomial[i, j],
@@ -84,7 +83,7 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
             end
         end
     finally
-        _release_interval_product_evaluation_points!(backend, evaluation_points)
+        _release_bgs_evaluation_points!(backend, evaluation_points)
     end
 
     product = evaluated_blocks[1]
@@ -105,39 +104,38 @@ function sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
 end
 
 """
-Backend boundary for modular polynomial evaluation. The interval algorithm uses
-the backend methods below; concrete implementations own FLINT calls and raw
-value storage.
+Modular polynomial evaluation backend for the BGS method. The concrete
+implementations manage the FLINT calls and raw value storage.
 """
-abstract type _IntervalProductEvaluationBackend end
+abstract type _BGSEvaluationBackend end
 
-struct _NmodIntervalProductEvaluationBackend <: _IntervalProductEvaluationBackend end
+struct _NmodBGSEvaluationBackend <: _BGSEvaluationBackend end
 
-struct _FmpzModIntervalProductEvaluationBackend <: _IntervalProductEvaluationBackend end
+struct _FmpzModBGSEvaluationBackend <: _BGSEvaluationBackend end
 
-struct _NmodIntervalProductModulus
+struct _NmodBGSModulus
     n::UInt
     ninv::UInt
     norm::UInt
 end
 
-struct _NmodIntervalProductEvaluationPoints
+struct _NmodBGSEvaluationPoints
     tree::Ptr{Ptr{UInt}}
     count::Int
-    modulus::_NmodIntervalProductModulus
+    modulus::_NmodBGSModulus
 end
 
-struct _FmpzModEvaluationPoints
+struct _FmpzModBGSEvaluationPoints
     tree::Ptr{Ptr{Cvoid}}
     count::Int
 end
 
-function _nmod_interval_product_evaluation_points(
+function _nmod_bgs_evaluation_points(
     poly::Oscar.Nemo.zzModPolyRingElem,
     values::Vector{UInt},
 )
-    modulus = _NmodIntervalProductModulus(poly.mod_n, poly.mod_ninv, poly.mod_norm)
-    isempty(values) && return _NmodIntervalProductEvaluationPoints(C_NULL, 0, modulus)
+    modulus = _NmodBGSModulus(poly.mod_n, poly.mod_ninv, poly.mod_norm)
+    isempty(values) && return _NmodBGSEvaluationPoints(C_NULL, 0, modulus)
 
     tree = @ccall Oscar.Nemo.libflint._nmod_poly_tree_alloc(
         length(values)::Int,
@@ -149,7 +147,7 @@ function _nmod_interval_product_evaluation_points(
                 tree::Ptr{Ptr{UInt}},
                 values::Ptr{UInt},
                 length(values)::Int,
-                modulus::_NmodIntervalProductModulus,
+                modulus::_NmodBGSModulus,
             )::Nothing
         end
     catch
@@ -159,26 +157,26 @@ function _nmod_interval_product_evaluation_points(
         )::Nothing
         rethrow()
     end
-    return _NmodIntervalProductEvaluationPoints(tree, length(values), modulus)
+    return _NmodBGSEvaluationPoints(tree, length(values), modulus)
 end
 
-function _interval_product_evaluation_points(
-    ::_NmodIntervalProductEvaluationBackend,
+function _bgs_evaluation_points(
+    ::_NmodBGSEvaluationBackend,
     ring,
     points::Vector{Int},
     poly::Oscar.Nemo.zzModPolyRingElem,
 )
     values = UInt[data(ring(point)) for point in points]
-    return _nmod_interval_product_evaluation_points(poly, values)
+    return _nmod_bgs_evaluation_points(poly, values)
 end
 
-function _interval_product_evaluation_points(
-    ::_FmpzModIntervalProductEvaluationBackend,
+function _bgs_evaluation_points(
+    ::_FmpzModBGSEvaluationBackend,
     ring,
     points::Vector{Int},
     ::Oscar.Nemo.ZZModPolyRingElem,
 )
-    isempty(points) && return _FmpzModEvaluationPoints(C_NULL, 0)
+    isempty(points) && return _FmpzModBGSEvaluationPoints(C_NULL, 0)
     reduced_points = ZZRingElem[lift(ring(point)) for point in points]
     raw_points = zeros(Int, length(points))
     tree = Ptr{Ptr{Cvoid}}(C_NULL)
@@ -218,51 +216,48 @@ function _interval_product_evaluation_points(
     finally
         _clear_fmpz_values!(raw_points, initialized)
     end
-    return _FmpzModEvaluationPoints(tree, length(points))
+    return _FmpzModBGSEvaluationPoints(tree, length(points))
 end
 
-_evaluate_interval_product_polynomial(
-    ::_NmodIntervalProductEvaluationBackend,
+_evaluate_bgs_polynomial(
+    ::_NmodBGSEvaluationBackend,
     poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodIntervalProductEvaluationPoints,
+    points::_NmodBGSEvaluationPoints,
 ) = _fast_nmod_evaluate(poly, points)
 
-_evaluate_interval_product_polynomial(
-    ::_FmpzModIntervalProductEvaluationBackend,
+_evaluate_bgs_polynomial(
+    ::_FmpzModBGSEvaluationBackend,
     poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModEvaluationPoints,
+    points::_FmpzModBGSEvaluationPoints,
 ) = _fast_fmpz_mod_evaluate(poly, points)
 
-_interval_product_evaluation_buffer(::_NmodIntervalProductEvaluationBackend, count::Int) =
-    Vector{UInt}(undef, count)
+_bgs_evaluation_buffer(::_NmodBGSEvaluationBackend, count::Int) = Vector{UInt}(undef, count)
 
-_interval_product_evaluation_buffer(
-    ::_FmpzModIntervalProductEvaluationBackend,
-    count::Int,
-) = (zeros(Int, count), ZZRingElem[ZZ(0) for _ = 1:count])
+_bgs_evaluation_buffer(::_FmpzModBGSEvaluationBackend, count::Int) =
+    (zeros(Int, count), ZZRingElem[ZZ(0) for _ = 1:count])
 
-function _evaluate_interval_product_polynomial!(
-    ::_NmodIntervalProductEvaluationBackend,
+function _evaluate_bgs_polynomial!(
+    ::_NmodBGSEvaluationBackend,
     values::Vector{UInt},
     poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodIntervalProductEvaluationPoints,
+    points::_NmodBGSEvaluationPoints,
 )
     return _fast_nmod_evaluate!(values, poly, points)
 end
 
-function _evaluate_interval_product_polynomial!(
-    ::_FmpzModIntervalProductEvaluationBackend,
+function _evaluate_bgs_polynomial!(
+    ::_FmpzModBGSEvaluationBackend,
     buffers::Tuple{Vector{Int},Vector{ZZRingElem}},
     poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModEvaluationPoints,
+    points::_FmpzModBGSEvaluationPoints,
 )
     raw_values, values = buffers
     return _fast_fmpz_mod_evaluate!(values, raw_values, poly, points)
 end
 
-function _release_interval_product_evaluation_points!(
-    ::_NmodIntervalProductEvaluationBackend,
-    points::_NmodIntervalProductEvaluationPoints,
+function _release_bgs_evaluation_points!(
+    ::_NmodBGSEvaluationBackend,
+    points::_NmodBGSEvaluationPoints,
 )
     if points.tree != C_NULL
         @ccall Oscar.Nemo.libflint._nmod_poly_tree_free(
@@ -273,9 +268,9 @@ function _release_interval_product_evaluation_points!(
     return nothing
 end
 
-function _release_interval_product_evaluation_points!(
-    ::_FmpzModIntervalProductEvaluationBackend,
-    points::_FmpzModEvaluationPoints,
+function _release_bgs_evaluation_points!(
+    ::_FmpzModBGSEvaluationBackend,
+    points::_FmpzModBGSEvaluationPoints,
 )
     if points.tree != C_NULL
         @ccall Oscar.Nemo.libflint._fmpz_mod_poly_tree_free(
@@ -288,7 +283,7 @@ end
 
 function _fast_nmod_evaluate(
     poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodIntervalProductEvaluationPoints,
+    points::_NmodBGSEvaluationPoints,
 )
     values = Vector{UInt}(undef, points.count)
     return _fast_nmod_evaluate!(values, poly, points)
@@ -297,7 +292,7 @@ end
 function _fast_nmod_evaluate!(
     values::Vector{UInt},
     poly::Oscar.Nemo.zzModPolyRingElem,
-    points::_NmodIntervalProductEvaluationPoints,
+    points::_NmodBGSEvaluationPoints,
 )
     length(values) == points.count ||
         throw(DimensionMismatch("evaluation buffer must match the evaluation points"))
@@ -313,36 +308,36 @@ function _fast_nmod_evaluate!(
             poly.length::Int,
             points.tree::Ptr{Ptr{UInt}},
             points.count::Int,
-            points.modulus::_NmodIntervalProductModulus,
+            points.modulus::_NmodBGSModulus,
         )::Nothing
     end
     return values
 end
 
 function _fast_nmod_evaluate(poly::Oscar.Nemo.zzModPolyRingElem, points::Vector{UInt})
-    backend = _NmodIntervalProductEvaluationBackend()
-    evaluation_points = _nmod_interval_product_evaluation_points(poly, points)
+    backend = _NmodBGSEvaluationBackend()
+    evaluation_points = _nmod_bgs_evaluation_points(poly, points)
     try
-        return _evaluate_interval_product_polynomial(backend, poly, evaluation_points)
+        return _evaluate_bgs_polynomial(backend, poly, evaluation_points)
     finally
-        _release_interval_product_evaluation_points!(backend, evaluation_points)
+        _release_bgs_evaluation_points!(backend, evaluation_points)
     end
 end
 
 function _fast_fmpz_mod_evaluate(poly::Oscar.Nemo.ZZModPolyRingElem, points::Vector{Int})
-    backend = _FmpzModIntervalProductEvaluationBackend()
+    backend = _FmpzModBGSEvaluationBackend()
     evaluation_points =
-        _interval_product_evaluation_points(backend, base_ring(parent(poly)), points, poly)
+        _bgs_evaluation_points(backend, base_ring(parent(poly)), points, poly)
     try
         return _fast_fmpz_mod_evaluate(poly, evaluation_points)
     finally
-        _release_interval_product_evaluation_points!(backend, evaluation_points)
+        _release_bgs_evaluation_points!(backend, evaluation_points)
     end
 end
 
 function _fast_fmpz_mod_evaluate(
     poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModEvaluationPoints,
+    points::_FmpzModBGSEvaluationPoints,
 )
     raw_values = zeros(Int, points.count)
     values = ZZRingElem[ZZ(0) for _ = 1:points.count]
@@ -353,7 +348,7 @@ function _fast_fmpz_mod_evaluate!(
     values::Vector{ZZRingElem},
     raw_values::Vector{Int},
     poly::Oscar.Nemo.ZZModPolyRingElem,
-    points::_FmpzModEvaluationPoints,
+    points::_FmpzModBGSEvaluationPoints,
 )
     length(values) == points.count && length(raw_values) == points.count ||
         throw(DimensionMismatch("evaluation buffers must match the evaluation points"))
@@ -406,7 +401,7 @@ function _clear_fmpz_values!(values::Vector{Int}, count::Int)
     return nothing
 end
 
-function _supports_sqrt_interval_product(a, b, g, temp, g_temp)
+function _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp)
     if a isa zzModMatrix
         return b isa zzModMatrix &&
                temp isa zzModMatrix &&
@@ -421,7 +416,7 @@ function _supports_sqrt_interval_product(a, b, g, temp, g_temp)
     return false
 end
 
-function _sqrt_interval_product_min_length(
+function _sqrt_linear_recurrence_min_length(
     matrix_width::Int,
     configured_min::Union{Nothing,Int},
 )
@@ -434,9 +429,9 @@ function _sqrt_interval_product_min_length(
     return max(64, width_squared)
 end
 
-function _with_interval_product_test_hook(f::Function, hook::Function)
+function _with_sqrt_linear_recurrence_test_hook(f::Function, hook::Function)
     storage = task_local_storage()
-    key = :DeRham_interval_product_test_hook
+    key = :DeRham_sqrt_linear_recurrence_test_hook
     previous = get(storage, key, nothing)
     storage[key] = hook
     try
@@ -450,25 +445,36 @@ function _with_interval_product_test_hook(f::Function, hook::Function)
     end
 end
 
-function _notify_interval_product_test_hook()
-    hook = get(task_local_storage(), :DeRham_interval_product_test_hook, nothing)
+function _notify_sqrt_linear_recurrence_test_hook()
+    hook = get(task_local_storage(), :DeRham_sqrt_linear_recurrence_test_hook, nothing)
     hook === nothing || hook()
     return nothing
 end
 
-function _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
-    params.interval_product_algorithm === :sqrt || return false
-    _supports_sqrt_interval_product(a, b, g, temp, g_temp) || return false
-    min_length =
-        _sqrt_interval_product_min_length(nrows(a), params.interval_product_min_length)
+function _use_sqrt_linear_recurrence(a, b, g, temp, g_temp, params, interval_length)
+    params.linear_recurrence_algorithm === :sqrt || return false
+    _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp) || return false
+    min_length = _sqrt_linear_recurrence_min_length(
+        nrows(a),
+        params.sqrt_linear_recurrence_min_length,
+    )
     return interval_length >= min_length
 end
 
-function prodeval_linear!(a, b, start, stop, g, temp, g_temp, params::ZetaFunctionParams)
+function evaluate_linear_recurrence!(
+    a,
+    b,
+    start,
+    stop,
+    g,
+    temp,
+    g_temp,
+    params::ZetaFunctionParams,
+)
     interval_length = stop - start + 1
-    if _use_sqrt_interval_product(a, b, g, temp, g_temp, params, interval_length)
-        _notify_interval_product_test_hook()
-        return sqrt_interval_product!(a, b, start, stop, g, temp, g_temp)
+    if _use_sqrt_linear_recurrence(a, b, g, temp, g_temp, params, interval_length)
+        _notify_sqrt_linear_recurrence_test_hook()
+        return sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     end
     return finitediff_prodeval_linear!(a, b, start, stop, g, temp, g_temp)
 end

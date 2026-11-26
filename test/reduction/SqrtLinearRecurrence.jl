@@ -22,7 +22,7 @@ function DeRham.my_matvecmul!(output::Vector{Int}, matrix::Matrix{Int}, vector::
     return output
 end
 
-@testset "square-root interval products" begin
+@testset "square-root linear recurrence" begin
     for p in (101, 103)
         cases = (1, 2, 3, p - 1, p, p + 1, 3p + 2, 63, 64, 65)
         for modulus in (p, ZZ(p)^25)
@@ -60,7 +60,7 @@ end
                     expected_temp,
                     expected_g_temp,
                 )
-                DeRham.sqrt_interval_product!(
+                DeRham.sqrt_linear_recurrence!(
                     a,
                     b,
                     start,
@@ -75,7 +75,7 @@ end
     end
 end
 
-@testset "square-root interval products validate buffer dimensions" begin
+@testset "square-root linear recurrence buffer dimensions" begin
     ring, = residue_ring(ZZ, 101)
     matrixspace = matrix_space(ring, 2, 2)
     a = matrixspace()
@@ -84,7 +84,7 @@ end
     g = UInt[1, 2]
     g_temp = copy(g)
 
-    @test_throws DimensionMismatch DeRham.sqrt_interval_product!(
+    @test_throws DimensionMismatch DeRham.sqrt_linear_recurrence!(
         a,
         b,
         0,
@@ -93,7 +93,7 @@ end
         matrix_space(ring, 1, 1)(),
         g_temp,
     )
-    @test_throws DimensionMismatch DeRham.sqrt_interval_product!(
+    @test_throws DimensionMismatch DeRham.sqrt_linear_recurrence!(
         a,
         b,
         0,
@@ -102,7 +102,7 @@ end
         temp,
         g_temp[1:1],
     )
-    @test_throws DimensionMismatch DeRham.sqrt_interval_product!(
+    @test_throws DimensionMismatch DeRham.sqrt_linear_recurrence!(
         a,
         b,
         0,
@@ -113,7 +113,7 @@ end
     )
 end
 
-@testset "big-modulus interval points are reduced" begin
+@testset "BGS reduces giant-step points modulo the working modulus" begin
     ring = Oscar.Nemo.ZZModRing(ZZ(49), false)
     matrixspace = matrix_space(ring, 3, 3)
     a = matrixspace()
@@ -131,11 +131,11 @@ end
     actual = copy(g)
 
     DeRham.finitediff_prodeval_linear!(a, b, start, stop, expected, matrixspace(), copy(g))
-    DeRham.sqrt_interval_product!(a, b, start, stop, actual, matrixspace(), copy(g))
+    DeRham.sqrt_linear_recurrence!(a, b, start, stop, actual, matrixspace(), copy(g))
     @test actual == expected
 end
 
-@testset "fast interval product polynomial evaluation" begin
+@testset "BGS multipoint polynomial evaluation" begin
     for modulus in (101, ZZ(101)^25)
         modular_ring, = residue_ring(ZZ, modulus)
         poly_ring, x = polynomial_ring(modular_ring, "x"; cached = false)
@@ -147,25 +147,18 @@ end
 
         if modulus < ZZ(2)^64
             point_data = UInt[data(modular_ring(point)) for point in points]
-            backend = DeRham._NmodIntervalProductEvaluationBackend()
-            evaluation_points =
-                DeRham._nmod_interval_product_evaluation_points(polynomial, point_data)
+            backend = DeRham._NmodBGSEvaluationBackend()
+            evaluation_points = DeRham._nmod_bgs_evaluation_points(polynomial, point_data)
             try
-                actual = DeRham._evaluate_interval_product_polynomial(
-                    backend,
-                    polynomial,
-                    evaluation_points,
-                )
-                actual_second = DeRham._evaluate_interval_product_polynomial(
+                actual =
+                    DeRham._evaluate_bgs_polynomial(backend, polynomial, evaluation_points)
+                actual_second = DeRham._evaluate_bgs_polynomial(
                     backend,
                     second_polynomial,
                     evaluation_points,
                 )
             finally
-                DeRham._release_interval_product_evaluation_points!(
-                    backend,
-                    evaluation_points,
-                )
+                DeRham._release_bgs_evaluation_points!(backend, evaluation_points)
             end
             expected =
                 UInt[data(evaluate(polynomial, modular_ring(point))) for point in points]
@@ -173,29 +166,19 @@ end
                 data(evaluate(second_polynomial, modular_ring(point))) for point in points
             ]
         else
-            backend = DeRham._FmpzModIntervalProductEvaluationBackend()
-            evaluation_points = DeRham._interval_product_evaluation_points(
-                backend,
-                modular_ring,
-                points,
-                polynomial,
-            )
+            backend = DeRham._FmpzModBGSEvaluationBackend()
+            evaluation_points =
+                DeRham._bgs_evaluation_points(backend, modular_ring, points, polynomial)
             try
-                actual = DeRham._evaluate_interval_product_polynomial(
-                    backend,
-                    polynomial,
-                    evaluation_points,
-                )
-                actual_second = DeRham._evaluate_interval_product_polynomial(
+                actual =
+                    DeRham._evaluate_bgs_polynomial(backend, polynomial, evaluation_points)
+                actual_second = DeRham._evaluate_bgs_polynomial(
                     backend,
                     second_polynomial,
                     evaluation_points,
                 )
             finally
-                DeRham._release_interval_product_evaluation_points!(
-                    backend,
-                    evaluation_points,
-                )
+                DeRham._release_bgs_evaluation_points!(backend, evaluation_points)
             end
             expected = ZZRingElem[
                 lift(evaluate(polynomial, modular_ring(point))) for point in points
@@ -209,7 +192,7 @@ end
     end
 end
 
-@testset "square-root interval product dispatch" begin
+@testset "linear recurrence method selection" begin
     ring, = residue_ring(ZZ, 101)
     matrixspace = matrix_space(ring, 2, 2)
     a = matrixspace()
@@ -248,9 +231,9 @@ end
         1,
     )
 
-    @test !DeRham._use_sqrt_interval_product(a, b, g, temp, g_temp, sqrt_params, 3)
-    @test DeRham._use_sqrt_interval_product(a, b, g, temp, g_temp, sqrt_params, 4)
-    @test !DeRham._use_sqrt_interval_product(
+    @test !DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, sqrt_params, 3)
+    @test DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, sqrt_params, 4)
+    @test !DeRham._use_sqrt_linear_recurrence(
         a,
         b,
         g,
@@ -280,7 +263,7 @@ end
         64,
     )
 
-    @test DeRham._use_sqrt_interval_product(
+    @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
@@ -289,7 +272,7 @@ end
         wide_params,
         64,
     )
-    @test DeRham._use_sqrt_interval_product(
+    @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
@@ -311,9 +294,9 @@ end
         :sqrt,
         nothing,
     )
-    @test DeRham._sqrt_interval_product_min_length(2, nothing) == 64
-    @test DeRham._sqrt_interval_product_min_length(28, nothing) == 28^2
-    @test DeRham._sqrt_interval_product_min_length(28, 1) == 1
+    @test DeRham._sqrt_linear_recurrence_min_length(2, nothing) == 64
+    @test DeRham._sqrt_linear_recurrence_min_length(28, nothing) == 28^2
+    @test DeRham._sqrt_linear_recurrence_min_length(28, 1) == 1
     explicit_params = DeRham.ZetaFunctionParams(
         0,
         false,
@@ -327,7 +310,7 @@ end
         :sqrt,
         1,
     )
-    @test DeRham._use_sqrt_interval_product(
+    @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
@@ -336,7 +319,7 @@ end
         explicit_params,
         1,
     )
-    @test !DeRham._use_sqrt_interval_product(
+    @test !DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
@@ -345,7 +328,7 @@ end
         automatic_params,
         28^2 - 1,
     )
-    @test DeRham._use_sqrt_interval_product(
+    @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
@@ -358,7 +341,16 @@ end
     expected = copy(g)
     DeRham.finitediff_prodeval_linear!(a, b, 0, 2, expected, matrixspace(), copy(g))
     actual = copy(g)
-    DeRham.prodeval_linear!(a, b, 0, 2, actual, matrixspace(), copy(g), sqrt_params)
+    DeRham.evaluate_linear_recurrence!(
+        a,
+        b,
+        0,
+        2,
+        actual,
+        matrixspace(),
+        copy(g),
+        sqrt_params,
+    )
     @test actual == expected
 
     big_ring, = residue_ring(ZZ, ZZ(101)^25)
@@ -381,9 +373,9 @@ end
         copy(big_g),
     )
     big_actual = copy(big_g)
-    big_interval_product_calls = Ref(0)
-    DeRham._with_interval_product_test_hook(() -> (big_interval_product_calls[] += 1)) do
-        DeRham.prodeval_linear!(
+    big_sqrt_calls = Ref(0)
+    DeRham._with_sqrt_linear_recurrence_test_hook(() -> (big_sqrt_calls[] += 1)) do
+        DeRham.evaluate_linear_recurrence!(
             big_a,
             big_b,
             0,
@@ -395,14 +387,14 @@ end
         )
     end
     @test big_actual == big_expected
-    @test big_interval_product_calls[] > 0
+    @test big_sqrt_calls[] > 0
 
     unsupported_a = [1 2; 0 1]
     unsupported_b = [1 0; 3 2]
     unsupported_g = [1, 2]
     unsupported_temp = similar(unsupported_a)
     unsupported_g_temp = similar(unsupported_g)
-    @test !DeRham._use_sqrt_interval_product(
+    @test !DeRham._use_sqrt_linear_recurrence(
         unsupported_a,
         unsupported_b,
         unsupported_g,
@@ -423,7 +415,7 @@ end
         similar(unsupported_g),
     )
     actual_unsupported = copy(unsupported_g)
-    DeRham.prodeval_linear!(
+    DeRham.evaluate_linear_recurrence!(
         unsupported_a,
         unsupported_b,
         0,
@@ -436,42 +428,45 @@ end
     @test actual_unsupported == expected_unsupported
 end
 
-@testset "square-root interval product options" begin
+@testset "linear recurrence options" begin
     _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
     frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
     @test_throws ArgumentError zeta_coefficients(
         frontend;
-        interval_product_algorithm = :invalid,
-    )
-    @test_throws ArgumentError zeta_coefficients(frontend; interval_product_min_length = 0)
-    @test_throws ArgumentError zeta_coefficients(
-        frontend;
-        interval_product_min_length = true,
+        linear_recurrence_algorithm = :invalid,
     )
     @test_throws ArgumentError zeta_coefficients(
         frontend;
-        interval_product_min_length = big(typemax(Int)) + 1,
+        sqrt_linear_recurrence_min_length = 0,
+    )
+    @test_throws ArgumentError zeta_coefficients(
+        frontend;
+        sqrt_linear_recurrence_min_length = true,
+    )
+    @test_throws ArgumentError zeta_coefficients(
+        frontend;
+        sqrt_linear_recurrence_min_length = big(typemax(Int)) + 1,
     )
     @test_throws ArgumentError DeRham.pregen_default_context(
         1,
         3,
         7,
         [-1];
-        interval_product_algorithm = :invalid,
+        linear_recurrence_algorithm = :invalid,
     )
     @test_throws ArgumentError DeRham.pregen_default_context(
         1,
         3,
         7,
         [-1];
-        interval_product_min_length = 0,
+        sqrt_linear_recurrence_min_length = 0,
     )
     @test_throws ArgumentError DeRham.pregen_default_context(
         1,
         3,
         7,
         [-1];
-        interval_product_min_length = true,
+        sqrt_linear_recurrence_min_length = true,
     )
 
     context = DeRham.pregen_default_context(
@@ -480,22 +475,22 @@ end
         7,
         [-1];
         algorithm = :depthfirst,
-        interval_product_algorithm = :sqrt,
-        interval_product_min_length = 12,
+        linear_recurrence_algorithm = :sqrt,
+        sqrt_linear_recurrence_min_length = 12,
         lazy = true,
     )
-    @test context.interval_product_algorithm === :sqrt
-    @test context.interval_product_min_length == 12
-    @test DeRham._resolve_interval_product_options(
+    @test context.linear_recurrence_algorithm === :sqrt
+    @test context.sqrt_linear_recurrence_min_length == 12
+    @test DeRham._resolve_linear_recurrence_options(
         context,
         nothing,
-        DeRham._UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+        DeRham._UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     ) == (:sqrt, 12)
-    @test DeRham._resolve_interval_product_options(context, nothing, nothing) ==
+    @test DeRham._resolve_linear_recurrence_options(context, nothing, nothing) ==
           (:sqrt, nothing)
-    @test DeRham._resolve_interval_product_options(context, :finitediff, 64) ==
+    @test DeRham._resolve_linear_recurrence_options(context, :finitediff, 64) ==
           (:finitediff, 64)
-    @test DeRham._resolve_interval_product_options(nothing, nothing, nothing) ==
+    @test DeRham._resolve_linear_recurrence_options(nothing, nothing, nothing) ==
           (:finitediff, nothing)
 
     automatic_context = DeRham.pregen_default_context(
@@ -504,14 +499,14 @@ end
         7,
         [-1];
         algorithm = :depthfirst,
-        interval_product_algorithm = :sqrt,
+        linear_recurrence_algorithm = :sqrt,
         lazy = true,
     )
-    @test automatic_context.interval_product_min_length === nothing
-    @test DeRham._resolve_interval_product_options(
+    @test automatic_context.sqrt_linear_recurrence_min_length === nothing
+    @test DeRham._resolve_linear_recurrence_options(
         automatic_context,
         nothing,
-        DeRham._UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+        DeRham._UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     ) == (:sqrt, nothing)
 
     inherited_coefficients = zeta_coefficients(
@@ -526,7 +521,7 @@ end
         algorithm = :depthfirst,
         changef = false,
         context = context,
-        interval_product_min_length = nothing,
+        sqrt_linear_recurrence_min_length = nothing,
     )
     @test automatic_cutoff_coefficients == BigInt[7, 1, 1]
     overridden_coefficients = zeta_coefficients(
@@ -534,61 +529,59 @@ end
         algorithm = :depthfirst,
         changef = false,
         context = context,
-        interval_product_algorithm = :finitediff,
-        interval_product_min_length = 64,
+        linear_recurrence_algorithm = :finitediff,
+        sqrt_linear_recurrence_min_length = 64,
     )
     @test overridden_coefficients == BigInt[7, 1, 1]
     @test_throws ArgumentError zeta_coefficients(
         frontend;
         context = context,
-        interval_product_algorithm = :invalid,
+        linear_recurrence_algorithm = :invalid,
     )
 end
 
-@testset "square-root interval settings are ignored without fast evaluation" begin
+@testset "square-root settings with fast evaluation disabled" begin
     _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
     frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
     for algorithm in (:depthfirst, :pchunk)
-        interval_product_calls = Ref(0)
-        coefficients = DeRham._with_interval_product_test_hook(
-            () -> (interval_product_calls[] += 1),
-        ) do
-            zeta_coefficients(
-                frontend;
-                algorithm,
-                changef = false,
-                fastevaluation = false,
-                interval_product_algorithm = :sqrt,
-                interval_product_min_length = 1,
-            )
-        end
+        sqrt_calls = Ref(0)
+        coefficients =
+            DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
+                zeta_coefficients(
+                    frontend;
+                    algorithm,
+                    changef = false,
+                    fastevaluation = false,
+                    linear_recurrence_algorithm = :sqrt,
+                    sqrt_linear_recurrence_min_length = 1,
+                )
+            end
         @test coefficients == BigInt[7, 1, 1]
-        @test interval_product_calls[] == 0
+        @test sqrt_calls[] == 0
     end
 end
 
-@testset "square-root interval products run end to end" begin
+@testset "square-root linear recurrence in DepthFirst and PChunk" begin
     _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
     frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
     default_coefficients =
         zeta_coefficients(frontend; algorithm = :depthfirst, changef = false)
 
     for algorithm in (:depthfirst, :pchunk), always_use_bigints in (false, true)
-        interval_product_calls = Ref(0)
-        sqrt_coefficients = DeRham._with_interval_product_test_hook(
-            () -> (interval_product_calls[] += 1),
-        ) do
-            zeta_coefficients(
-                frontend;
-                algorithm,
-                changef = false,
-                always_use_bigints,
-                interval_product_algorithm = :sqrt,
-                interval_product_min_length = 1,
-            )
-        end
+        sqrt_calls = Ref(0)
+        sqrt_coefficients =
+            DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
+                zeta_coefficients(
+                    frontend;
+                    algorithm,
+                    changef = false,
+                    always_use_bigints,
+                    linear_recurrence_algorithm = :sqrt,
+                    sqrt_linear_recurrence_min_length = 1,
+                )
+            end
 
         @test sqrt_coefficients == default_coefficients
-        @test interval_product_calls[] > 0
+        @test sqrt_calls[] > 0
     end
 end

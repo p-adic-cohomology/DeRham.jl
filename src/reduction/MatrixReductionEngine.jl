@@ -14,7 +14,7 @@ normalization.
 
 Keyword arguments:
 `evaluation_kernel = eval_to_linear!`, `fastevaluation = false`, and
-`params`, which configures the interval-product method when fast evaluation is
+`params`, which selects the linear recurrence algorithm when fast evaluation is
 enabled.
 """
 mutable struct MatrixReductionEngine{D,C,F,K,V} <: AbstractReductionEngine
@@ -40,7 +40,7 @@ function MatrixReductionEngine(
 )
     vector_type = typeof(_matrix_engine_vector(context.g))
     live = Dict{Int,MatrixReductionChainState{vector_type}}()
-    interval_product_params =
+    linear_recurrence_params =
         params === nothing ?
         ZetaFunctionParams(
             0,
@@ -60,7 +60,7 @@ function MatrixReductionEngine(
         fill_vector!,
         evaluation_kernel,
         fastevaluation,
-        interval_product_params,
+        linear_recurrence_params,
         live,
         1,
     )
@@ -157,7 +157,7 @@ function reduce!(engine::MatrixReductionEngine, chain::ReductionChainHandle, v, 
     )
 
     if engine.fastevaluation
-        prodeval_linear!(
+        evaluate_linear_recurrence!(
             engine.context.B,
             engine.context.A,
             0,

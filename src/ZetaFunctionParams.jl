@@ -8,26 +8,26 @@ struct ZetaFunctionParams
     always_use_bigints::Bool
     use_gpu::Bool
     use_threads::Bool
-    interval_product_algorithm::Symbol
-    interval_product_min_length::Union{Nothing,Int}
+    linear_recurrence_algorithm::Symbol
+    sqrt_linear_recurrence_min_length::Union{Nothing,Int}
 end
 
-const _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH = Val{:unspecified}()
+const _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH = Val{:unspecified}()
 
-function _validate_interval_product_options(algorithm, min_length)
+function _validate_linear_recurrence_options(algorithm, min_length)
     algorithm in (:finitediff, :sqrt) ||
-        throw(ArgumentError("interval_product_algorithm must be :finitediff or :sqrt"))
+        throw(ArgumentError("linear_recurrence_algorithm must be :finitediff or :sqrt"))
     if min_length !== nothing
         min_length isa Integer && !(min_length isa Bool) && min_length > 0 || throw(
             ArgumentError(
-                "interval_product_min_length must be a positive integer or nothing",
+                "sqrt_linear_recurrence_min_length must be a positive integer or nothing",
             ),
         )
         min_length = try
             Int(min_length)
         catch error
             error isa InexactError || rethrow()
-            throw(ArgumentError("interval_product_min_length must fit in an Int"))
+            throw(ArgumentError("sqrt_linear_recurrence_min_length must fit in an Int"))
         end
     end
     return algorithm, min_length

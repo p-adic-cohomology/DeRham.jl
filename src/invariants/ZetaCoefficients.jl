@@ -78,18 +78,18 @@ Keyword arguments:
   values are not accepted for any explicit precision keyword.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
-- `interval_product_algorithm=:finitediff`: selects finite differences or the
-  experimental square-root-time interval product (`:sqrt`) for CPU DepthFirst
-  and PChunk reductions.
-- `interval_product_min_length=nothing`: the experimental method's minimum
-  interval length. `nothing` selects an automatic cutoff of `max(64, r^2)` for
-  each matrix width `r`; an explicit positive integer is used as-is.
+- `linear_recurrence_algorithm=:finitediff` selects finite differences or the
+  experimental square-root method (`:sqrt`) for linear recurrence evaluation
+  in CPU DepthFirst and PChunk reductions.
+- `sqrt_linear_recurrence_min_length=nothing` sets the minimum run length for the
+  square-root method. `nothing` selects an automatic cutoff of `max(64, r^2)`
+  for each matrix width `r`. An explicit positive integer is used as-is.
 
-When a pre-generated `context` is supplied, omitted interval-product keywords
+When a pre-generated `context` is supplied, omitted linear recurrence keywords
 use the settings stored in that context. Explicit keywords override them.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
-`interval_product_algorithm`, `interval_product_min_length`, `context`, and
+`linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`, `context`, and
 `precision_info` keywords are internal or experimental and may change. Their
 current defaults are `:invlex`, `false`, `true`, `false`, `:finitediff`, `nothing`,
 `nothing`, and `nothing`, respectively.
@@ -124,8 +124,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = nothing,
-    interval_product_min_length = _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -133,11 +133,11 @@ function zeta_coefficients(
     algorithm_precision = nothing,
 )
     _validate_reduction_setup(fe, algorithm; use_gpu = use_gpu, context = context)
-    interval_product_algorithm, interval_product_min_length =
-        _resolve_interval_product_options(
+    linear_recurrence_algorithm, sqrt_linear_recurrence_min_length =
+        _resolve_linear_recurrence_options(
             context,
-            interval_product_algorithm,
-            interval_product_min_length,
+            linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length,
         )
     if fe isa ProjectiveHypersurface
         if relative_precision !== nothing ||
@@ -211,8 +211,8 @@ function zeta_coefficients(
         always_use_bigints,
         use_gpu,
         use_threads,
-        interval_product_algorithm,
-        interval_product_min_length,
+        linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length,
     )
 
     cache = controlled_reduction_cache(n, d, S, params, P)
@@ -432,8 +432,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = nothing,
-    interval_product_min_length = _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -453,8 +453,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
-        interval_product_algorithm = interval_product_algorithm,
-        interval_product_min_length = interval_product_min_length,
+        linear_recurrence_algorithm = linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = sqrt_linear_recurrence_min_length,
         context = context,
         precision_info = precision_info,
         relative_precision = relative_precision,
@@ -485,8 +485,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = nothing,
-    interval_product_min_length = _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -509,8 +509,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
-        interval_product_algorithm = interval_product_algorithm,
-        interval_product_min_length = interval_product_min_length,
+        linear_recurrence_algorithm = linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = sqrt_linear_recurrence_min_length,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,
@@ -532,8 +532,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = nothing,
-    interval_product_min_length = _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -553,8 +553,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
-        interval_product_algorithm = interval_product_algorithm,
-        interval_product_min_length = interval_product_min_length,
+        linear_recurrence_algorithm = linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = sqrt_linear_recurrence_min_length,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,

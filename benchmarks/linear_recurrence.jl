@@ -1,7 +1,7 @@
 using DeRham
 using Oscar
 
-function interval_case(r, modulus)
+function recurrence_case(r, modulus)
     ring, = residue_ring(ZZ, modulus)
     matrixspace = matrix_space(ring, r, r)
     a = matrixspace()
@@ -18,7 +18,7 @@ function interval_case(r, modulus)
     return ring, matrixspace, a, b, g
 end
 
-function interval_time(method, case, interval_length; repetitions = 3)
+function linear_recurrence_time(method, case, run_length; repetitions = 3)
     _, matrixspace, a, b, initial = case
     times = Float64[]
     for _ = 1:repetitions
@@ -27,9 +27,9 @@ function interval_time(method, case, interval_length; repetitions = 3)
         g_temp = copy(initial)
         GC.gc()
         elapsed = @elapsed if method === :sqrt
-            DeRham.sqrt_interval_product!(a, b, 0, interval_length - 1, g, temp, g_temp)
+            DeRham.sqrt_linear_recurrence!(a, b, 0, run_length - 1, g, temp, g_temp)
         else
-            DeRham.finitediff_prodeval_linear!(a, b, 0, interval_length - 1, g, temp, g_temp)
+            DeRham.finitediff_prodeval_linear!(a, b, 0, run_length - 1, g, temp, g_temp)
         end
         push!(times, elapsed)
     end
@@ -46,7 +46,7 @@ function fit_power_law(lengths, times)
     return exponent, y_mean - exponent * x_mean
 end
 
-function run_interval_benchmarks()
+function run_linear_recurrence_benchmarks()
     lengths = (64, 256, 1024, 4096, 16384, 65536, 262144, 1048576)
     moduli = (101^3, ZZ(101)^30, ZZ(2)^80)
     println("r,modulus,L,finitediff_seconds,sqrt_seconds,speedup")
@@ -54,47 +54,51 @@ function run_interval_benchmarks()
         benchmark_moduli = r <= 4 ? moduli : (moduli[1],)
         repetitions = r <= 4 ? 3 : 1
         for modulus in benchmark_moduli
-            case = interval_case(r, modulus)
-            interval_time(:finitediff, case, 4; repetitions = 1)
-            interval_time(:sqrt, case, 4; repetitions = 1)
+            case = recurrence_case(r, modulus)
+            linear_recurrence_time(:finitediff, case, 4; repetitions = 1)
+            linear_recurrence_time(:sqrt, case, 4; repetitions = 1)
             finite = Float64[]
             square_root = Float64[]
             measured_lengths = Int[]
-            for interval_length in lengths
+            for run_length in lengths
                 expected = copy(case[5])
                 actual = copy(case[5])
                 DeRham.finitediff_prodeval_linear!(
                     case[3],
                     case[4],
                     0,
-                    interval_length - 1,
+                    run_length - 1,
                     expected,
                     case[2](),
                     copy(expected),
                 )
-                DeRham.sqrt_interval_product!(
+                DeRham.sqrt_linear_recurrence!(
                     case[3],
                     case[4],
                     0,
-                    interval_length - 1,
+                    run_length - 1,
                     actual,
                     case[2](),
                     copy(actual),
                 )
                 @assert actual == expected
-                finite_time = interval_time(
+                finite_time = linear_recurrence_time(
                     :finitediff,
                     case,
-                    interval_length;
+                    run_length;
                     repetitions = repetitions,
                 )
-                sqrt_time =
-                    interval_time(:sqrt, case, interval_length; repetitions = repetitions)
+                sqrt_time = linear_recurrence_time(
+                    :sqrt,
+                    case,
+                    run_length;
+                    repetitions = repetitions,
+                )
                 push!(finite, finite_time)
                 push!(square_root, sqrt_time)
-                push!(measured_lengths, interval_length)
+                push!(measured_lengths, run_length)
                 println(
-                    "$(r),$(modulus),$(interval_length),$(finite_time),$(sqrt_time),$(finite_time / sqrt_time)",
+                    "$(r),$(modulus),$(run_length),$(finite_time),$(sqrt_time),$(finite_time / sqrt_time)",
                 )
                 max(finite_time, sqrt_time) > 180 && break
             end
@@ -132,8 +136,8 @@ function run_interval_benchmarks()
         options = (
             algorithm = :pchunk,
             changef = false,
-            interval_product_algorithm = method,
-            interval_product_min_length = 1,
+            linear_recurrence_algorithm = method,
+            sqrt_linear_recurrence_min_length = 1,
         )
         result = DeRham.zeta_coefficients(f; options...)
         results[method] = result
@@ -151,4 +155,4 @@ function run_interval_benchmarks()
     )
 end
 
-run_interval_benchmarks()
+run_linear_recurrence_benchmarks()

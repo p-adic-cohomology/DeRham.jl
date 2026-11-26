@@ -21,9 +21,9 @@ B - the matrix which will store B in Ay + B
 temp - temporary matrix used for intermediate calculations
 g - the vector g which contains the vector which is being reduced
 g_temp - temporary vector used for intermediate calculations
-interval_product_algorithm - default interval product method for reductions
-interval_product_min_length - explicit minimum interval length, or `nothing` for
-  the automatic matrix-width-based threshold
+linear_recurrence_algorithm - default linear recurrence algorithm for reductions
+sqrt_linear_recurrence_min_length - minimum run length for the square-root method,
+  or `nothing` for the automatic matrix-width-based cutoff
 
 Current examples that are in use:
 
@@ -39,8 +39,8 @@ struct ControlledReductionContext{MatrixType,VectorType}
     temp::MatrixType
     g::VectorType
     g_temp::VectorType
-    interval_product_algorithm::Symbol
-    interval_product_min_length::Union{Nothing,Int}
+    linear_recurrence_algorithm::Symbol
+    sqrt_linear_recurrence_min_length::Union{Nothing,Int}
 end
 
 ControlledReductionContext(Ruv, A, B, temp, g, g_temp) =
@@ -66,18 +66,18 @@ function ControlledReductionContext{MatrixType,VectorType}(
     )
 end
 
-function _resolve_interval_product_options(context, algorithm, min_length)
-    if min_length === _UNSPECIFIED_INTERVAL_PRODUCT_MIN_LENGTH
+function _resolve_linear_recurrence_options(context, algorithm, min_length)
+    if min_length === _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH
         min_length =
-            context isa ControlledReductionContext ? context.interval_product_min_length :
-            nothing
+            context isa ControlledReductionContext ?
+            context.sqrt_linear_recurrence_min_length : nothing
     end
     if context isa ControlledReductionContext
-        algorithm = something(algorithm, context.interval_product_algorithm)
+        algorithm = something(algorithm, context.linear_recurrence_algorithm)
     else
         algorithm = something(algorithm, :finitediff)
     end
-    return _validate_interval_product_options(algorithm, min_length)
+    return _validate_linear_recurrence_options(algorithm, min_length)
 end
 
 """
@@ -147,8 +147,8 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
-            params.interval_product_algorithm,
-            params.interval_product_min_length,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     elseif params.use_gpu == true
 
@@ -167,8 +167,8 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
-            params.interval_product_algorithm,
-            params.interval_product_min_length,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     else # use the CPU
         A = matspace()
@@ -193,8 +193,8 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
-            params.interval_product_algorithm,
-            params.interval_product_min_length,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     end
 end
@@ -210,14 +210,14 @@ Keyword arguments and defaults:
 `verbose = 0`, `givefrobmat = false`, `algorithm = :naive`,
 `termorder = :invlex`, `vars_reversed = false`, `fastevaluation = false`,
 `always_use_bigints = false`, `use_gpu = false`, `use_threads = false`,
-`interval_product_algorithm = :finitediff`,
-`interval_product_min_length = nothing`, and `lazy = false`.
+`linear_recurrence_algorithm = :finitediff`,
+`sqrt_linear_recurrence_min_length = nothing`, and `lazy = false`.
 
-When `interval_product_min_length` is `nothing`, the automatic cutoff is the
+When `sqrt_linear_recurrence_min_length` is `nothing`, the automatic cutoff is the
 maximum of 64 and the square of the current matrix width. An explicit positive
 integer is used as-is.
 
-The interval-product settings are retained in the context and supply the
+The linear recurrence settings are retained in the context and supply the
 defaults for `zeta_coefficients` when a context is passed and those keywords are
 omitted.
 """
@@ -235,14 +235,14 @@ function pregen_default_context(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
-    interval_product_algorithm = :finitediff,
-    interval_product_min_length = nothing,
+    linear_recurrence_algorithm = :finitediff,
+    sqrt_linear_recurrence_min_length = nothing,
     lazy = false,
 )
-    interval_product_algorithm, interval_product_min_length =
-        _validate_interval_product_options(
-            interval_product_algorithm,
-            interval_product_min_length,
+    linear_recurrence_algorithm, sqrt_linear_recurrence_min_length =
+        _validate_linear_recurrence_options(
+            linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length,
         )
     params = ZetaFunctionParams(
         verbose,
@@ -254,8 +254,8 @@ function pregen_default_context(
         always_use_bigints,
         use_gpu,
         use_threads,
-        interval_product_algorithm,
-        interval_product_min_length,
+        linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length,
     )
 
     m = pregen_precision_info(n, d, p)
@@ -315,8 +315,8 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
-            params.interval_product_algorithm,
-            params.interval_product_min_length,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     elseif params.use_gpu == true
 
@@ -334,8 +334,8 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
-            params.interval_product_algorithm,
-            params.interval_product_min_length,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     else # use the CPU
         A = matspace()
@@ -360,8 +360,8 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
-            params.interval_product_algorithm,
-            params.interval_product_min_length,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     end
 end
