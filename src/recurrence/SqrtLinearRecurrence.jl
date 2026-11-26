@@ -362,28 +362,6 @@ function _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp)
     return false
 end
 
-function _with_sqrt_linear_recurrence_test_hook(f::Function, hook::Function)
-    storage = task_local_storage()
-    key = :DeRham_sqrt_linear_recurrence_test_hook
-    previous = get(storage, key, nothing)
-    storage[key] = hook
-    try
-        return f()
-    finally
-        if previous === nothing
-            delete!(storage, key)
-        else
-            storage[key] = previous
-        end
-    end
-end
-
-function _notify_sqrt_linear_recurrence_test_hook()
-    hook = get(task_local_storage(), :DeRham_sqrt_linear_recurrence_test_hook, nothing)
-    hook === nothing || hook()
-    return nothing
-end
-
 function _use_sqrt_linear_recurrence(
     a,
     b,
@@ -421,7 +399,7 @@ function evaluate_linear_recurrence!(
         configured_min,
         interval_length,
     )
-        _notify_sqrt_linear_recurrence_test_hook()
+        @debug "Using square-root linear recurrence"
         return sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     end
     return finitediff_prodeval_linear!(a, b, start, stop, g, temp, g_temp)

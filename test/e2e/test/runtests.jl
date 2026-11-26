@@ -577,11 +577,12 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             @test occursin("changed_$(option)", only(option_errors))
         end
 
+        sqrt_options = Dict{String,Any}("linear_recurrence_algorithm" => "sqrt")
         for parameters in (
             Dict{String,Any}(),
-            Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", "fastevaluation" => false),
-            Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", "use_gpu" => true),
-            Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", "algorithm" => "varbyvar"),
+            merge(sqrt_options, Dict("fastevaluation" => false)),
+            merge(sqrt_options, Dict("use_gpu" => true)),
+            merge(sqrt_options, Dict("algorithm" => "varbyvar")),
         )
             no_cutoff = record("no_cutoff", 0.2, parameters)
             with_cutoff = record(
@@ -593,7 +594,6 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
                   E2E.priming_configuration_key(with_cutoff, example)
         end
 
-        sqrt_options = Dict{String,Any}("linear_recurrence_algorithm" => "sqrt")
         sqrt_default = record("sqrt_default", 0.2, sqrt_options)
         sqrt_cutoff = record(
             "sqrt_cutoff",
@@ -1435,6 +1435,37 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         @test occursin("r_bad_tag", joined)
         @test occursin("r_bad_type", joined)
         @test occursin("r_bad_runtime", joined)
+
+        for (option, value) in ("fastevaluation" => "true", "use_gpu" => 0)
+            malformed_flag = E2E.ExecutionRecord(
+                "r_bad_$option",
+                "zeta_coefficients",
+                String[],
+                cfg.ci_seconds,
+                "ok",
+                nothing,
+                Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", option => value),
+                "flags.toml",
+            )
+            failure = try
+                E2E.validate_catalogue(catalogue, [records; malformed_flag], cfg)
+                nothing
+            catch exception
+                exception
+            end
+            @test failure isa E2E.CatalogueValidationError
+            if failure isa E2E.CatalogueValidationError
+                @test all(error -> error in failure.errors, err.errors)
+                @test occursin(
+                    "flags.toml (record \"r_bad_$option\"):",
+                    last(failure.errors),
+                )
+                @test occursin(
+                    "parameter \"$option\" must be a boolean",
+                    last(failure.errors),
+                )
+            end
+        end
 
         malformed_result = E2E.ExampleCase(
             "bad_result",

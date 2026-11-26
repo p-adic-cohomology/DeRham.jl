@@ -1,3 +1,14 @@
+using Logging: Debug, with_logger
+
+function logged_sqrt_recurrences(f)
+    logger = Test.TestLogger(; min_level = Debug)
+    result = with_logger(f, logger)
+    calls = count(logger.logs) do log
+        log._module === DeRham && log.message == "Using square-root linear recurrence"
+    end
+    return result, calls
+end
+
 function DeRham.my_mul!(output::Matrix{Int}, input::Matrix{Int}, scalar::Int)
     for j in axes(output, 2), i in axes(output, 1)
         output[i, j] = input[i, j] * scalar
@@ -237,13 +248,19 @@ end
 end
 
 @testset "BGS multipoint polynomial evaluation" begin
-    points = [-3, 0, 1, 104]
-    for modulus in (101, ZZ(101)^25)
+    distinct_points = [-3, 0, 1, 104]
+    congruent_points = [2, 7, 12, 17, 22]
+    for (modulus, points) in (
+        (101, distinct_points),
+        (ZZ(101)^25, distinct_points),
+        (5, congruent_points),
+        (BigInt(5), congruent_points),
+    )
         modular_ring, = residue_ring(ZZ, modulus)
         poly_ring, x = polynomial_ring(modular_ring, "x"; cached = false)
         polynomial = poly_ring(3) * x^3 + poly_ring(5) * x + poly_ring(7)
         second_polynomial = poly_ring(2) * x^2 + poly_ring(11) * x + poly_ring(13)
-        word_modulus = modulus < ZZ(2)^64
+        word_modulus = modulus isa Int
         backend =
             word_modulus ? DeRham._NmodBGSEvaluationBackend() :
             DeRham._FmpzModBGSEvaluationBackend()
@@ -530,29 +547,32 @@ end
         DeRham._UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     ) == (:sqrt, nothing)
 
-    sqrt_calls = Ref(0)
-    DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
-        inherited_coefficients = zeta_coefficients(
+    inherited_coefficients, inherited_calls = logged_sqrt_recurrences() do
+        zeta_coefficients(
             frontend;
             algorithm = :depthfirst,
             changef = false,
             context = context,
+            linear_recurrence_algorithm = nothing,
         )
-        @test inherited_coefficients == BigInt[7, 1, 1]
-        @test sqrt_calls[] > 0
+    end
+    @test inherited_coefficients == BigInt[7, 1, 1]
+    @test inherited_calls > 0
 
-        sqrt_calls[] = 0
-        automatic_cutoff_coefficients = zeta_coefficients(
+    reset_coefficients, reset_calls = logged_sqrt_recurrences() do
+        zeta_coefficients(
             frontend;
             algorithm = :depthfirst,
             changef = false,
             context = context,
             sqrt_linear_recurrence_min_length = nothing,
         )
-        @test automatic_cutoff_coefficients == inherited_coefficients
-        @test sqrt_calls[] == 0
+    end
+    @test reset_coefficients == inherited_coefficients
+    @test reset_calls == 0
 
-        overridden_coefficients = zeta_coefficients(
+    overridden_coefficients, overridden_calls = logged_sqrt_recurrences() do
+        zeta_coefficients(
             frontend;
             algorithm = :depthfirst,
             changef = false,
@@ -560,9 +580,10 @@ end
             linear_recurrence_algorithm = :finitediff,
             sqrt_linear_recurrence_min_length = 1,
         )
-        @test overridden_coefficients == inherited_coefficients
-        @test sqrt_calls[] == 0
     end
+    @test overridden_coefficients == inherited_coefficients
+    @test overridden_calls == 0
+
     @test_throws ArgumentError zeta_coefficients(
         frontend;
         context = context,
@@ -585,26 +606,55 @@ end
     @test context.temp isa DeRham.ZZModMatrix
     @test context.g isa Vector{ZZRingElem}
     @test context.g_temp isa Vector{ZZRingElem}
+
+    _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    @test_throws r"residue representation.*always_use_bigints" zeta_coefficients(
+        f;
+        algorithm = :depthfirst,
+        changef = false,
+        context,
+    )
+    @test context.Ruvs.compute === nothing
+
+    @test zeta_coefficients(
+        f;
+        algorithm = :depthfirst,
+        changef = false,
+        context,
+        always_use_bigints = true,
+    ) == BigInt[7, 1, 1]
+    compute = context.Ruvs.compute
+    @test !isempty(context.Ruvs.Vs)
+
+    _, (u, v, w) = polynomial_ring(GF(5), ["u", "v", "w"])
+    @test_throws r"working modulus.*Regenerate the context" zeta_coefficients(
+        u^3 + v^3 + w^3;
+        algorithm = :depthfirst,
+        changef = false,
+        context,
+        always_use_bigints = true,
+    )
+    @test context.Ruvs.compute === compute
+    @test isempty(context.Ruvs.stale)
 end
 
 @testset "square-root settings with fast evaluation disabled" begin
     _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
     frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
     for algorithm in (:depthfirst, :pchunk)
-        sqrt_calls = Ref(0)
-        coefficients =
-            DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
-                zeta_coefficients(
-                    frontend;
-                    algorithm,
-                    changef = false,
-                    fastevaluation = false,
-                    linear_recurrence_algorithm = :sqrt,
-                    sqrt_linear_recurrence_min_length = 1,
-                )
-            end
+        coefficients, sqrt_calls = logged_sqrt_recurrences() do
+            zeta_coefficients(
+                frontend;
+                algorithm,
+                changef = false,
+                fastevaluation = false,
+                linear_recurrence_algorithm = :sqrt,
+                sqrt_linear_recurrence_min_length = 1,
+            )
+        end
         @test coefficients == BigInt[7, 1, 1]
-        @test sqrt_calls[] == 0
+        @test sqrt_calls == 0
     end
 end
 
@@ -615,39 +665,35 @@ end
         zeta_coefficients(frontend; algorithm = :depthfirst, changef = false)
 
     for algorithm in (:depthfirst, :pchunk), always_use_bigints in (false, true)
-        sqrt_calls = Ref(0)
-        sqrt_coefficients =
-            DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
-                zeta_coefficients(
-                    frontend;
-                    algorithm,
-                    changef = false,
-                    always_use_bigints,
-                    linear_recurrence_algorithm = :sqrt,
-                    sqrt_linear_recurrence_min_length = 1,
-                )
-            end
+        sqrt_coefficients, sqrt_calls = logged_sqrt_recurrences() do
+            zeta_coefficients(
+                frontend;
+                algorithm,
+                changef = false,
+                always_use_bigints,
+                linear_recurrence_algorithm = :sqrt,
+                sqrt_linear_recurrence_min_length = 1,
+            )
+        end
 
         @test sqrt_coefficients == default_coefficients
-        @test sqrt_calls[] > 0
+        @test sqrt_calls > 0
     end
 end
 
 @testset "square-root linear recurrence with a separate prime" begin
     _, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
-    sqrt_calls = Ref(0)
-    coefficients =
-        DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
-            zeta_coefficients(
-                x^3 + y^3 + z^3,
-                7;
-                algorithm = :depthfirst,
-                changef = false,
-                fastevaluation = true,
-                linear_recurrence_algorithm = :sqrt,
-                sqrt_linear_recurrence_min_length = 1,
-            )
-        end
+    coefficients, sqrt_calls = logged_sqrt_recurrences() do
+        zeta_coefficients(
+            x^3 + y^3 + z^3,
+            7;
+            algorithm = :depthfirst,
+            changef = false,
+            fastevaluation = true,
+            linear_recurrence_algorithm = :sqrt,
+            sqrt_linear_recurrence_min_length = 1,
+        )
+    end
     @test coefficients == BigInt[7, 1, 1]
-    @test sqrt_calls[] > 0
+    @test sqrt_calls > 0
 end

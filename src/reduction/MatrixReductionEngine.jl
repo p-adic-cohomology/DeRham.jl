@@ -77,7 +77,15 @@ function MatrixReductionEngine(
     )
 end
 
-function _configured_matrix_reduction_engine(execution_setup, fe, P, S, cache, params, directions)
+function _configured_matrix_reduction_engine(
+    execution_setup,
+    fe,
+    P,
+    S,
+    cache,
+    params,
+    directions,
+)
     fill_vector! =
         (vector, key, input) -> reduction_input_vector!(vector, fe, input, S, cache, params)
     preconfigured = if execution_setup.preconfigured_engine === nothing
@@ -145,13 +153,18 @@ function _combine_matrix_vectors!(destination::KaratsubaArray, source, _)
     return destination
 end
 
-function _combine_matrix_vectors!(destination::Vector{UInt}, source::Vector{UInt}, matrix::zzModMatrix)
+function _combine_matrix_vectors!(
+    destination::Vector{UInt},
+    source::Vector{UInt},
+    matrix::zzModMatrix,
+)
     word_modulus = UInt(modulus(base_ring(matrix)))
     for i in eachindex(destination, source)
         left = destination[i]
         right = source[i]
         distance_to_modulus = word_modulus - right
-        destination[i] = left >= distance_to_modulus ? left - distance_to_modulus : left + right
+        destination[i] =
+            left >= distance_to_modulus ? left - distance_to_modulus : left + right
     end
     return destination
 end

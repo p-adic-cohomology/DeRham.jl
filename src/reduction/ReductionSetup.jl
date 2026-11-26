@@ -183,6 +183,23 @@ function reduction_execution_setup(
             ),
         )
     end
+    if context !== nothing && !params.use_gpu
+        context isa default_context_type(MS1, params) || throw(
+            ArgumentError(
+                "the pre-generated context uses a different residue representation. " *
+                "Use matching `always_use_bigints` and `use_gpu` options in " *
+                "`pregen_default_context` and `zeta_coefficients`.",
+            ),
+        )
+        context_modulus = modulus(base_ring(context.A))
+        context_modulus == m || throw(
+            ArgumentError(
+                "the pre-generated context has working modulus $context_modulus, " *
+                "but this reduction requires $m. Regenerate the context for the " *
+                "same prime and working precision, or omit `context`.",
+            ),
+        )
+    end
 
     ruv_function =
         reduction_ruv_function(fe, configuration.S, f, pseudoInverseMat, cache, params)

@@ -13,14 +13,17 @@ run length for square-root evaluation. Fast evaluation is enabled by default
 for finite-field inputs. Pass
 `fastevaluation=true` explicitly to `zeta_coefficients(f, p)`.
 
-For DepthFirst reductions of projective hypersurfaces, omitted recurrence
-settings inherit the supplied pre-generated context's algorithm and cutoff.
-PChunk uses the built-in context and accepts the recurrence settings directly.
+For DepthFirst reductions of projective hypersurfaces, omitting
+`linear_recurrence_algorithm` or passing `nothing` inherits the supplied
+pre-generated context's algorithm. Pass `:finitediff` explicitly to select
+finite differences. Omitting the cutoff inherits the context's cutoff, and
+passing `nothing` explicitly resets it to the default and selects finite
+differences. PChunk uses the built-in context and accepts the recurrence
+settings directly.
 
-A cutoff of `nothing` selects finite differences, including when passed
-explicitly to reset an inherited cutoff. Unsupported matrix and vector types
-also use finite differences. The crossover depends on the workload, so use
-representative timings to choose a cutoff when enabling the experimental method.
+Unsupported matrix and vector types also use finite differences. The crossover
+depends on the workload, so use representative timings to choose a cutoff when
+enabling the experimental method.
 
 ```@docs
 DeRham.sqrt_linear_recurrence!

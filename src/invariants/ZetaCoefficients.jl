@@ -85,8 +85,12 @@ Keyword arguments:
   square-root method. Supply a positive integer to enable it for eligible runs
   at or above that length. A cutoff of `nothing` selects finite differences.
 
-DepthFirst reductions of projective hypersurfaces can inherit omitted recurrence
-keywords from a pre-generated `context`. Explicit keywords override them.
+With a pre-generated `context` for a DepthFirst reduction of a projective
+hypersurface, omitting `linear_recurrence_algorithm` or passing `nothing` inherits
+the context's algorithm. Pass `:finitediff` explicitly to select finite
+differences. Omitting `sqrt_linear_recurrence_min_length` inherits the context's
+cutoff. Passing `nothing` explicitly resets the cutoff to the default and
+selects finite differences.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`, `context`, and

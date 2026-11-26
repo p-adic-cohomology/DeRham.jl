@@ -228,7 +228,8 @@ With `linear_recurrence_algorithm=:sqrt`, a positive
 A cutoff of `nothing` selects finite differences.
 
 DepthFirst reductions of projective hypersurfaces inherit omitted recurrence
-keywords from the supplied context.
+keywords from the supplied context. For CPU reductions, generate the context
+with the same working modulus and `always_use_bigints` setting as the reduction.
 """
 function pregen_default_context(
     n,

@@ -4,7 +4,15 @@ end
 
 function _depthfirst_engine_factory(execution_setup, fe, P, S, cache, params, directions)
     return () -> DepthFirstEngineState(
-        _configured_matrix_reduction_engine(execution_setup, fe, P, S, cache, params, directions),
+        _configured_matrix_reduction_engine(
+            execution_setup,
+            fe,
+            P,
+            S,
+            cache,
+            params,
+            directions,
+        ),
     )
 end
 

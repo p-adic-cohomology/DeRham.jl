@@ -204,11 +204,15 @@ whose records all meet or exceed that threshold are exempt. A configuration
 uses variety dimension and the code-path options `algorithm`,
 `linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`,
 `fastevaluation`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
-`termorder`, and `k`. The cutoff contributes only when the configuration can
-use the square-root method. Executors share the compiled pipeline for a dimension and option set, so
-executor type does not split configurations. Integer `k` values are keyed by
-type, so `k=1` and `k=2` share a configuration while an absent `k` remains
-distinct. `S` is record data and does not split configurations.
+`termorder`, and `k`. The cutoff contributes when the record requests
+`linear_recurrence_algorithm="sqrt"`, enables fast evaluation on the CPU, and
+records `algorithm` as `default`, `depthfirst`, or `pchunk`. This uses the recorded
+algorithm even if `default` selects VarByVar at runtime, as it can for a
+projective hypersurface with `S=[n]`. Executors share the compiled pipeline
+for a dimension and option set, so executor type does not split configurations.
+Integer `k` values are keyed by type, so `k=1` and `k=2` share a configuration
+while an absent `k` remains distinct. `S` is record data and does not split
+configurations.
 
 When adding a record, check whether it creates a configuration that needs
 priming. Add the shortest suitable existing record for that configuration to

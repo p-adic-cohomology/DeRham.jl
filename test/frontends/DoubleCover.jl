@@ -203,15 +203,19 @@ end
         end
 
         if id == "g1_d4_a"
-            pchunk_result = DeRham.zeta_coefficients(
-                fe;
-                algorithm = :pchunk,
-                series_precision = N,
-                algorithm_precision = M,
-            )
-            @test pchunk_result !== false
-            @test pchunk_result == depthfirst_result
-            @test reverse(pchunk_result) == expected_ascending
+            for always_use_bigints in (false, true), use_threads in (false, true)
+                pchunk_result = DeRham.zeta_coefficients(
+                    fe;
+                    algorithm = :pchunk,
+                    series_precision = N,
+                    algorithm_precision = M,
+                    always_use_bigints,
+                    use_threads,
+                )
+                @test pchunk_result !== false
+                @test pchunk_result == depthfirst_result
+                @test reverse(pchunk_result) == expected_ascending
+            end
         end
 
         if id == "g1_d4_a"

@@ -197,7 +197,15 @@ function _matrix_reduction_runtime_factory(
     directions,
 )
     return () -> MatrixReductionRuntime(
-        _configured_matrix_reduction_engine(execution_setup, fe, P, S, cache, params, directions),
+        _configured_matrix_reduction_engine(
+            execution_setup,
+            fe,
+            P,
+            S,
+            cache,
+            params,
+            directions,
+        ),
     )
 end
 
