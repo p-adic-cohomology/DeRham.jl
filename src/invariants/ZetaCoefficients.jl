@@ -78,7 +78,6 @@ function _reduce_handoff_terms_to_terminal(
     handoff_order,
     f,
     P,
-    S,
     pseudoInverseMat,
     p,
     cache,
@@ -87,11 +86,12 @@ function _reduce_handoff_terms_to_terminal(
     terminal_order = terminal_pole_order(P)
     n = P.n
     d = P.d
+    dense_S = collect(0:n)
     picache = _build_akr_picache(
         handoff_order,
         n,
         d,
-        S,
+        dense_S,
         f,
         pseudoInverseMat,
         cache,
@@ -100,7 +100,7 @@ function _reduce_handoff_terms_to_terminal(
         target_order = terminal_order,
     )
     dense_strategy = _dense_reduction_strategy(method)
-    reduction_context = (; S, f, p, picache, params, terminal_order)
+    reduction_context = (; S = dense_S, f, p, picache, params, terminal_order)
     PR = parent(f)
     for i in eachindex(reductions)
         terms = dense_reduce(
@@ -267,7 +267,7 @@ function zeta_coefficients(
     algorithm = configuration.policy
     dense_method = configuration.dense_reduction
     handoff_order = configuration.handoff_pole_order
-    smooth_target_order = something(handoff_order, terminal_pole_order(P))
+    smooth_target_order = terminal_pole_order(P)
     S = configuration.S
     if configuration.selected_variable !== nothing
         selected_variable = configuration.selected_variable
@@ -519,7 +519,6 @@ function zeta_coefficients(
             handoff_order,
             fLift,
             P,
-            S,
             pseudo_inverse_mat,
             p,
             cache,

@@ -20,7 +20,7 @@ function computeRuvS(V, S, f, P, pseudoInverseMat, cache, params)
     #R = coefficient_ring(parent(f))
     R = base_ring(pseudoInverseMat)
 
-    g = _reduction_g_degree(P, params)
+    g = _reduction_g_degree(P)
     g_length = binomial(g+n, n)
 
 

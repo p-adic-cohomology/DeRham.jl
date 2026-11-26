@@ -32,10 +32,8 @@ end
 ReductionEngineGeometry(P::CohomologyQuotient) =
     ReductionEngineGeometry(_reduction_g_degree(P), terminal_pole_order(P))
 
-ReductionEngineGeometry(P::CohomologyQuotient, params) = ReductionEngineGeometry(
-    _reduction_g_degree(P, params),
-    _reduction_handoff_order(P, params),
-)
+ReductionEngineGeometry(P::CohomologyQuotient, params) =
+    ReductionEngineGeometry(_reduction_g_degree(P), _reduction_handoff_order(P, params))
 
 """
     ReductionChainKey(u, order)

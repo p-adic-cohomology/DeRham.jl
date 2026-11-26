@@ -75,7 +75,7 @@ reduction degree.
 """
 function reduction_input_keys(fe::ZetaFrontend, frobenius_output, S, params)
     P = cohomology_quotient(fe)
-    reduction_degree = _reduction_g_degree(P, params)
+    reduction_degree = _reduction_g_degree(P)
     Stilda = zeros(Int, P.n + 1)
     for i in S
         Stilda[i+1] = 1
@@ -135,7 +135,7 @@ Fill `g` with the summed contribution of the input terms belonging to `key`.
 """
 function reduction_input_vector!(g, fe::ZetaFrontend, input, S, cache, params)
     P = cohomology_quotient(fe)
-    reduction_degree = _reduction_g_degree(P, params)
+    reduction_degree = _reduction_g_degree(P)
     basis_lookup = cache[reduction_degree, :reverse]
     Stilda = zeros(Int, P.n + 1)
     for i in S
@@ -178,7 +178,7 @@ Add one finished terminal chain to a partially assembled reduced polynomial.
 """
 function reduction_add_terminal_chain(fe::ZetaFrontend, result, chain, PR, params)
     P = cohomology_quotient(fe)
-    reduction_degree = _reduction_g_degree(P, params)
+    reduction_degree = _reduction_g_degree(P)
     u, g_vec = chain
     cpu_g = Array(g_vec)
     CUDA.@allowscalar g =

@@ -18,8 +18,8 @@ as in Prop 1.15 of Costa's thesis.
 
 n in this function is the number of variables minus one.
 
-With `g = _reduction_g_degree(P, params)` and `s = length(S)`, the degrees
-needed are
+For each chain degree (the original terminal degree and, when different, the
+dense handoff degree), with `s = length(S)`, the degrees needed are
 
 FORWARD:
 For h in pole_orders(P), numerator_degree(P, h) and numerator_degree(P, h) - (d - 1), when nonnegative
@@ -49,9 +49,14 @@ function controlled_reduction_cache(n, d, S, params, P = HypersurfaceQuotient(n,
 end
 
 function _controlled_reduction_cache_degrees(n, d, S, params, P)
-    g = _reduction_g_degree(P, params)
+    chain_degrees = unique([_reduction_g_degree(P), _reduction_g_degree(P, params)])
     s = length(S)
-    degsforward = [g, g - 1, g - s, g - s + 1, g + d - s, d]
+    degsforward = Int[]
+    degsreverse = Int[]
+    for g in chain_degrees
+        append!(degsforward, [g, g - 1, g - s, g - s + 1, g + d - s, d])
+        append!(degsreverse, [d, g, g + d - s])
+    end
     for h in pole_orders(P)
         numerator = numerator_degree(P, h)
         if 0 ≤ numerator
@@ -62,8 +67,6 @@ function _controlled_reduction_cache_degrees(n, d, S, params, P)
             push!(degsforward, denominator)
         end
     end
-
-    degsreverse = [d, g, g + d - s]
 
     return degsforward, degsreverse
 end

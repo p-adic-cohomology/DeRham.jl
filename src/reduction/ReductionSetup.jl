@@ -298,7 +298,7 @@ function reduction_execution_setup(
     _validate_reduction_execution_setup(configuration, fe, params)
     d = total_degree(f)
     n = nvars(parent(f)) - 1
-    g = _reduction_g_degree(P, params)
+    g = _reduction_g_degree(P)
     g_length = binomial(g + n, n)
     MS1 = matrix_space(coefficient_ring(parent(f)), g_length, g_length)
     m = Integer(modulus(base_ring(MS1)))

@@ -88,7 +88,13 @@ end
     cache = DeRham.controlled_reduction_cache(quotient.n, quotient.d, S, params, quotient)
     terminal_degree =
         DeRham.numerator_degree(quotient, DeRham.terminal_pole_order(quotient))
+    geometry = DeRham.ReductionEngineGeometry(quotient, handoff_params)
+    handoff_degree = DeRham._reduction_g_degree(quotient, handoff_params)
     cached_terminal_basis = cache[terminal_degree]
+
+    @test geometry.reduction_degree == DeRham._reduction_g_degree(quotient)
+    @test geometry.reduction_degree != handoff_degree
+    @test geometry.terminal_order == handoff_order
 
     @test DeRham.extend_controlled_reduction_cache!(
         cache,
@@ -99,6 +105,7 @@ end
         quotient,
     ) === cache
     @test cache[terminal_degree] === cached_terminal_basis
+    @test handoff_degree in DeRham.cached_degrees(cache)
 
     expected_forward, expected_reverse = DeRham._controlled_reduction_cache_degrees(
         quotient.n,
