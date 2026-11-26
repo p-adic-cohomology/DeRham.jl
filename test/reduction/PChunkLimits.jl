@@ -1,5 +1,6 @@
 function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
-    ring, = residue_ring(ZZ, BigInt(modulus))
+    residue = DeRham._precision_residue_modulus(modulus, 1, always_use_bigints)
+    ring, = residue_ring(ZZ, residue)
     _, variables = polynomial_ring(ring, ["x0", "x1", "x2"])
     f = sum(variable^3 for variable in variables)
     fe = DeRham.ProjectiveHypersurface(f)
@@ -50,10 +51,15 @@ end
     policy = DeRham.PChunkPolicy(3, [2], oversized_chunk)
     @test policy.maximum_chunk == typemax(Int)
 
-    largest_allowed_modulus = BigInt(2)^64 - 1
-    setup = _pchunk_execution_setup_at_modulus(largest_allowed_modulus)
-    @test setup.backend == :cpu_uint
-    @test setup.representation == :uint
+    for modulus in (BigInt(typemax(Int)) + 1, BigInt(typemax(UInt)))
+        @test DeRham._precision_residue_modulus(modulus, 1, false) === UInt(modulus)
+        setup = _pchunk_execution_setup_at_modulus(modulus)
+        @test setup.backend == :cpu_uint
+        @test setup.representation == :uint
+        context = setup.context_factory()
+        @test context.A isa DeRham.zzModMatrix
+        @test context.g isa Vector{UInt}
+    end
 
     big_modulus_setup = _pchunk_execution_setup_at_modulus(BigInt(2)^64)
     @test big_modulus_setup.backend == :cpu_bigint

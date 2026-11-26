@@ -196,27 +196,9 @@ function _matrix_reduction_runtime_factory(
     params,
     directions,
 )
-    return () -> begin
-        fill_vector! =
-            (vector, key, input) ->
-                reduction_input_vector!(vector, fe, input, S, cache, params)
-        preconfigured = if execution_setup.preconfigured_engine === nothing
-            PreconfiguredReductionEngine(execution_setup.context_factory())
-        else
-            execution_setup.preconfigured_engine
-        end
-        engine = MatrixReductionEngine(
-            ReductionEngineGeometry(P),
-            directions,
-            preconfigured,
-            fill_vector!;
-            evaluation_kernel = execution_setup.kernel,
-            fastevaluation = params.fastevaluation,
-            linear_recurrence_algorithm = params.linear_recurrence_algorithm,
-            sqrt_linear_recurrence_min_length = params.sqrt_linear_recurrence_min_length,
-        )
-        return MatrixReductionRuntime(engine)
-    end
+    return () -> MatrixReductionRuntime(
+        _configured_matrix_reduction_engine(execution_setup, fe, P, S, cache, params, directions),
+    )
 end
 
 function _reducepoly_matrix_policy!(

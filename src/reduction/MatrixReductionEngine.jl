@@ -15,7 +15,7 @@ normalization.
 Fast evaluation uses `evaluation_kernel`, which defaults to `eval_to_linear!`.
 With `fastevaluation = true`, the engine uses the resolved
 `linear_recurrence_algorithm` and `sqrt_linear_recurrence_min_length`. A direct
-constructor call defaults to finite differences and the automatic cutoff.
+constructor call defaults to finite differences with a cutoff of `nothing`.
 """
 mutable struct MatrixReductionEngine{D,C,F,K,V} <: AbstractReductionEngine
     geometry::ReductionEngineGeometry
@@ -77,6 +77,26 @@ function MatrixReductionEngine(
     )
 end
 
+function _configured_matrix_reduction_engine(execution_setup, fe, P, S, cache, params, directions)
+    fill_vector! =
+        (vector, key, input) -> reduction_input_vector!(vector, fe, input, S, cache, params)
+    preconfigured = if execution_setup.preconfigured_engine === nothing
+        PreconfiguredReductionEngine(execution_setup.context_factory())
+    else
+        execution_setup.preconfigured_engine
+    end
+    return MatrixReductionEngine(
+        ReductionEngineGeometry(P),
+        directions,
+        preconfigured,
+        fill_vector!;
+        evaluation_kernel = execution_setup.kernel,
+        fastevaluation = params.fastevaluation,
+        linear_recurrence_algorithm = params.linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = params.sqrt_linear_recurrence_min_length,
+    )
+end
+
 reduction_engine_geometry(engine::MatrixReductionEngine) = engine.geometry
 
 _matrix_engine_vector(g::Vector{ZZRingElem}) = [ZZ(0) for _ in eachindex(g)]
@@ -115,17 +135,28 @@ materialize(engine::MatrixReductionEngine, key::ReductionChainKey, input) =
 reduction_chain_key(engine::MatrixReductionEngine, chain::ReductionChainHandle) =
     _matrix_chain_state(engine, chain).key
 
-function _combine_matrix_vectors!(destination::CuModArray, source)
+function _combine_matrix_vectors!(destination::CuModArray, source, _)
     my_add!(destination, destination, source)
     return destination
 end
 
-function _combine_matrix_vectors!(destination::KaratsubaArray, source)
+function _combine_matrix_vectors!(destination::KaratsubaArray, source, _)
     my_add!(destination, destination, source)
     return destination
 end
 
-function _combine_matrix_vectors!(destination, source)
+function _combine_matrix_vectors!(destination::Vector{UInt}, source::Vector{UInt}, matrix::zzModMatrix)
+    word_modulus = UInt(modulus(base_ring(matrix)))
+    for i in eachindex(destination, source)
+        left = destination[i]
+        right = source[i]
+        distance_to_modulus = word_modulus - right
+        destination[i] = left >= distance_to_modulus ? left - distance_to_modulus : left + right
+    end
+    return destination
+end
+
+function _combine_matrix_vectors!(destination, source, _)
     destination .= destination .+ source
     return destination
 end
@@ -191,7 +222,7 @@ function combine!(engine::MatrixReductionEngine, order::Integer)
         state = engine.live[identifier]
         if haskey(seen, state.key.u)
             survivor = engine.live[seen[state.key.u]]
-            _combine_matrix_vectors!(survivor.vector, state.vector)
+            _combine_matrix_vectors!(survivor.vector, state.vector, engine.context.A)
             delete!(engine.live, identifier)
         else
             seen[state.key.u] = identifier

@@ -99,11 +99,7 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
                 evaluation_points,
             )
             for k = 1:blocks
-                if small_modulus
-                    evaluated_blocks[k][i, j] = ring(values[k])
-                else
-                    Oscar.Nemo.setindex_raw!(evaluated_blocks[k], values[k], i, j)
-                end
+                _set_bgs_entry!(backend, evaluated_blocks[k], ring, values[k], i, j)
             end
         end
     finally
@@ -132,6 +128,12 @@ abstract type _BGSEvaluationBackend end
 struct _NmodBGSEvaluationBackend <: _BGSEvaluationBackend end
 
 struct _FmpzModBGSEvaluationBackend <: _BGSEvaluationBackend end
+
+_set_bgs_entry!(::_NmodBGSEvaluationBackend, matrix, ring, value, i, j) =
+    setindex!(matrix, ring(value), i, j)
+
+_set_bgs_entry!(::_FmpzModBGSEvaluationBackend, matrix, _, value, i, j) =
+    Oscar.Nemo.setindex_raw!(matrix, value, i, j)
 
 struct _NmodBGSModulus
     n::UInt
@@ -360,19 +362,6 @@ function _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp)
     return false
 end
 
-function _sqrt_linear_recurrence_min_length(
-    matrix_width::Int,
-    configured_min::Union{Nothing,Int},
-)
-    configured_min === nothing || return configured_min
-    width_squared = if matrix_width > 0 && matrix_width > div(typemax(Int), matrix_width)
-        typemax(Int)
-    else
-        matrix_width^2
-    end
-    return max(64, width_squared)
-end
-
 function _with_sqrt_linear_recurrence_test_hook(f::Function, hook::Function)
     storage = task_local_storage()
     key = :DeRham_sqrt_linear_recurrence_test_hook
@@ -405,9 +394,9 @@ function _use_sqrt_linear_recurrence(
     configured_min,
     interval_length,
 )
-    algorithm === :sqrt || return false
-    _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp) || return false
-    return interval_length >= _sqrt_linear_recurrence_min_length(nrows(a), configured_min)
+    algorithm === :sqrt && configured_min !== nothing || return false
+    interval_length >= configured_min || return false
+    return _supports_sqrt_linear_recurrence(a, b, g, temp, g_temp)
 end
 
 function evaluate_linear_recurrence!(

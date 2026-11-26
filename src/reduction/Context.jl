@@ -23,7 +23,7 @@ g - the vector g which contains the vector which is being reduced
 g_temp - temporary vector used for intermediate calculations
 linear_recurrence_algorithm - default linear recurrence algorithm for reductions
 sqrt_linear_recurrence_min_length - minimum run length for the square-root method,
-  or `nothing` for the automatic matrix-width-based cutoff
+  or `nothing` to use finite differences
 
 Current examples that are in use:
 
@@ -223,13 +223,12 @@ Keyword arguments and defaults:
 `linear_recurrence_algorithm = :finitediff`,
 `sqrt_linear_recurrence_min_length = nothing`, and `lazy = false`.
 
-When `sqrt_linear_recurrence_min_length` is `nothing`, the automatic cutoff is the
-maximum of 64 and the square of the current matrix width. An explicit positive
-integer is used as-is.
+With `linear_recurrence_algorithm=:sqrt`, a positive
+`sqrt_linear_recurrence_min_length` enables the method at that interval length.
+A cutoff of `nothing` selects finite differences.
 
-The linear recurrence settings are retained in the context and supply the
-defaults for `zeta_coefficients` when a context is passed and those keywords are
-omitted.
+DepthFirst reductions of projective hypersurfaces inherit omitted recurrence
+keywords from the supplied context.
 """
 function pregen_default_context(
     n,

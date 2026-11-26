@@ -322,9 +322,7 @@ end
         64,
         28^2,
     )
-    @test DeRham._sqrt_linear_recurrence_min_length(2, nothing) == 64
-    @test DeRham._sqrt_linear_recurrence_min_length(28, nothing) == 28^2
-    @test DeRham._sqrt_linear_recurrence_min_length(28, 1) == 1
+    @test !DeRham._use_sqrt_linear_recurrence(a, b, g, temp, g_temp, :sqrt, nothing, 4096)
     @test DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
@@ -345,7 +343,7 @@ end
         nothing,
         28^2 - 1,
     )
-    @test DeRham._use_sqrt_linear_recurrence(
+    @test !DeRham._use_sqrt_linear_recurrence(
         wide_a,
         wide_b,
         wide_g,
@@ -353,7 +351,7 @@ end
         wide_g_temp,
         :sqrt,
         nothing,
-        28^2,
+        4096,
     )
 
     expected = copy(g)

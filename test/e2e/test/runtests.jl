@@ -560,7 +560,6 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         for (option, value) in (
             "algorithm" => "pchunk",
             "linear_recurrence_algorithm" => "sqrt",
-            "sqrt_linear_recurrence_min_length" => 1,
             "fastevaluation" => false,
             "changef" => false,
             "always_use_bigints" => true,
@@ -577,6 +576,32 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             @test length(option_errors) == 1
             @test occursin("changed_$(option)", only(option_errors))
         end
+
+        for parameters in (
+            Dict{String,Any}(),
+            Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", "fastevaluation" => false),
+            Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", "use_gpu" => true),
+            Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", "algorithm" => "varbyvar"),
+        )
+            no_cutoff = record("no_cutoff", 0.2, parameters)
+            with_cutoff = record(
+                "inactive_cutoff",
+                0.2,
+                merge(parameters, Dict("sqrt_linear_recurrence_min_length" => 1)),
+            )
+            @test E2E.priming_configuration_key(no_cutoff, example) ==
+                  E2E.priming_configuration_key(with_cutoff, example)
+        end
+
+        sqrt_options = Dict{String,Any}("linear_recurrence_algorithm" => "sqrt")
+        sqrt_default = record("sqrt_default", 0.2, sqrt_options)
+        sqrt_cutoff = record(
+            "sqrt_cutoff",
+            0.2,
+            merge(sqrt_options, Dict("sqrt_linear_recurrence_min_length" => 1)),
+        )
+        @test E2E.priming_configuration_key(sqrt_default, example) !=
+              E2E.priming_configuration_key(sqrt_cutoff, example)
 
         k_one = record("k_one", 0.2, Dict{String,Any}("k" => 1))
         k_two = record("k_two", 0.2, Dict{String,Any}("k" => 2))

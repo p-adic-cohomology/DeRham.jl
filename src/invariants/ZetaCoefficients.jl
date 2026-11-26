@@ -80,13 +80,13 @@ Keyword arguments:
 - `use_threads=false`: enables threaded execution for supported operations.
 - `linear_recurrence_algorithm=:finitediff` selects finite differences or the
   experimental square-root method (`:sqrt`) for linear recurrence evaluation
-  in CPU DepthFirst and PChunk reductions.
+  in CPU DepthFirst and PChunk reductions with `fastevaluation=true`.
 - `sqrt_linear_recurrence_min_length=nothing` sets the minimum run length for the
-  square-root method. `nothing` selects an automatic cutoff of `max(64, r^2)`
-  for each matrix width `r`. An explicit positive integer is used as-is.
+  square-root method. Supply a positive integer to enable it for eligible runs
+  at or above that length. A cutoff of `nothing` selects finite differences.
 
-When a pre-generated `context` is supplied, omitted linear recurrence keywords
-use the settings stored in that context. Explicit keywords override them.
+DepthFirst reductions of projective hypersurfaces can inherit omitted recurrence
+keywords from a pre-generated `context`. Explicit keywords override them.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`, `context`, and
@@ -456,6 +456,10 @@ function zeta_coefficients(
     )
 end
 
+_frontend_with_polynomial(fe::ZetaFrontend, f) = typeof(fe)(f)
+_frontend_with_polynomial(::ProjectiveHypersurface, f) = ProjectiveHypersurface(f)
+_frontend_with_polynomial(::DoubleCover, f) = DoubleCover(f)
+
 """
 a wrapper to zeta_coefficients
 
@@ -464,10 +468,6 @@ INPUTS:
 * "p" -- a prime number, integer
 
 """
-_frontend_with_polynomial(fe::ZetaFrontend, f) = typeof(fe)(f)
-_frontend_with_polynomial(::ProjectiveHypersurface, f) = ProjectiveHypersurface(f)
-_frontend_with_polynomial(::DoubleCover, f) = DoubleCover(f)
-
 function zeta_coefficients(
     fe::ZetaFrontend,
     p;

@@ -7,19 +7,20 @@ multipoint evaluation. The implementation uses exact polynomial and modular
 arithmetic and remains experimental pending a general proof of correctness.
 
 In [`zeta_coefficients`](@ref), set `algorithm=:depthfirst` or `algorithm=:pchunk`
-alongside `linear_recurrence_algorithm=:sqrt` and `fastevaluation=true`.
-Fast evaluation is enabled by default for finite-field inputs. Pass
+alongside `linear_recurrence_algorithm=:sqrt`, `fastevaluation=true`, and a
+positive `sqrt_linear_recurrence_min_length`. The cutoff is the smallest eligible
+run length for square-root evaluation. Fast evaluation is enabled by default
+for finite-field inputs. Pass
 `fastevaluation=true` explicitly to `zeta_coefficients(f, p)`.
 
-With a pre-generated reduction context, omitted recurrence settings inherit
-the context's algorithm and cutoff. Otherwise the defaults are `:finitediff`
-and an automatic cutoff. Pass `sqrt_linear_recurrence_min_length=nothing`
-explicitly to use the automatic cutoff, the greater of 64 and the square of
-the matrix width. A positive integer sets a fixed minimum run length for
-`:sqrt`. Unsupported matrix and vector types use finite differences.
+For DepthFirst reductions of projective hypersurfaces, omitted recurrence
+settings inherit the supplied pre-generated context's algorithm and cutoff.
+PChunk uses the built-in context and accepts the recurrence settings directly.
 
-The crossover still depends on the workload. Measure representative cases and
-raise `sqrt_linear_recurrence_min_length` when the product tree remains slower.
+A cutoff of `nothing` selects finite differences, including when passed
+explicitly to reset an inherited cutoff. Unsupported matrix and vector types
+also use finite differences. The crossover depends on the workload, so use
+representative timings to choose a cutoff when enabling the experimental method.
 
 ```@docs
 DeRham.sqrt_linear_recurrence!

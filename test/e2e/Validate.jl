@@ -40,8 +40,18 @@ function _canonical_priming_option(key::String, value)
 end
 
 function priming_configuration_key(record::ExecutionRecord, example::ExampleCase)
+    parameters = record.parameters
+    supports_sqrt =
+        get(parameters, "linear_recurrence_algorithm", "finitediff") == "sqrt" &&
+        get(parameters, "fastevaluation", true) &&
+        !get(parameters, "use_gpu", false) &&
+        get(parameters, "algorithm", "default") in ("default", "depthfirst", "pchunk")
+    cutoff = supports_sqrt ? get(parameters, "sqrt_linear_recurrence_min_length", nothing) : nothing
     options = Tuple(
-        key => _canonical_priming_option(key, get(record.parameters, key, default)) for
+        key => _canonical_priming_option(
+            key,
+            key == "sqrt_linear_recurrence_min_length" ? cutoff : get(parameters, key, default),
+        ) for
         (key, default) in PRIMING_CODE_PATH_DEFAULTS
     )
     return (Int(example.variety["dim"]), options)
