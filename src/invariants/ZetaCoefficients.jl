@@ -155,6 +155,7 @@ function zeta_coefficients(
     if S == [-1]
         S = collect(0:n)
     end
+    _validate_controlled_selection(n, S)
 
     if length(S) > d
         error("Length of S must be <= $d")

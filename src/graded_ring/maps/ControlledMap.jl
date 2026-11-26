@@ -1,4 +1,12 @@
+function _validate_controlled_selection(n, S)
+    if !all(i -> i isa Integer && 0 <= i <= n, S) || length(S) != count(in(S), 0:n)
+        throw(ArgumentError("S must contain distinct variable indices in 0:$n"))
+    end
+    return nothing
+end
+
 function _controlled_cofactor_blocks(n, d, l, S)
+    _validate_controlled_selection(n, S)
     selected_degree = l - d + 1
     other_degree = l - d
     selected_width = binomial(n + selected_degree, n)
@@ -36,11 +44,10 @@ l - (d - 1), and the others have degree l - d.
 function compute_controlled_matrix(f, l, S, R, PR, params, cache)
     n = nvars(parent(f)) - 1
     d = total_degree(f)
+    blocks = _controlled_cofactor_blocks(n, d, l, S)
     vars = gens(PR)
 
     len_S = length(S)
-    @assert(len_S >= 0 && len_S <= n+1)
-    blocks = _controlled_cofactor_blocks(n, d, l, S)
 
     # The code that was formerly here looked as follows:
     #

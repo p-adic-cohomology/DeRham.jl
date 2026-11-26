@@ -3,6 +3,7 @@ function is_Ssmooth(f, P, S)
     p = characteristic(parent(f))
     n = length(gens(parent(f))) - 1
     d = total_degree(f)
+    _validate_controlled_selection(n, S)
     l = _reduction_g_degree(P) + d - length(S)
 
     PR = parent(f)
@@ -60,6 +61,7 @@ Inputs:
 * "cache" -- the GradedExpCache used for this controlled reduction
 """
 function find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
+    _validate_controlled_selection(P.n, S_target)
     l = _reduction_g_degree(P) + total_degree(f) - length(S_target)
     return _find_Ssmooth_model(f, params, changef) do model
         pseudo_inverse_controlled_lifted(model, S_target, l, M, params, cache)

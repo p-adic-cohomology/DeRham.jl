@@ -28,6 +28,7 @@ records = [
     "akr_cutoff_prime_akr_naive",
     "akr_cutoff_prime_akr_levelbylevel",
     "akr_nonfermat_k3_p7_matrix_akr",
+    "akr_nonfermat_k3_p7_matrix_akr_levelbylevel",
 ]
 
 [tags]

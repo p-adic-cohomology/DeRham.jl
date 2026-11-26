@@ -100,7 +100,7 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 | `type` | Expected value and input | Record-specific parameters |
 | --- | --- | --- |
 | `zeta_coefficients` | Stored `Lpoly`; plane curves or projective hypersurfaces | None required |
-| `akr_frobenius_matrix` | Frobenius matrix stored in `derham-invariants` notes; quartic K3 | `algorithm`, `relative_precision = 1` |
+| `akr_frobenius_matrix` | Frobenius matrix stored in `derham-invariants` notes; quartic K3 | `algorithm`, `relative_precision = 1`, `changef = false` |
 | `newton_polygon` | Stored `Lpoly` and the example polynomial | None required |
 | `point_counts` | Stored `Lpoly` and the example dimension | `k`: positive extension degree |
 | `picard_rank_bound` | Stored `Lpoly`; projective surface | None required |
@@ -113,14 +113,16 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 An `akr_frobenius_matrix` fixture stores a square array of matrix rows in
 the `derham-invariants` notes. Entries are integer residues lifted to
-`ZZ`, in DeRham's ordered internal cohomology basis. Use a fixed model
+`ZZ`, in DeRham's internal cohomology basis with `termorder = "invlex"` and
+relative precision 1. Use a fixed model
 `F` that is already smooth for the selected `S`, and set `changef=false`
 in the record and in the reference computation. Generate the reference with
-`DeRham.frobenius_matrix_with_precision(F, 1; algorithm = :default, changef = false)`
+`DeRham.frobenius_matrix_with_precision(F, 1; algorithm = :default, changef = false, termorder = :invlex)`
 and the same remaining options as the record. Lift and store each row in the
 returned order. The record accepts `akr`, `akr_naive`, or `akr_levelbylevel`
-as the algorithm. It rejects `algorithm_precision`, `series_precision`, and
-`givefrobmat` because the executor fixes the precision request and return type.
+as the algorithm. The executor fixes the basis order, precision request and
+return type. Leave `algorithm_precision`, `series_precision`, and `givefrobmat`
+unset for these records.
 
 All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
@@ -136,7 +138,8 @@ zeta record, `series_precision` and `algorithm_precision` are required;
 `relative_precision` defaults to the existing Weil-bound formula.
 For a projective `zeta_coefficients` record with `akr`, `akr_naive`, or
 `akr_levelbylevel`, `algorithm_precision` overrides working precision and
-the executor computes the relative and series precisions automatically.
+the executor computes the relative and series precisions automatically. Use
+only `algorithm_precision` when setting a projective precision override.
 
 ## Reference an example from the pinned artifact
 

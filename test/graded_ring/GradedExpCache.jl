@@ -67,4 +67,12 @@ end
             @test DeRham._graded_monomial_index(exponent, 2, ordering) == index
         end
     end
+    buffer = zeros(Int, 4)
+    for order in (:lex, :neglex, :invlex), degree in (0, 1, 3, 6)
+        ordering = DeRham._graded_monomial_order(order)
+        for (index, exponent) in enumerate(DeRham.gen_exp_vec(4, degree, order))
+            @test DeRham._graded_exponent_at!(buffer, degree, index, ordering) == exponent
+            @test DeRham._graded_monomial_index(exponent, degree, ordering) == index
+        end
+    end
 end

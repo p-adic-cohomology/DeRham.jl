@@ -197,20 +197,12 @@ _akr_scale_factor(factor, power, modulus::UInt64) =
     UInt64(rem(UInt128(UInt64(factor)) * UInt128(power), UInt128(modulus)))
 _akr_scale_factor(factor, power, ::BigInt) = factor * power
 
-function _akr_apply_uncached(
-    g,
-    m,
-    f,
-    table::_AKRRelationTable{T,N},
-    termorder,
-    ::Val{differentiate},
-) where {T,N,differentiate}
+function _akr_apply_uncached(g, m, f, table::_AKRRelationTable{T,N}, termorder) where {T,N}
     ordering = _graded_monomial_order(termorder)
     d = total_degree(f)
     degree = d * m - N
-    output_degree = degree - d + 1 - differentiate
-    block_length = binomial(output_degree + N - 1, N - 1)
-    result = zeros(T, differentiate ? block_length : N * block_length)
+    output_degree = degree - d
+    result = zeros(T, binomial(output_degree + N - 1, N - 1))
     modulus = convert(T, table.modulus)
     exponent = Vector{Int}(undef, N)
 
@@ -221,18 +213,11 @@ function _akr_apply_uncached(
         h, shift = _akr_cutoff_split(exponent, table.cutoff, Val(N))
         for (i, cofactor, factor) in table.relations[h]
             shifted = ntuple(k -> shift[k] + cofactor[k], Val(N))
-            if differentiate
-                power = shifted[i]
-                power == 0 && continue
-                target = ntuple(k -> shifted[k] - (k == i), Val(N))
-                position = _graded_monomial_index(target, output_degree, ordering)
-                scaled_factor = _akr_scale_factor(factor, power, modulus)
-            else
-                position =
-                    (i - 1) * block_length +
-                    _graded_monomial_index(shifted, output_degree, ordering)
-                scaled_factor = convert(T, factor)
-            end
+            power = shifted[i]
+            power == 0 && continue
+            target = ntuple(k -> shifted[k] - (k == i), Val(N))
+            position = _graded_monomial_index(target, output_degree, ordering)
+            scaled_factor = _akr_scale_factor(factor, power, modulus)
             result[position] =
                 _akr_add_product(result[position], coefficient, scaled_factor, modulus)
         end
@@ -243,8 +228,9 @@ end
 function _akr_cofactor_residues(g, reduction_map::_AKRReductionMap{UInt64}, modulus::UInt64)
     accumulators = zeros(UInt64, length(reduction_map.derivative_positions))
     for j in eachindex(g)
-        coefficient = _akr_residue_uint64(g[j])
-        coefficient == 0 && continue
+        value = g[j]
+        iszero(value) && continue
+        coefficient = _akr_residue_uint64(value)
         for k = reduction_map.offsets[j]:(reduction_map.offsets[j+1]-1)
             position = reduction_map.positions[k]
             accumulators[position] = _akr_add_product(
@@ -288,10 +274,24 @@ function _akr_derivative_residues(
     return reduced
 end
 
-function _akr_reduce_level_residues(g, m, f, table::_AKRRelationTable, termorder, modulus)
+"""
+Apply cutoff relations directly for zero or one nonzero source coefficient.
+Denser vectors can reuse a pole-order map within the cache budget.
+"""
+function _akr_reduce_level_residues(
+    g,
+    m,
+    f,
+    table::_AKRRelationTable{UInt64},
+    termorder,
+    modulus,
+)
+    first_nonzero = findfirst(!iszero, g)
+    if first_nonzero === nothing || findnext(!iszero, g, first_nonzero + 1) === nothing
+        return _akr_apply_uncached(g, m, f, table, termorder)
+    end
     reduction_map = _akr_reduction_map(table, m, f, termorder)
-    reduction_map === nothing &&
-        return _akr_apply_uncached(g, m, f, table, termorder, Val(true))
+    reduction_map === nothing && return _akr_apply_uncached(g, m, f, table, termorder)
     cofactors = _akr_cofactor_residues(g, reduction_map, modulus)
     return _akr_derivative_residues(cofactors, reduction_map, modulus)
 end
@@ -300,26 +300,13 @@ function _akr_add_residues!(accumulator::Vector{UInt64}, values, modulus::UInt64
     length(accumulator) == length(values) ||
         error("AKR residue vector has the wrong length")
     for i in eachindex(accumulator)
-        value = _akr_residue_uint64(values[i])
-        value == 0 && continue
+        value = values[i]
+        iszero(value) && continue
+        residue = _akr_residue_uint64(value)
         accumulator[i] =
-            UInt64(rem(UInt128(accumulator[i]) + UInt128(value), UInt128(modulus)))
+            UInt64(rem(UInt128(accumulator[i]) + UInt128(residue), UInt128(modulus)))
     end
     return accumulator
-end
-
-function _akr_cofactor_vector(g, m, f, table::_AKRRelationTable, params)
-    reduction_map = _akr_reduction_map(table, m, f, params.termorder)
-    if reduction_map === nothing
-        residues = _akr_apply_uncached(g, m, f, table, params.termorder, Val(false))
-        return _akr_residues_to_ring(residues, f)
-    end
-    return _akr_cofactor_vector(g, f, table, reduction_map)
-end
-
-function _akr_cofactor_vector(g, f, table::_AKRRelationTable{UInt64}, reduction_map)
-    residues = _akr_cofactor_residues(g, reduction_map, UInt64(table.modulus))
-    return _akr_residues_to_ring(residues, f)
 end
 
 function _akr_cofactor_vector(
@@ -422,7 +409,7 @@ function _reducepoly_akr_naive(pol, S, f, p, picache, params)
     return [[result, n]]
 end
 
-_akr_cutoff_eligible(n, d, S, p) = sort(S) == collect(0:n) && mod(d, p) != 0
+_akr_cutoff_eligible(n, d, S, p) = length(S) == n + 1 && all(in(S), 0:n) && mod(d, p) != 0
 
 function _find_reduction_model(
     ::Union{Val{:akr},Val{:akr_naive},Val{:akr_levelbylevel}},
@@ -538,12 +525,14 @@ function reducetransform_akr_naive(FT, N_m, S, f, pseudoInverseMat, p, cache, pa
 end
 
 """
-    _reduce_akr_level(g, m, f, picache, params)
+    _reduce_akr_level(g, m, f, picache, params, S = 0:(nvars(parent(f)) - 1))
 
 Apply one AKR reduction step to the combined coefficient vector at pole order
 `m`, returning the coefficient vector for pole order `m - 1`.
+The pseudo-inverse path uses `S` to recover the cofactor blocks. Pass the same
+zero-based selection that built the inverse when it uses a proper subset.
 """
-function _reduce_akr_level(g, m, f, picache, params, S = collect(0:(nvars(parent(f))-1)))
+function _reduce_akr_level(g, m, f, picache, params, S = 0:(nvars(parent(f))-1))
     if picache isa _AKRRelationTable{UInt64}
         modulus = UInt64(picache.modulus)
         residues = UInt64[_akr_residue_uint64(coefficient) for coefficient in g]
@@ -555,7 +544,7 @@ function _reduce_akr_level(g, m, f, picache, params, S = collect(0:(nvars(parent
     gtemp = if picache isa _AKRRelationTable{BigInt}
         reduction_map = _akr_reduction_map(picache, m, f, params.termorder)
         if reduction_map === nothing
-            reduced = _akr_apply_uncached(g, m, f, picache, params.termorder, Val(true))
+            reduced = _akr_apply_uncached(g, m, f, picache, params.termorder)
             return _akr_residues_to_ring(reduced, f)
         end
         _akr_cofactor_vector(g, f, picache, reduction_map)

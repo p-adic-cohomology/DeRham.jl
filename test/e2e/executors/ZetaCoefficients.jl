@@ -16,6 +16,32 @@ const EXPECTED_SOURCE = :lpoly
 validate_parameters(name::AbstractString, params::AbstractDict) =
     Common.validate_common_parameters(name, params)
 
+function _projective_precision_override(kwargs)
+    has_algorithm_precision = haskey(kwargs, :algorithm_precision)
+    has_other_precision =
+        haskey(kwargs, :relative_precision) || haskey(kwargs, :series_precision)
+    if has_algorithm_precision
+        algorithm = get(kwargs, :algorithm, :default)
+        algorithm in (:akr, :akr_naive, :akr_levelbylevel) || throw(
+            ArgumentError(
+                "projective zeta records can override algorithm_precision only for AKR",
+            ),
+        )
+        has_other_precision && throw(
+            ArgumentError(
+                "projective zeta records with algorithm_precision use automatic relative and series precisions",
+            ),
+        )
+    elseif has_other_precision
+        throw(
+            ArgumentError(
+                "projective zeta records only accept the AKR algorithm_precision override",
+            ),
+        )
+    end
+    return has_algorithm_precision
+end
+
 function expected(example::ExampleCase, record::ExecutionRecord)
     variety = example.variety
     kind = variety["model"]["kind"]
@@ -36,28 +62,17 @@ function expected(example::ExampleCase, record::ExecutionRecord)
     supported_content || error(
         "example $(repr(example.id)): DeRham.zeta_coefficients returns the primitive middle factor; got middle_factor_content=$(repr(middle_factor_content)) for dim=$(repr(dimension))",
     )
+    if kind in ("plane_curve", "projective_hypersurface")
+        _projective_precision_override(Common.parse_kwargs(record.parameters))
+    end
 
     return Common.stored_lpoly_descending(example, record)
 end
 
 function execute(F, params::AbstractDict)
     kwargs = Common.parse_kwargs(params)
-    if F isa DeRham.DoubleCover || !haskey(kwargs, :algorithm_precision)
+    if F isa DeRham.DoubleCover || !_projective_precision_override(kwargs)
         return DeRham.zeta_coefficients(F; kwargs...)
-    end
-
-    algorithm = get(kwargs, :algorithm, :default)
-    algorithm in (:akr, :akr_naive, :akr_levelbylevel) || throw(
-        ArgumentError(
-            "projective zeta records can override algorithm_precision only for AKR",
-        ),
-    )
-    if haskey(kwargs, :relative_precision) || haskey(kwargs, :series_precision)
-        throw(
-            ArgumentError(
-                "projective zeta records with algorithm_precision use automatic relative and series precisions",
-            ),
-        )
     end
 
     algorithm_precision = pop!(kwargs, :algorithm_precision)::Int

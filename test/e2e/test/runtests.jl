@@ -807,6 +807,10 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
                 "series_precision" => 1,
             ),
         )
+        @test_throws r"only accept the AKR algorithm_precision override" exec.execute(
+            probe,
+            Dict("relative_precision" => 1),
+        )
     end
 
     @testset "AKR matrix executor validation" begin
@@ -814,6 +818,18 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         base_parameters = Dict("algorithm" => "akr", "relative_precision" => 1)
         parameters = merge(base_parameters, Dict("changef" => false))
         @test exec.validate_parameters("matrix", parameters) === nothing
+        @test exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("termorder" => "invlex")),
+        ) === nothing
+        @test_throws r"termorder must be" exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("termorder" => "neglex")),
+        )
+        @test_throws r"relative_precision must be 1" exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("relative_precision" => 2)),
+        )
         @test_throws r"changef must be false" exec.validate_parameters(
             "matrix",
             base_parameters,
@@ -895,6 +911,28 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => [1, 1, 7]))],
         )
         @test exec.expected(ex, record()) == BigInt[7, 1, 1]
+        catalogue = E2E.ExampleCatalogue(Dict(ex.id => ex))
+        config = E2E.CatalogueConfig(0.05, 0.2, Set{String}(), ["rec1"])
+        override = Dict("algorithm" => "akr", "algorithm_precision" => 12)
+        @test E2E.validate_catalogue(catalogue, [record(; params = override)], config)["rec1"] ==
+              BigInt[7, 1, 1]
+        for (params, expected_message) in (
+            (merge(override, Dict("algorithm" => "depthfirst")), r"only for AKR"),
+            (
+                merge(override, Dict("series_precision" => 1)),
+                r"use automatic relative and series precisions",
+            ),
+            (
+                Dict("relative_precision" => 1),
+                r"only accept the AKR algorithm_precision override",
+            ),
+        )
+            @test_throws expected_message E2E.validate_catalogue(
+                catalogue,
+                [record(; params)],
+                config,
+            )
+        end
         bool_lpoly = example(
             good_variety(),
             [Dict("p" => 7, "Lpoly" => Dict("coeffs_asc" => Any[1, true, 7]))],

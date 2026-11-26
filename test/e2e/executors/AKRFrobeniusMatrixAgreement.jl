@@ -13,6 +13,8 @@ import Oscar
 const INVARIANT_NAME = "akr_frobenius_matrix"
 const EXPECTED_SOURCE = :notes
 const SUPPORTED_ALGORITHMS = ("akr", "akr_naive", "akr_levelbylevel")
+const REFERENCE_TERM_ORDER = "invlex"
+const REFERENCE_RELATIVE_PRECISION = 1
 
 function validate_parameters(name::AbstractString, params::AbstractDict)
     Common.validate_common_parameters(name, params)
@@ -20,8 +22,12 @@ function validate_parameters(name::AbstractString, params::AbstractDict)
     algorithm in SUPPORTED_ALGORITHMS || error(
         "execution record $(repr(name)): algorithm must be one of $(SUPPORTED_ALGORITHMS)",
     )
-    get(params, "relative_precision", nothing) == 1 ||
-        error("execution record $(repr(name)): relative_precision must be 1")
+    get(params, "relative_precision", nothing) == REFERENCE_RELATIVE_PRECISION || error(
+        "execution record $(repr(name)): relative_precision must be $(REFERENCE_RELATIVE_PRECISION)",
+    )
+    get(params, "termorder", REFERENCE_TERM_ORDER) == REFERENCE_TERM_ORDER || error(
+        "execution record $(repr(name)): termorder must be $(repr(REFERENCE_TERM_ORDER))",
+    )
     get(params, "changef", nothing) === false ||
         error("execution record $(repr(name)): changef must be false")
     for key in ("algorithm_precision", "series_precision", "givefrobmat")
@@ -55,12 +61,11 @@ end
 
 function execute(F, params::AbstractDict)
     kwargs = Common.parse_kwargs(params)
-    precision = pop!(kwargs, :relative_precision)
-    algorithm = pop!(kwargs, :algorithm)
+    delete!(kwargs, :relative_precision)
+    kwargs[:termorder] = Symbol(REFERENCE_TERM_ORDER)
     return DeRham.frobenius_matrix_with_precision(
         F,
-        precision;
-        algorithm = algorithm,
+        REFERENCE_RELATIVE_PRECISION;
         kwargs...,
     )
 end
