@@ -32,6 +32,8 @@ function _projective_precision_override(kwargs)
                 "projective zeta records with algorithm_precision use automatic relative and series precisions",
             ),
         )
+        kwargs[:algorithm_precision] > 0 ||
+            throw(ArgumentError("projective AKR algorithm_precision must be positive"))
     elseif has_other_precision
         throw(
             ArgumentError(

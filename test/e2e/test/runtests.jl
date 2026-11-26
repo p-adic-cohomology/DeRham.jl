@@ -859,14 +859,23 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             parameters,
             "synthetic.toml",
         )
-        malformed = E2E.ExampleCase(
-            example.id,
-            example.source_path,
-            example.variety,
-            example.results,
-            "derham-invariants: {\"7\":{\"akr_frobenius_matrix\":[\"12\",\"34\"]}}",
-        )
-        @test_throws r"must be a nonempty square matrix" exec.expected(malformed, record)
+        for value in ("[\"12\",\"34\"]", "[[98]]")
+            malformed = E2E.ExampleCase(
+                example.id,
+                example.source_path,
+                example.variety,
+                example.results,
+                "derham-invariants: {\"7\":{\"akr_frobenius_matrix\":$value}}",
+            )
+            @test_throws r"must be a 21 × 21 matrix" exec.expected(malformed, record)
+        end
+        expected = [zeros(BigInt, 21) for _ = 1:21]
+        rows = deepcopy(expected)
+        column_moduli = BigInt[27; fill(9, 19); 3]
+        rows[21][2] = 9
+        @test exec.compare(expected, (; rows, column_moduli))
+        rows[21][1] = 9
+        @test !exec.compare(expected, (; rows, column_moduli))
     end
 
     @testset "zeta_coefficients executor validation" begin
@@ -918,6 +927,8 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
               BigInt[7, 1, 1]
         for (params, expected_message) in (
             (merge(override, Dict("algorithm" => "depthfirst")), r"only for AKR"),
+            (merge(override, Dict("algorithm_precision" => 0)), r"must be positive"),
+            (merge(override, Dict("algorithm_precision" => -1)), r"must be positive"),
             (
                 merge(override, Dict("series_precision" => 1)),
                 r"use automatic relative and series precisions",

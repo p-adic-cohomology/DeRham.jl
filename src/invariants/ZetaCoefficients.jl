@@ -231,17 +231,14 @@ function zeta_coefficients(
         "We work modulo $p^$M, and compute up to the $N_m-th term of the Frobenius power series",
     )
 
-    if always_use_bigints || BigInt(2)^64 < BigInt(p)^M
-        residue = BigInt(p)^M
-    elseif BigInt(2)^63 < BigInt(p)^M
-        # If we use UInt, we get things between 2^63 and 2^64
-        residue = UInt(p)^M
+    working_modulus = BigInt(p)^M
+    residue = if always_use_bigints || working_modulus > typemax(UInt)
+        working_modulus
+    elseif working_modulus > typemax(Int)
+        UInt(working_modulus)
     else
-        residue = p^M
+        Int(working_modulus)
     end
-
-    # FOR DEBUGGING
-    #residue = BigInt(p)^M
 
     precisionring, = residue_ring(ZZ, residue)
     precisionringpoly, pvars = polynomial_ring(precisionring, ["x$i" for i = 0:n])

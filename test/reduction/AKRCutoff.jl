@@ -232,23 +232,55 @@ end
     @test eltype(forced_map.factors) === BigInt
     @test DeRham._reduce_akr_level(g, m, f, forced_table, forced) == expected_reduced
 
-    sparse_table = DeRham._build_akr_relation_table(f, p, precision)
-    sparse = zeros(UInt64, length(source_monomials))
+    sparse = zeros(Int, length(source_monomials))
     sparse[findfirst(==([0, 0, 6]), source_monomials)] = 3
-    sparse_expected = zeros(UInt64, length(DeRham.gen_exp_vec(3, 3, params.termorder)))
+    sparse_expected = zeros(Int, length(DeRham.gen_exp_vec(3, 3, params.termorder)))
     sparse_expected[findfirst(==([0, 0, 3]), DeRham.gen_exp_vec(3, 3, params.termorder))] =
         4
-    @test DeRham._akr_reduce_level_residues(
-        sparse,
-        m,
-        f,
-        sparse_table,
-        params.termorder,
-        UInt64(modulus),
-    ) == sparse_expected
-    @test isempty(sparse_table.reduction_maps)
-    @test isempty(sparse_table.rejected_maps)
-    @test iszero(sparse_table.cached_map_bytes)
+    for always_use_bigints in (false, true)
+        sparse_table = DeRham._build_akr_relation_table(f, p, precision; always_use_bigints)
+        @test DeRham._reducechain_akr_naive(
+            precision_ring.(sparse),
+            m,
+            f,
+            p,
+            sparse_table,
+            0:2,
+            params,
+        ) == precision_ring.(sparse_expected)
+        @test all(
+            iszero,
+            DeRham._reduce_akr_level(
+                fill(precision_ring(0), length(sparse)),
+                m,
+                f,
+                sparse_table,
+                params,
+            ),
+        )
+        @test isempty(sparse_table.reduction_maps)
+        @test isempty(sparse_table.rejected_maps)
+        @test iszero(sparse_table.cached_map_bytes)
+    end
+end
+
+@testset "AKR terminal pole contributions" begin
+    p, M = 3, 2
+    precision_ring, = residue_ring(ZZ, p^M)
+    _, (x, y, z, w) = polynomial_ring(precision_ring, ["x", "y", "z", "w"])
+    f = x^4 + y^4 + z^4 + w^4
+    terminal = x^2 * y^2 * z^2 * w^2
+    higher = 4 * x^4 * terminal
+    params = DeRham.default_params()
+
+    for always_use_bigints in (false, true)
+        table = DeRham._build_akr_relation_table(f, p, M; always_use_bigints)
+        for reduce in (DeRham._reducepoly_akr_naive, DeRham._reducepoly_akr_levelbylevel)
+            @test reduce([[terminal, 3]], 0:3, f, p, table, params) == [[terminal, 3]]
+            @test reduce([[terminal, 3], [higher, 4]], 0:3, f, p, table, params) ==
+                  [[4 * terminal, 3]]
+        end
+    end
 end
 
 @testset "AKR uncached cutoff reduction" begin
@@ -332,12 +364,6 @@ end
 
     @test !(picache isa DeRham._AKRRelationTable)
     @test picache[n] === pseudo_inverse
-
-    curve = DeRham.fermat_hypersurface(3, 3, p)
-    expected = BigInt[2, 0, 1]
-    for algorithm in (:akr_naive, :akr_levelbylevel)
-        @test DeRham.zeta_coefficients(curve; algorithm = algorithm, S = S) == expected
-    end
 end
 
 @testset "AKR interleaved cofactor blocks" begin

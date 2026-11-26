@@ -22,3 +22,14 @@ hypersurface degree, AKR builds one Jacobian relation table at degree
 `(n + 1)(d - 2) + 1` and obtains higher-degree relations by multiplying those
 cutoff relations by monomials. For a proper variable subset or a characteristic
 dividing the degree, AKR keeps the per-pole-order pseudo-inverse path.
+
+The level-by-level schedule adds input terms already at the terminal pole to
+the reduced numerator. The catalogue compares both AKR schedules against the
+default reduction on the fixed Fermat quartic over `F₃` with
+`changef=false`, `termorder=:invlex`, and requested relative precision 1.
+The comparison uses the requested absolute precision of each column.
+
+In earlier runs, entry `(21, 1)` was 18 modulo 27 with level-by-level AKR and
+9 with default and chain-by-chain reduction. The original per-pole-order loop
+and the earlier cutoff loop both skipped the terminal-pole input. The original
+full-matrix calculation reached the time limit, leaving its entry unverified.

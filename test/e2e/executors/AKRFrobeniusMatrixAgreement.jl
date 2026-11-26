@@ -15,6 +15,7 @@ const EXPECTED_SOURCE = :notes
 const SUPPORTED_ALGORITHMS = ("akr", "akr_naive", "akr_levelbylevel")
 const REFERENCE_TERM_ORDER = "invlex"
 const REFERENCE_RELATIVE_PRECISION = 1
+const PRIMITIVE_DIMENSION = 21
 
 function validate_parameters(name::AbstractString, params::AbstractDict)
     Common.validate_common_parameters(name, params)
@@ -51,11 +52,11 @@ function expected(example::ExampleCase, record::ExecutionRecord)
     value isa AbstractVector || error(
         "example $(repr(example.id)) notes value for $(INVARIANT_NAME) at p=$(p) must be a matrix",
     )
-    dimension = length(value)
-    dimension > 0 &&
-    all(row -> row isa AbstractVector && length(row) == dimension, value) || error(
-        "example $(repr(example.id)) notes value for $(INVARIANT_NAME) at p=$(p) must be a nonempty square matrix",
-    )
+    length(value) == PRIMITIVE_DIMENSION &&
+    all(row -> row isa AbstractVector && length(row) == PRIMITIVE_DIMENSION, value) ||
+        error(
+            "example $(repr(example.id)) notes value for $(INVARIANT_NAME) at p=$(p) must be a 21 × 21 matrix",
+        )
     return [[parse(BigInt, string(entry)) for entry in row] for row in value]
 end
 
@@ -63,21 +64,38 @@ function execute(F, params::AbstractDict)
     kwargs = Common.parse_kwargs(params)
     delete!(kwargs, :relative_precision)
     kwargs[:termorder] = Symbol(REFERENCE_TERM_ORDER)
-    return DeRham.frobenius_matrix_with_precision(
+    basis = DeRham.get_basis_of_cohomology(F)
+    matrix = DeRham.frobenius_matrix_with_precision(
         F,
         REFERENCE_RELATIVE_PRECISION;
+        basis,
         kwargs...,
     )
+    p = BigInt(Oscar.characteristic(parent(F)))
+    n = Oscar.nvars(parent(F)) - 1
+    column_moduli = [p^(REFERENCE_RELATIVE_PRECISION + n - term[2]) for term in basis]
+    return (; matrix, column_moduli)
 end
 
 function normalize(raw)
-    return [
-        [parse(BigInt, string(Oscar.lift(Oscar.ZZ, raw[i, j]))) for j = 1:size(raw, 2)] for
-        i = 1:size(raw, 1)
+    (; matrix, column_moduli) = raw
+    rows = [
+        [BigInt(Oscar.lift(Oscar.ZZ, matrix[i, j])) for j in axes(matrix, 2)] for
+        i in axes(matrix, 1)
     ]
+    return (; rows, column_moduli)
 end
 
-compare(expected::Vector{Vector{BigInt}}, actual::Vector{Vector{BigInt}}) =
-    expected == actual
+function compare(expected, actual)
+    (; rows, column_moduli) = actual
+    size_matches =
+        length(column_moduli) == PRIMITIVE_DIMENSION &&
+        length(rows) == PRIMITIVE_DIMENSION &&
+        all(row -> length(row) == PRIMITIVE_DIMENSION, rows)
+    return size_matches && all(
+        iszero(mod(rows[i][j] - expected[i][j], column_moduli[j])) for
+        i in eachindex(expected) for j in eachindex(expected[i])
+    )
+end
 
 end

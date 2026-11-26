@@ -189,6 +189,16 @@ _akr_residue_uint64(value) = UInt64(lift(ZZ, value))
 _akr_residue(value, ::Type{UInt64}) = _akr_residue_uint64(value)
 _akr_residue(value, ::Type{BigInt}) = BigInt(lift(ZZ, value))
 
+function _akr_initial_residues(g)
+    residues = zeros(UInt64, length(g))
+    for i in eachindex(g)
+        coefficient = g[i]
+        iszero(coefficient) && continue
+        residues[i] = _akr_residue_uint64(coefficient)
+    end
+    return residues
+end
+
 _akr_add_product(a::UInt64, b::UInt64, c::UInt64, modulus::UInt64) =
     UInt64(rem(UInt128(a) + UInt128(b) * UInt128(c), UInt128(modulus)))
 _akr_add_product(a::BigInt, b::BigInt, c::BigInt, modulus::BigInt) = mod(a + b * c, modulus)
@@ -274,10 +284,11 @@ function _akr_derivative_residues(
     return reduced
 end
 
-"""
-Apply cutoff relations directly for zero or one nonzero source coefficient.
-Denser vectors can reuse a pole-order map within the cache budget.
-"""
+function _akr_has_at_most_one_term(g)
+    first_nonzero = findfirst(!iszero, g)
+    return first_nonzero === nothing || findnext(!iszero, g, first_nonzero + 1) === nothing
+end
+
 function _akr_reduce_level_residues(
     g,
     m,
@@ -286,8 +297,7 @@ function _akr_reduce_level_residues(
     termorder,
     modulus,
 )
-    first_nonzero = findfirst(!iszero, g)
-    if first_nonzero === nothing || findnext(!iszero, g, first_nonzero + 1) === nothing
+    if _akr_has_at_most_one_term(g)
         return _akr_apply_uncached(g, m, f, table, termorder)
     end
     reduction_map = _akr_reduction_map(table, m, f, termorder)
@@ -366,7 +376,7 @@ end
 function _reducechain_akr_naive(g, m, f, p, picache, S, params)
     if picache isa _AKRRelationTable{UInt64}
         n = nvars(parent(f)) - 1
-        current = UInt64[_akr_residue_uint64(coefficient) for coefficient in g]
+        current = _akr_initial_residues(g)
         modulus = UInt64(picache.modulus)
         while m > n
             current = _akr_reduce_level_residues(
@@ -535,14 +545,16 @@ zero-based selection that built the inverse when it uses a proper subset.
 function _reduce_akr_level(g, m, f, picache, params, S = 0:(nvars(parent(f))-1))
     if picache isa _AKRRelationTable{UInt64}
         modulus = UInt64(picache.modulus)
-        residues = UInt64[_akr_residue_uint64(coefficient) for coefficient in g]
+        residues = _akr_initial_residues(g)
         reduced =
             _akr_reduce_level_residues(residues, m, f, picache, params.termorder, modulus)
         return _akr_residues_to_ring(reduced, f)
     end
 
     gtemp = if picache isa _AKRRelationTable{BigInt}
-        reduction_map = _akr_reduction_map(picache, m, f, params.termorder)
+        reduction_map =
+            _akr_has_at_most_one_term(g) ? nothing :
+            _akr_reduction_map(picache, m, f, params.termorder)
         if reduction_map === nothing
             reduced = _akr_apply_uncached(g, m, f, picache, params.termorder)
             return _akr_residues_to_ring(reduced, f)
@@ -557,8 +569,9 @@ end
 """
     _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
 
-Reduce all terms at each pole order together. Both schedules apply cutoff
-relations directly when there is insufficient room for a pole-order map.
+Reduce all terms at each pole order together and add the input numerators
+already at the terminal order. Both schedules apply cutoff relations directly
+to sparse inputs or when there is insufficient room for a pole-order map.
 The pseudo-inverse path differentiates polynomials.
 """
 function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
@@ -598,6 +611,9 @@ function _reducepoly_akr_levelbylevel(pol, S, f, p, picache, params)
     end
 
     result = vector_to_polynomial(g, n, d*n-n-1, PR, params.termorder)
+    for (numerator, m) in pol
+        m == n && (result += numerator)
+    end
     return [[result, n]]
 end
 
