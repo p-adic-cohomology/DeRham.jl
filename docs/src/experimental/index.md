@@ -26,8 +26,11 @@ and no greater than the maximum pole order among the generated Frobenius source
 terms.
 
 `dense_reduction` accepts `:akr_naive` or `:akr_levelbylevel`; `:akr` is an
-alias for `:akr_naive`. If the method is omitted, the existing precomputed
-final reduction is used directly.
+alias for `:akr_naive`. A controlled policy requires an explicit
+`handoff_pole_order` when `dense_reduction` is specified. An AKR `algorithm`
+preset selects its dense method implicitly. With an explicit
+`handoff_pole_order`, the preset first reduces to that intermediate order and
+then continues to the terminal pole order.
 
 | `algorithm` | Controlled policy | Handoff | Dense method | Final step |
 | --- | --- | --- | --- | --- |

@@ -164,13 +164,13 @@ Keyword arguments:
 - `dense_reduction=nothing`: experimental AKR method to apply after the
   controlled-reduction handoff; accepts `:akr`, `:akr_naive`, or
   `:akr_levelbylevel` (`:akr` aliases `:akr_naive`).
-- `handoff_pole_order=nothing`: experimental pole order at which a controlled
-  policy stops before the selected dense method. It must be at least the
-  quotient's terminal pole order and no greater than the maximum pole order
-  among the generated Frobenius source terms. A dense method may be selected
-  with this keyword or by an AKR algorithm preset. Mixed controlled policies
-  require an explicit handoff order; AKR presets reduce to the terminal order
-  when this keyword is omitted.
+- `handoff_pole_order=nothing` specifies the experimental intermediate pole
+  order. A controlled policy requires this order when `dense_reduction` is
+  specified and hands off to the dense method there. An AKR `algorithm` preset
+  selects its dense method implicitly and can use this order as its first target
+  before continuing to the terminal pole order. The order must lie between the
+  quotient's terminal pole order and the maximum generated Frobenius pole order,
+  inclusive.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
 `context`, and `precision_info` keywords are internal or experimental and
