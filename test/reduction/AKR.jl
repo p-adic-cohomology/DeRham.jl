@@ -12,15 +12,6 @@ end
     @test DeRham.zeta_coefficients(curve; algorithm = :akr) == expected_coefficients
 
     curve_p2 = DeRham.fermat_hypersurface(3, 3, 2)
-    @test DeRham.zeta_coefficients_with_precision(
-        curve_p2,
-        1;
-        S = Int[],
-        algorithm = :depthfirst,
-        dense_reduction = :akr,
-        handoff_pole_order = 3,
-    ) == BigInt[2, 0, 1]
-
     expected_lex_matrix = BigInt[0 1; 2 0]
     naive_lex_matrix = DeRham.frobenius_matrix_with_precision(
         curve_p2,

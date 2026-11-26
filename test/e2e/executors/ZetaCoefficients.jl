@@ -42,6 +42,13 @@ end
 
 function execute(F, params::AbstractDict)
     kwargs = Common.parse_kwargs(params)
+    if haskey(kwargs, :relative_precision) &&
+       !haskey(kwargs, :series_precision) &&
+       !haskey(kwargs, :algorithm_precision) &&
+       !(F isa DeRham.DoubleCover)
+        relative_precision = pop!(kwargs, :relative_precision)
+        return DeRham.zeta_coefficients_with_precision(F, relative_precision; kwargs...)
+    end
     return DeRham.zeta_coefficients(F; kwargs...)
 end
 
