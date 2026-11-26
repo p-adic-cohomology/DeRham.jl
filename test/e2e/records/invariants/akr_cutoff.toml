@@ -2,7 +2,7 @@
 name = "akr_cutoff_prime_akr"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.024
+runtime = 0.141
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "akr" }
 
@@ -10,7 +10,7 @@ parameters = { algorithm = "akr" }
 name = "akr_cutoff_prime_akr_naive"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.174
+runtime = 0.180
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "akr_naive" }
 
@@ -18,7 +18,7 @@ parameters = { algorithm = "akr_naive" }
 name = "akr_cutoff_prime_akr_levelbylevel"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.249
+runtime = 0.196
 example = "dim_1_deg_3_fermat_1"
 parameters = { algorithm = "akr_levelbylevel" }
 
@@ -26,7 +26,7 @@ parameters = { algorithm = "akr_levelbylevel" }
 name = "akr_cutoff_uint64_modulus_akr_naive"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.084
+runtime = 0.221
 example = "dim_1_deg_3_fermat_1"
 p = 7
 parameters = { algorithm = "akr_naive", algorithm_precision = 12 }
@@ -35,7 +35,7 @@ parameters = { algorithm = "akr_naive", algorithm_precision = 12 }
 name = "akr_cutoff_uint64_modulus_akr_levelbylevel"
 type = "zeta_coefficients"
 tags = []
-runtime = 0.026
+runtime = 0.259
 example = "dim_1_deg_3_fermat_1"
 p = 7
 parameters = { algorithm = "akr_levelbylevel", algorithm_precision = 12 }
@@ -44,7 +44,7 @@ parameters = { algorithm = "akr_levelbylevel", algorithm_precision = 12 }
 name = "akr_cutoff_plane_quartic_p7_akr"
 type = "zeta_coefficients"
 tags = []
-runtime = 2.444
+runtime = 4.082
 example = "akr_nonfermat_plane_quartic_cutoff"
 p = 7
 parameters = { algorithm = "akr" }
@@ -53,7 +53,7 @@ parameters = { algorithm = "akr" }
 name = "akr_cutoff_plane_quartic_p11_akr"
 type = "zeta_coefficients"
 tags = []
-runtime = 106.732
+runtime = 21.831
 example = "akr_nonfermat_plane_quartic_cutoff"
 p = 11
 parameters = { algorithm = "akr" }

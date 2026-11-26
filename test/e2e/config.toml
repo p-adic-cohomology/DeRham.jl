@@ -20,15 +20,13 @@ records = [
     "gpu_p7_depthfirst__dim_1_deg_4_random_1",
     "derived_point_counts_cubic_surface_p11_k2",
     "artin_invariant_original_sigma_two_p3",
-    "derived_k3_realization_k3f3_p3",
+    "fast_eval__dim_2_deg_4_fermat_1",
     "double_cover_hyperelliptic_g1_p3",
     "double_cover_P2_d4_fermat_p3_varbyvar",
     "double_cover_P2_d4_fermat_p3_pchunk",
-    "double_cover_P2_sextic_sparse_p5",
     "akr_cutoff_prime_akr",
     "akr_cutoff_prime_akr_naive",
     "akr_cutoff_prime_akr_levelbylevel",
-    "akr_cutoff_plane_quartic_p7_akr",
 ]
 
 [tags]

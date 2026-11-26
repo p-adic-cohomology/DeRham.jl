@@ -22,6 +22,10 @@ function validate_parameters(name::AbstractString, params::AbstractDict)
     )
     get(params, "relative_precision", nothing) == 1 ||
         error("execution record $(repr(name)): relative_precision must be 1")
+    for key in ("algorithm_precision", "series_precision", "givefrobmat")
+        haskey(params, key) &&
+            error("execution record $(repr(name)): parameter $(repr(key)) is unsupported")
+    end
     return nothing
 end
 

@@ -40,25 +40,6 @@ function _default_reduction_selection(f, P, S)
     return _default_reduction_selection(fe, S)
 end
 
-function _find_reduction_model(f, P, p, M, S, params, changef, cache, precision_poly)
-    if params.algorithm in (:akr, :akr_naive, :akr_levelbylevel) &&
-       _akr_cutoff_eligible(P.n, P.d, S, p)
-        return _find_Ssmooth_model(f, params, changef) do model
-            lifted = liftCoefficients(base_ring(precision_poly), precision_poly, model)
-            right_inverse = _build_sparse_jacobian_right_inverse(lifted, p, M)
-            if right_inverse === nothing
-                message = S == collect(0:P.n) ?
-                    "f is not smooth" : "matrix from f is not right invertible"
-                throw(ArgumentError(message))
-            end
-            return (; lifted, right_inverse)
-        end
-    end
-
-    changed, model, right_inverse = find_Ssmooth_model(f, P, M, S, params, changef, cache)
-    return changed, model, (; lifted = nothing, right_inverse)
-end
-
 """
     zeta_coefficients(fe::ZetaFrontend; ...)
 
@@ -322,7 +303,8 @@ function zeta_coefficients(
     (9 < verbose) && println("Basis of cohomology is $Basis")
 
 
-    fLift = lifted === nothing ? liftCoefficients(precisionring, precisionringpoly, f) : lifted
+    fLift =
+        lifted === nothing ? liftCoefficients(precisionring, precisionringpoly, f) : lifted
     if (0 < verbose)
         println("\nApplying Frobenius to basis elements")
         @time FBasis = applyFrobeniusToBasis(Basis, fe, N_m, p, params)
@@ -338,17 +320,6 @@ function zeta_coefficients(
     end
     (9 < verbose) && println("T matrix is $T")
 
-    reduction_inverse = if right_inverse isa _SparseJacobianRightInverse
-        right_inverse
-    else
-        rows, cols = size(right_inverse)
-        inverse_matrix = matrix_space(precisionring, rows, cols)()
-        for i in 1:rows, j in 1:cols
-            inverse_matrix[i, j] = ZZ(right_inverse[i, j])
-        end
-        inverse_matrix
-    end
-
     #TODO: check which algorithm we're using
     (0 < verbose) && println("\nStarting controlled reduction...")
     Reductions = reducetransform(
@@ -358,7 +329,7 @@ function zeta_coefficients(
         fLift,
         P,
         fe,
-        reduction_inverse,
+        right_inverse,
         p,
         params,
         cache,

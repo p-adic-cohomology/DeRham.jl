@@ -4,7 +4,14 @@ struct _SparseJacobianRightInverse{N}
     relations::Dict{NTuple{N,Int},Vector{Tuple{Int,NTuple{N,Int},BigInt}}}
 end
 
-function _sparse_jacobian_relation_axpy!(row, row_index, multiple, pivot, modulus, column_rows)
+function _sparse_jacobian_relation_axpy!(
+    row,
+    row_index,
+    multiple,
+    pivot,
+    modulus,
+    column_rows,
+)
     for (j, value) in pivot
         old = get(row, j, big(0))
         a = mod(old - multiple * value, modulus)
@@ -24,6 +31,10 @@ end
 """
 Build sparse Jacobian relations at degree `N * (d - 2) + 1`. Return
 `nothing` when the map lacks full row rank modulo `p`.
+
+Pass `f` in the working residue ring of modulus `p^M` when `M > 1`.
+The derivatives are taken in the coefficient ring of `f` before their
+coefficients are lifted.
 
 Each row uses positive keys for target monomials and negative keys for the
 weights of the gradient generators. The target part equals the weighted sum

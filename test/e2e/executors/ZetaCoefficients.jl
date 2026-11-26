@@ -48,7 +48,9 @@ function execute(F, params::AbstractDict)
 
     algorithm = get(kwargs, :algorithm, :default)
     algorithm in (:akr, :akr_naive, :akr_levelbylevel) || throw(
-        ArgumentError("projective zeta records can override algorithm_precision only for AKR"),
+        ArgumentError(
+            "projective zeta records can override algorithm_precision only for AKR",
+        ),
     )
     if haskey(kwargs, :relative_precision) || haskey(kwargs, :series_precision)
         throw(

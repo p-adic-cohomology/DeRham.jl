@@ -113,11 +113,14 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 An `akr_frobenius_matrix` fixture stores a square array of matrix rows in
 the `derham-invariants` notes. Entries are integer residues lifted to
-`ZZ`, in DeRham's internal cohomology basis. To generate the reference,
-run `DeRham.frobenius_matrix_with_precision(F, 1; algorithm = :default)` with
-the same model and additional computation options as the record. Lift and
-store each row in the returned order. The record accepts `akr`, `akr_naive`,
-or `akr_levelbylevel` as the algorithm.
+`ZZ`, in DeRham's ordered internal cohomology basis. Use a fixed model
+`F` that is already smooth for the selected `S`, and set `changef=false`
+in the record and in the reference computation. Generate the reference with
+`DeRham.frobenius_matrix_with_precision(F, 1; algorithm = :default, changef = false)`
+and the same remaining options as the record. Lift and store each row in the
+returned order. The record accepts `akr`, `akr_naive`, or `akr_levelbylevel`
+as the algorithm. It rejects `algorithm_precision`, `series_precision`, and
+`givefrobmat` because the executor fixes the precision request and return type.
 
 All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,

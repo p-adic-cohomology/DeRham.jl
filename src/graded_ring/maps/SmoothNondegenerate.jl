@@ -107,3 +107,29 @@ function find_Ssmooth_model(f, M, S_target, params, changef, cache)
     P = HypersurfaceQuotient(n, d)
     return find_Ssmooth_model(f, P, M, S_target, params, changef, cache)
 end
+
+function _find_reduction_model(f, P, p, M, S, params, changef, cache, precision_poly)
+    return _find_reduction_model(
+        Val(params.algorithm),
+        f,
+        P,
+        p,
+        M,
+        S,
+        params,
+        changef,
+        cache,
+        precision_poly,
+    )
+end
+
+function _find_reduction_model(::Val, f, P, p, M, S, params, changef, cache, precision_poly)
+    changed, model, right_inverse = find_Ssmooth_model(f, P, M, S, params, changef, cache)
+    model === false && return changed, model, nothing
+    rows, cols = size(right_inverse)
+    inverse_matrix = matrix_space(base_ring(precision_poly), rows, cols)()
+    for i = 1:rows, j = 1:cols
+        inverse_matrix[i, j] = ZZ(right_inverse[i, j])
+    end
+    return changed, model, (; lifted = nothing, right_inverse = inverse_matrix)
+end

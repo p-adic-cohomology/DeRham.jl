@@ -781,13 +781,18 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         for algorithm in ("akr", "akr_naive", "akr_levelbylevel")
             worked = exec.execute(
                 probe,
-                Dict("algorithm" => algorithm, "algorithm_precision" => 12, "termorder" => "lex"),
+                Dict(
+                    "algorithm" => algorithm,
+                    "algorithm_precision" => 12,
+                    "termorder" => "lex",
+                ),
             )
             @test worked.hodge_numbers == [1, 1]
             @test worked.relative_precision == [2, 1]
             @test worked.series_precision == [3, 2]
             @test worked.algorithm_precision == 12
-            @test worked.options == Dict(:algorithm => Symbol(algorithm), :termorder => :lex)
+            @test worked.options ==
+                  Dict(:algorithm => Symbol(algorithm), :termorder => :lex)
         end
         @test_throws r"only for AKR" exec.execute(probe, Dict("algorithm_precision" => 12))
         @test_throws r"only for AKR" exec.execute(
@@ -796,8 +801,25 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         )
         @test_throws r"use automatic relative and series precisions" exec.execute(
             probe,
-            Dict("algorithm" => "akr", "algorithm_precision" => 12, "series_precision" => 1),
+            Dict(
+                "algorithm" => "akr",
+                "algorithm_precision" => 12,
+                "series_precision" => 1,
+            ),
         )
+    end
+
+    @testset "AKR matrix executor validation" begin
+        exec = E2E.AKRFrobeniusMatrixAgreementExecutor
+        parameters = Dict("algorithm" => "akr", "relative_precision" => 1)
+        @test exec.validate_parameters("matrix", parameters) === nothing
+        for (key, value) in
+            ("algorithm_precision" => 12, "series_precision" => 2, "givefrobmat" => false)
+            @test_throws r"parameter .* is unsupported" exec.validate_parameters(
+                "matrix",
+                merge(parameters, Dict(key => value)),
+            )
+        end
     end
 
     @testset "zeta_coefficients executor validation" begin
