@@ -1,3 +1,58 @@
+function _graded_monomial_order(order)
+    order === :lex && return (false, false)
+    order === :neglex && return (false, true)
+    order === :invlex && return (true, false)
+    throw(ArgumentError("Unsupported order '$order'"))
+end
+
+_graded_variable(i, n, reverse_variables) = reverse_variables ? n + 1 - i : i
+
+"""
+Find the indexed exponent vector in `gen_exp_vec` order. Lexicographic
+indexing skips whole blocks of monomials at each variable.
+"""
+function _graded_exponent_at!(exponent, degree, index, ordering)
+    reverse_variables, descending = ordering
+    N = length(exponent)
+    if descending
+        index = binomial(degree + N - 1, N - 1) + 1 - index
+    end
+    remaining = degree
+    for i = 1:(N-1)
+        trailing = N - i
+        count = binomial(remaining + trailing, trailing)
+        target = count - index
+        lo, hi = 0, remaining
+        while lo < hi
+            mid = (lo + hi) ÷ 2
+            if binomial(mid + trailing, trailing) > target
+                hi = mid
+            else
+                lo = mid + 1
+            end
+        end
+        exponent[_graded_variable(i, N, reverse_variables)] = remaining - lo
+        index -= count - binomial(lo + trailing, trailing)
+        remaining = lo
+    end
+    exponent[_graded_variable(N, N, reverse_variables)] = remaining
+    return exponent
+end
+
+function _graded_monomial_index(exponent, degree, ordering)
+    reverse_variables, descending = ordering
+    N = length(exponent)
+    remaining = degree
+    index = 1
+    for i = 1:(N-1)
+        trailing = N - i
+        next = remaining - exponent[_graded_variable(i, N, reverse_variables)]
+        index +=
+            binomial(remaining + trailing, trailing) - binomial(next + trailing, trailing)
+        remaining = next
+    end
+    return descending ? binomial(degree + N - 1, N - 1) + 1 - index : index
+end
 
 """
    gen_exp_vec(n, d, order; vars_reversed=false)
@@ -18,12 +73,14 @@ INPUTS:
 * "order" -- string, monomial ordering, defaulted to lexicographic ordering. Also supports neglex
 """
 function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
+    reverse_variables, descending = _graded_monomial_order(order)
     result = Vector{Vector{Int64}}(undef, binomial(n+d-1, d))
     for i = 1:binomial(n+d-1, d)
         result[i] = zeros(Int64, n)
     end
-    if order == :lex
+    if !descending
         for i = 1:n
+            variable = _graded_variable(i, n, reverse_variables)
             dtemp = copy(d)
             k = 0
             while k <= (length(result) - 1)
@@ -34,7 +91,7 @@ function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
                     end
                 end
                 if i == n && dtemp > 0
-                    result[length(result)-k][i] = dtemp
+                    result[length(result)-k][variable] = dtemp
                     k = k + 1
                     continue
                 end
@@ -44,7 +101,11 @@ function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
                 end
                 if dtemp == 1 && i > 1
                     for j = i:n
-                        result[length(result)-(k+j-i)][j] = 1
+                        result[length(result)-(k+j-i)][_graded_variable(
+                            j,
+                            n,
+                            reverse_variables,
+                        )] = 1
                     end
                     k = k + n - i + 1
                     continue
@@ -53,7 +114,7 @@ function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
                 if i == 1 || dtemp2 == 0
                     while dtemp >= 0
                         for j = 1:binomial(n-i+d-dtemp-1, d-dtemp)
-                            result[length(result)-(j+k-1)][i] = dtemp
+                            result[length(result)-(j+k-1)][variable] = dtemp
                         end
                         k = k + binomial(n-i+d-dtemp-1, d-dtemp)
                         dtemp = dtemp - 1
@@ -61,7 +122,7 @@ function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
                 else
                     while dtemp >= 0
                         for j = 1:binomial(n-i+d-dtemp-dtemp2-1, d-dtemp-dtemp2)
-                            result[length(result)-(j+k-1)][i] = dtemp
+                            result[length(result)-(j+k-1)][variable] = dtemp
                         end
                         k = k + binomial(n-i+d-dtemp-dtemp2-1, d-dtemp-dtemp2)
                         dtemp = dtemp - 1
@@ -69,7 +130,7 @@ function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
                 end
             end
         end
-    elseif order == :neglex
+    else
         for i = 1:n
             dtemp = copy(d)
             k = 1
@@ -116,55 +177,6 @@ function gen_exp_vec(n, d, order::Symbol = :lex; vars_reversed = false)
                 end
             end
         end
-    elseif order == :invlex
-        for i = 1:n
-            dtemp = copy(d)
-            k = 0
-            while k <= (length(result) - 1)
-                if i > 1
-                    dtemp = copy(d)
-                    for j = 1:n
-                        dtemp = dtemp - result[length(result)-k][j]
-                    end
-                end
-                if i == n && dtemp > 0
-                    result[length(result)-k][n-i+1] = dtemp
-                    k = k + 1
-                    continue
-                end
-                if dtemp == 0
-                    k = k + 1
-                    continue
-                end
-                if dtemp == 1 && i > 1
-                    for j = i:n
-                        result[length(result)-(k+j-i)][n-j+1] = 1
-                    end
-                    k = k + n - i + 1
-                    continue
-                end
-                dtemp2 = copy(d - dtemp)
-                if i == 1 || dtemp2 == 0
-                    while dtemp >= 0
-                        for j = 1:binomial(n-i+d-dtemp-1, d-dtemp)
-                            result[length(result)-(j+k-1)][n-i+1] = dtemp
-                        end
-                        k = k + binomial(n-i+d-dtemp-1, d-dtemp)
-                        dtemp = dtemp - 1
-                    end
-                else
-                    while dtemp >= 0
-                        for j = 1:binomial(n-i+d-dtemp-dtemp2-1, d-dtemp-dtemp2)
-                            result[length(result)-(j+k-1)][n-i+1] = dtemp
-                        end
-                        k = k + binomial(n-i+d-dtemp-dtemp2-1, d-dtemp-dtemp2)
-                        dtemp = dtemp - 1
-                    end
-                end
-            end
-        end
-    else
-        throw(ArgumentError("Unsupported order '$order'"))
     end
 
     if vars_reversed

@@ -811,8 +811,17 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
 
     @testset "AKR matrix executor validation" begin
         exec = E2E.AKRFrobeniusMatrixAgreementExecutor
-        parameters = Dict("algorithm" => "akr", "relative_precision" => 1)
+        base_parameters = Dict("algorithm" => "akr", "relative_precision" => 1)
+        parameters = merge(base_parameters, Dict("changef" => false))
         @test exec.validate_parameters("matrix", parameters) === nothing
+        @test_throws r"changef must be false" exec.validate_parameters(
+            "matrix",
+            base_parameters,
+        )
+        @test_throws r"changef must be false" exec.validate_parameters(
+            "matrix",
+            merge(parameters, Dict("changef" => true)),
+        )
         for (key, value) in
             ("algorithm_precision" => 12, "series_precision" => 2, "givefrobmat" => false)
             @test_throws r"parameter .* is unsupported" exec.validate_parameters(
@@ -820,6 +829,28 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
                 merge(parameters, Dict(key => value)),
             )
         end
+        path = joinpath(@__DIR__, "..", "examples", "migrated", "dim_2_deg_4_many.json")
+        cases = E2E._read_example_document(path)
+        case = only(filter(case -> case["id"] == "dim_2_deg_4_many_1", cases))
+        example = E2E._parse_example_case(case, path, 1)
+        record = E2E.ExecutionRecord(
+            "matrix",
+            "akr_frobenius_matrix",
+            String[],
+            0.1,
+            example.id,
+            7,
+            parameters,
+            "synthetic.toml",
+        )
+        malformed = E2E.ExampleCase(
+            example.id,
+            example.source_path,
+            example.variety,
+            example.results,
+            "derham-invariants: {\"7\":{\"akr_frobenius_matrix\":[\"12\",\"34\"]}}",
+        )
+        @test_throws r"must be a nonempty square matrix" exec.expected(malformed, record)
     end
 
     @testset "zeta_coefficients executor validation" begin

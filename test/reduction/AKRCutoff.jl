@@ -63,6 +63,21 @@ end
         p,
     )
     @test picache.relations === setup.right_inverse.relations
+    bigint_params = (; params.termorder, always_use_bigints = true)
+    bigint_table = DeRham._build_akr_picache(
+        3,
+        P.n,
+        P.d,
+        S,
+        setup.lifted,
+        setup.right_inverse,
+        nothing,
+        bigint_params,
+        p,
+    )
+    @test bigint_table.relations === setup.right_inverse.relations
+    bigint_map = DeRham._akr_reduction_map(bigint_table, 3, setup.lifted, params.termorder)
+    @test eltype(bigint_map.factors) === BigInt
 
     S = [0, 1]
     cache = DeRham.controlled_reduction_cache(P.n, P.d, S, params, P)
@@ -75,10 +90,12 @@ end
 @testset "AKR cutoff model failure" begin
     _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
     singular = x^3 + y^3 + x * y * z
-    @test DeRham.zeta_coefficients(singular; algorithm = :akr, changef = true) === false
+    S = [2, 0, 1]
+    @test DeRham.zeta_coefficients(singular; algorithm = :akr, S, changef = true) === false
     @test_throws ArgumentError("f is not smooth") DeRham.zeta_coefficients(
         singular;
         algorithm = :akr,
+        S,
         changef = false,
     )
 end
@@ -226,28 +243,32 @@ end
     source_length = binomial(4 * m - 1, 2)
     g = [R(i % 3 == 0 ? p^M - i : 0) for i = 1:source_length]
     budget = DeRham._AKR_REDUCTION_MAP_CACHE_BYTES
+    map_bytes(map) = sum(
+        sizeof,
+        (
+            map.offsets,
+            map.positions,
+            map.factors,
+            map.derivative_positions,
+            map.derivative_factors,
+        ),
+    )
 
     for always_use_bigints in (false, true), termorder in (:lex, :neglex, :invlex)
         table = DeRham._AKRRelationTable(inverse, always_use_bigints)
         params = (; termorder)
         map = DeRham._akr_reduction_map(table, m, f, termorder)
-        bytes = sum(
-            sizeof,
-            (
-                map.offsets,
-                map.positions,
-                map.factors,
-                map.derivative_positions,
-                map.derivative_factors,
-            ),
-        )
+        bytes = map_bytes(map)
         @test table.cached_map_bytes == bytes
+        next_map = DeRham._akr_reduction_map(table, m + 1, f, termorder)
+        @test table.cached_map_bytes == bytes + map_bytes(next_map)
         expected_cofactors = DeRham._akr_cofactor_vector(g, m, f, table, params)
         expected_reduced = DeRham._reduce_akr_level(g, m, f, table, params)
 
         empty!(table.reduction_maps)
         table.cached_map_bytes = budget - bytes + 1
         @test DeRham._akr_reduction_map(table, m, f, termorder) === nothing
+        @test (m, termorder) in table.rejected_maps
         @test DeRham._akr_cofactor_vector(g, m, f, table, params) == expected_cofactors
         @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
         @test isempty(table.reduction_maps)
@@ -311,6 +332,18 @@ end
     expected = DeRham.polynomial_to_vector(4 * f, 3, params.termorder)
     @test DeRham._akr_pseudoinverse_derivative(cofactor_blocks, 3, f, [0, 2], params) ==
           expected
+    cache = DeRham.PolyExpCache(3, params.termorder, 6)
+    controlled = DeRham.compute_controlled_matrix(
+        f,
+        6,
+        [0, 2],
+        precision_ring,
+        parent(f),
+        params,
+        cache,
+    )
+    image = DeRham.polynomial_to_vector(3 * (x^6 + y^6 + z^6), 3, params.termorder)
+    @test controlled * cofactor_blocks == image
 end
 
 @testset "AKR full-variable fallback when characteristic divides degree" begin
@@ -363,6 +396,6 @@ end
         S = [0, 1, 2],
         changef = false,
     )
-    # Reference from the default reduction at the same precision and model.
-    @test [lift(ZZ, matrix[i, j]) for i in axes(matrix, 1), j in axes(matrix, 2)] == [42 0; 0 6]
+    expected_from_default = [42 0; 0 6]
+    @test [lift(ZZ, matrix[i, j]) for i in axes(matrix, 1), j in axes(matrix, 2)] == expected_from_default
 end

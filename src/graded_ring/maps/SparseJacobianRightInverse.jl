@@ -74,7 +74,6 @@ function _build_sparse_jacobian_right_inverse(f, p, M, ::Val{N}) where {N}
 
     pivots = zeros(Int, length(monomials))
     active = trues(length(rows))
-    rank = 0
     for j in eachindex(monomials)
         row_index = 0
         for i in column_rows[j]
@@ -82,8 +81,7 @@ function _build_sparse_jacobian_right_inverse(f, p, M, ::Val{N}) where {N}
                 row_index = i
             end
         end
-        row_index == 0 && continue
-        rank += 1
+        row_index == 0 && return nothing
         active[row_index] = false
         pivot = rows[row_index]
         scale = invmod(pivot[j], modulus)
@@ -98,8 +96,6 @@ function _build_sparse_jacobian_right_inverse(f, p, M, ::Val{N}) where {N}
         end
         pivots[j] = row_index
     end
-
-    rank == length(monomials) || return nothing
 
     relations = Dict{NTuple{N,Int},Vector{Tuple{Int,NTuple{N,Int},BigInt}}}()
     for (j, monomial) in enumerate(monomials)

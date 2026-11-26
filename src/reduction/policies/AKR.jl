@@ -15,6 +15,7 @@ mutable struct _AKRRelationTable{T<:Integer,N}
     modulus::BigInt
     relations::Dict{NTuple{N,Int},Vector{Tuple{Int,NTuple{N,Int},BigInt}}}
     reduction_maps::Dict{Tuple{Int,Symbol},_AKRReductionMap{T}}
+    rejected_maps::Set{Tuple{Int,Symbol}}
     cached_map_bytes::Int
 end
 
@@ -28,6 +29,7 @@ function _AKRRelationTable(
         inverse.modulus,
         inverse.relations,
         Dict{Tuple{Int,Symbol},_AKRReductionMap{T}}(),
+        Set{Tuple{Int,Symbol}}(),
         0,
     )
 end
@@ -63,25 +65,25 @@ function _build_akr_reduction_map(
     f,
     termorder,
 ) where {T,N}
+    ordering = _graded_monomial_order(termorder)
     d = total_degree(f)
     degree = d * m - N
     degree >= table.cutoff || error("AKR pole order is below the Jacobian cutoff")
     cofactor_degree = degree - d + 1
-    source_monomials = gen_exp_vec(N, degree, termorder)
-    cofactor_monomials = gen_exp_vec(N, cofactor_degree, termorder)
-    cofactor_indices = Dict(Tuple(e) => i for (i, e) in enumerate(cofactor_monomials))
-    cofactor_length = length(cofactor_monomials)
-    offsets = Vector{Int}(undef, length(source_monomials) + 1)
+    source_length = binomial(degree + N - 1, N - 1)
+    cofactor_length = binomial(cofactor_degree + N - 1, N - 1)
+    offsets = Vector{Int}(undef, source_length + 1)
     positions = Int[]
     factors = T[]
+    exponent = Vector{Int}(undef, N)
 
-    for (j, exponent) in enumerate(source_monomials)
+    for j = 1:source_length
+        _graded_exponent_at!(exponent, degree, j, ordering)
         offsets[j] = length(positions) + 1
         h, shift = _akr_cutoff_split(exponent, table.cutoff, Val(N))
         for (i, cofactor, factor) in table.relations[h]
             shifted = ntuple(l -> shift[l] + cofactor[l], Val(N))
-            index = get(cofactor_indices, shifted, 0)
-            index != 0 || error("AKR cofactor has the wrong degree")
+            index = _graded_monomial_index(shifted, cofactor_degree, ordering)
             push!(positions, (i - 1) * cofactor_length + index)
             push!(factors, convert(T, factor))
         end
@@ -92,17 +94,20 @@ function _build_akr_reduction_map(
     derivative_factors = T[]
     reduced_length = 0
     if T === UInt64
-        reduced_monomials = gen_exp_vec(N, cofactor_degree - 1, termorder)
-        reduced_indices = Dict(Tuple(e) => i for (i, e) in enumerate(reduced_monomials))
-        reduced_length = length(reduced_monomials)
+        reduced_degree = cofactor_degree - 1
+        reduced_length = binomial(reduced_degree + N - 1, N - 1)
         derivative_positions = zeros(Int, N * cofactor_length)
         derivative_factors = zeros(T, N * cofactor_length)
-        for i = 1:N, (j, exponent) in enumerate(cofactor_monomials)
-            exponent[i] == 0 && continue
-            reduced_exponent = ntuple(l -> exponent[l] - (l == i), Val(N))
-            position = (i - 1) * cofactor_length + j
-            derivative_positions[position] = reduced_indices[reduced_exponent]
-            derivative_factors[position] = T(exponent[i])
+        for j = 1:cofactor_length
+            _graded_exponent_at!(exponent, cofactor_degree, j, ordering)
+            for i = 1:N
+                exponent[i] == 0 && continue
+                reduced_exponent = ntuple(l -> exponent[l] - (l == i), Val(N))
+                position = (i - 1) * cofactor_length + j
+                derivative_positions[position] =
+                    _graded_monomial_index(reduced_exponent, reduced_degree, ordering)
+                derivative_factors[position] = T(exponent[i])
+            end
         end
     end
 
@@ -117,6 +122,12 @@ function _build_akr_reduction_map(
     )
 end
 
+"""
+Compute the payload size of a pole-order map within the available bytes.
+The greedy cutoff split fixes every exponent before the last nonzero
+coordinate of the cutoff monomial. Additional degree can go in that
+coordinate or later.
+"""
 function _akr_reduction_map_bytes(
     table::_AKRRelationTable{T,N},
     degree,
@@ -136,8 +147,6 @@ function _akr_reduction_map_bytes(
     bytes_per_entry = sizeof(Int) + Base.elsize(Vector{T})
     for (h, relation) in table.relations
         isempty(relation) && continue
-        # The greedy cutoff split fixes every exponent before the last nonzero
-        # coordinate of h. The extra degree can go in that coordinate or later.
         trailing = N - something(findlast(!iszero, h), 1)
         extensions = binomial(degree - table.cutoff + trailing, trailing)
         entry_count = length(relation)
@@ -150,67 +159,28 @@ end
 
 """
 Reuse pole-order maps whose combined array payload fits the cache budget.
-Return `nothing` before building a map that would exceed the remaining budget.
+Remember maps that exceed the remaining budget, which decreases as maps are added.
 BigInt factors share the lifted coefficients in the cutoff relation table.
 """
 function _akr_reduction_map(table::_AKRRelationTable{T,N}, m, f, termorder) where {T,N}
     key = (m, termorder)
     cached = get(table.reduction_maps, key, nothing)
     cached === nothing || return cached
+    key in table.rejected_maps && return nothing
 
     d = total_degree(f)
     degree = d * m - N
     degree >= table.cutoff || error("AKR pole order is below the Jacobian cutoff")
     available = _AKR_REDUCTION_MAP_CACHE_BYTES - table.cached_map_bytes
     map_bytes = _akr_reduction_map_bytes(table, degree, d, available)
-    map_bytes === nothing && return nothing
+    if map_bytes === nothing
+        push!(table.rejected_maps, key)
+        return nothing
+    end
     reduction_map = _build_akr_reduction_map(table, m, f, termorder)
     table.reduction_maps[key] = reduction_map
     table.cached_map_bytes += map_bytes
     return reduction_map
-end
-
-# Match the order of gen_exp_vec without enumerating the graded piece. The
-# increasing lexicographic index skips whole blocks of monomials at each variable.
-function _akr_exponent_at!(exponent, degree, index, order)
-    N = length(exponent)
-    if order === :neglex
-        index = binomial(degree + N - 1, N - 1) + 1 - index
-    end
-    remaining = degree
-    for i = 1:(N-1)
-        trailing = N - i
-        count = binomial(remaining + trailing, trailing)
-        target = count - index
-        lo, hi = 0, remaining
-        while lo < hi
-            mid = (lo + hi) ÷ 2
-            if binomial(mid + trailing, trailing) > target
-                hi = mid
-            else
-                lo = mid + 1
-            end
-        end
-        exponent[order === :invlex ? N+1-i : i] = remaining - lo
-        index -= count - binomial(lo + trailing, trailing)
-        remaining = lo
-    end
-    exponent[order === :invlex ? 1 : N] = remaining
-    return exponent
-end
-
-function _akr_monomial_index(exponent, degree, order)
-    N = length(exponent)
-    remaining = degree
-    index = 1
-    for i = 1:(N-1)
-        trailing = N - i
-        next = remaining - exponent[order === :invlex ? N+1-i : i]
-        index +=
-            binomial(remaining + trailing, trailing) - binomial(next + trailing, trailing)
-        remaining = next
-    end
-    return order === :neglex ? binomial(degree + N - 1, N - 1) + 1 - index : index
 end
 
 _akr_residue_uint64(value::UInt64) = value
@@ -235,8 +205,7 @@ function _akr_apply_uncached(
     termorder,
     ::Val{differentiate},
 ) where {T,N,differentiate}
-    termorder in (:lex, :neglex, :invlex) ||
-        throw(ArgumentError("Unsupported order '$termorder'"))
+    ordering = _graded_monomial_order(termorder)
     d = total_degree(f)
     degree = d * m - N
     output_degree = degree - d + 1 - differentiate
@@ -248,7 +217,7 @@ function _akr_apply_uncached(
     for j in eachindex(g)
         iszero(g[j]) && continue
         coefficient = _akr_residue(g[j], T)
-        _akr_exponent_at!(exponent, degree, j, termorder)
+        _graded_exponent_at!(exponent, degree, j, ordering)
         h, shift = _akr_cutoff_split(exponent, table.cutoff, Val(N))
         for (i, cofactor, factor) in table.relations[h]
             shifted = ntuple(k -> shift[k] + cofactor[k], Val(N))
@@ -256,12 +225,12 @@ function _akr_apply_uncached(
                 power = shifted[i]
                 power == 0 && continue
                 target = ntuple(k -> shifted[k] - (k == i), Val(N))
-                position = _akr_monomial_index(target, output_degree, termorder)
+                position = _graded_monomial_index(target, output_degree, ordering)
                 scaled_factor = _akr_scale_factor(factor, power, modulus)
             else
                 position =
                     (i - 1) * block_length +
-                    _akr_monomial_index(shifted, output_degree, termorder)
+                    _graded_monomial_index(shifted, output_degree, ordering)
                 scaled_factor = convert(T, factor)
             end
             result[position] =
@@ -380,29 +349,26 @@ function _akr_pseudoinverse_derivative(gtemp, m, f, S, params)
     PR = parent(f)
     R = coefficient_ring(parent(f))
     l = d * m - n - 1
-    in_degree = l - d + 1
-    out_degree = l - d
-    in_length = binomial(n + in_degree, n)
-    out_length = binomial(n + out_degree, n)
+    blocks = _controlled_cofactor_blocks(n, d, l, S)
+    last(last(blocks).columns) == length(gtemp) ||
+        error("AKR cofactor blocks have the wrong length")
     vars = gens(PR)
     reduced = PR()
-    offset = 1
 
-    for i = 0:n
-        if i in S
-            block = gtemp[offset:(offset+in_length-1)]
-            component = vector_to_polynomial(block, n, in_degree, PR, params.termorder)
-            offset += in_length
-        else
-            block = gtemp[offset:(offset+out_length-1)]
-            component =
-                vars[i+1] * vector_to_polynomial(block, n, out_degree, PR, params.termorder)
-            offset += out_length
+    for block in blocks
+        component = vector_to_polynomial(
+            gtemp[block.columns],
+            n,
+            block.degree,
+            PR,
+            params.termorder,
+        )
+        if !block.selected
+            component = vars[block.variable] * component
         end
-        reduced += derivative(component, i + 1)
+        reduced += derivative(component, block.variable)
     end
 
-    offset == length(gtemp) + 1 || error("AKR cofactor blocks have the wrong length")
     reduced_vector = polynomial_to_vector(reduced, n + 1, params.termorder)
     if size(reduced_vector)[1] == 0
         reduced_vector = fill(R(0), binomial(d * (m - 1) - 1, n))
@@ -484,17 +450,13 @@ function _find_reduction_model(
             precision_poly,
         )
     end
-    return _find_Ssmooth_model(f, params, changef) do model
-        lifted = liftCoefficients(base_ring(precision_poly), precision_poly, model)
-        right_inverse = _build_sparse_jacobian_right_inverse(lifted, p, M)
-        if right_inverse === nothing
-            message =
-                S == collect(0:P.n) ? "f is not smooth" :
-                "matrix from f is not right invertible"
-            throw(ArgumentError(message))
-        end
-        return (; lifted, right_inverse)
+    lifted = liftCoefficients(base_ring(precision_poly), precision_poly, f)
+    right_inverse = _build_sparse_jacobian_right_inverse(lifted, p, M)
+    if right_inverse === nothing
+        changef && return false, false, nothing
+        throw(ArgumentError("f is not smooth"))
     end
+    return false, f, (; lifted, right_inverse)
 end
 
 function _build_akr_picache(

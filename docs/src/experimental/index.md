@@ -9,9 +9,10 @@ Projective hypersurfaces accept three experimental AKR algorithm symbols:
 `:akr`, `:akr_naive`, and `:akr_levelbylevel`. The first two select the
 original method, which reduces each monomial's pole-order chain separately.
 `:akr_levelbylevel` combines terms at each pole order before applying the
-reduction map. Both schedules use coefficient maps for derivatives when they
-use the cutoff table and UInt64 arithmetic. The BigInt and pseudo-inverse
-paths differentiate polynomials.
+reduction map. Cached UInt64 maps differentiate coefficient vectors. When a
+cutoff map exceeds the remaining cache budget, both integer representations
+differentiate shifted monomials directly. Cached BigInt maps and the
+pseudo-inverse path differentiate polynomials.
 
 These algorithms are selected with `zeta_coefficients(...; algorithm=...)`.
 They are not part of the default reduction heuristic.

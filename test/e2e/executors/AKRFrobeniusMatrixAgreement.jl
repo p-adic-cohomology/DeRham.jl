@@ -22,6 +22,8 @@ function validate_parameters(name::AbstractString, params::AbstractDict)
     )
     get(params, "relative_precision", nothing) == 1 ||
         error("execution record $(repr(name)): relative_precision must be 1")
+    get(params, "changef", nothing) === false ||
+        error("execution record $(repr(name)): changef must be false")
     for key in ("algorithm_precision", "series_precision", "givefrobmat")
         haskey(params, key) &&
             error("execution record $(repr(name)): parameter $(repr(key)) is unsupported")
@@ -43,12 +45,12 @@ function expected(example::ExampleCase, record::ExecutionRecord)
     value isa AbstractVector || error(
         "example $(repr(example.id)) notes value for $(INVARIANT_NAME) at p=$(p) must be a matrix",
     )
-    matrix = [[parse(BigInt, string(entry)) for entry in row] for row in value]
-    dimension = length(matrix)
-    dimension > 0 && all(row -> length(row) == dimension, matrix) || error(
+    dimension = length(value)
+    dimension > 0 &&
+    all(row -> row isa AbstractVector && length(row) == dimension, value) || error(
         "example $(repr(example.id)) notes value for $(INVARIANT_NAME) at p=$(p) must be a nonempty square matrix",
     )
-    return matrix
+    return [[parse(BigInt, string(entry)) for entry in row] for row in value]
 end
 
 function execute(F, params::AbstractDict)
