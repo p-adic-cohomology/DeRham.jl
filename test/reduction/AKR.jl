@@ -7,27 +7,29 @@
 end
 
 @testset "AKR plane curve known output" begin
-    curve = DeRham.fermat_hypersurface(3, 3, 2)
-    expected_coefficients = BigInt[2, 0, 1]
+    curve = DeRham.fermat_hypersurface(3, 3, 7)
+    expected_coefficients = BigInt[7, 1, 1]
     @test DeRham.zeta_coefficients(curve; algorithm = :akr) == expected_coefficients
+
+    curve_p2 = DeRham.fermat_hypersurface(3, 3, 2)
     @test DeRham.zeta_coefficients_with_precision(
-        curve,
+        curve_p2,
         1;
         S = Int[],
         algorithm = :depthfirst,
         dense_reduction = :akr,
         handoff_pole_order = 3,
-    ) == expected_coefficients
+    ) == BigInt[2, 0, 1]
 
     expected_lex_matrix = BigInt[0 1; 2 0]
     naive_lex_matrix = DeRham.frobenius_matrix_with_precision(
-        curve,
+        curve_p2,
         1;
         algorithm = :akr_naive,
         termorder = :lex,
     )
     levelbylevel_lex_matrix = DeRham.frobenius_matrix_with_precision(
-        curve,
+        curve_p2,
         1;
         algorithm = :akr_levelbylevel,
         termorder = :lex,
