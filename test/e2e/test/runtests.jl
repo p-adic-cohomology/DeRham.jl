@@ -40,6 +40,44 @@ using Test
     end
 end
 
+@testset "presubmit smoke config validation" begin
+    base =
+        "[thresholds]\npresubmit_seconds = 1.0\nci_seconds = 2.0\n" *
+        "[tags]\nallowed = []\n[priming]\nrecords = []\n"
+    cases = [
+        ("presubmit = 1\n" * base, "[presubmit] must be a table"),
+        (base * "[presubmit]\n", "presubmit.records is required"),
+        (base * "[presubmit]\nrecords = \"smoke\"\n", "must be an array"),
+        (base * "[presubmit]\nrecords = [1]\n", "must contain only strings"),
+        (base * "[presubmit]\nrecords = []\n", "must not be empty"),
+        (base * "[presubmit]\nrecords = [\"\"]\n", "must not contain empty names"),
+        (
+            base * "[presubmit]\nrecords = [\"smoke\", \"smoke\"]\n",
+            "must not contain duplicate names",
+        ),
+    ]
+    mktempdir() do directory
+        path = joinpath(directory, "config.toml")
+        for (contents, message) in cases
+            write(path, contents)
+            failure = try
+                E2E.load_config(path)
+                nothing
+            catch exception
+                exception
+            end
+            @test failure isa ErrorException
+            if failure isa ErrorException
+                @test occursin(message, sprint(showerror, failure))
+            end
+        end
+        write(path, base)
+        @test E2E.load_config(path).presubmit_records === nothing
+        write(path, base * "[presubmit]\nrecords = [\"smoke\"]\n")
+        @test E2E.load_config(path).presubmit_records == ["smoke"]
+    end
+end
+
 module StubE2EExecutor
 const execute_calls = Ref(0)
 const compare_calls = Ref(0)
@@ -377,7 +415,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
     end
 
     @testset "priming set and configuration coverage" begin
-        @test !E2E.should_run_priming(E2E.Selection(:workflow, :presubmit))
+        @test E2E.should_run_priming(E2E.Selection(:workflow, :presubmit))
         @test E2E.should_run_priming(E2E.Selection(:workflow, :ci))
         @test E2E.should_run_priming(E2E.Selection(:workflow, :full))
         @test E2E.should_run_priming(E2E.Selection(:name, "record"))
@@ -413,6 +451,87 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         threshold_boundary =
             record("threshold_boundary", 0.25, Dict{String,Any}("algorithm" => "varbyvar"))
         config = E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed"])
+
+        priming_config =
+            E2E.CatalogueConfig(0.1, 0.25, Set{String}(), ["primed", "uncovered"])
+        priming_candidates = [primed, same_configuration, uncovered]
+        presubmit_priming = E2E.priming_records_for(
+            catalogue,
+            priming_candidates,
+            priming_config,
+            E2E.Selection(:workflow, :presubmit),
+            (broad = true, records = [same_configuration]),
+        )
+        @test [record.name for record in presubmit_priming] == ["primed"]
+        ci_priming = E2E.priming_records_for(
+            catalogue,
+            priming_candidates,
+            priming_config,
+            E2E.Selection(:workflow, :ci),
+            (broad = true, records = [same_configuration]),
+        )
+        @test [record.name for record in ci_priming] == ["primed", "uncovered"]
+
+        budget_config = E2E.CatalogueConfig(0.25, 1.0, Set{String}(), ["primed"], 0.35)
+        @test isempty(
+            E2E.presubmit_budget_errors([primed, same_configuration], budget_config),
+        )
+        over_budget = E2E.presubmit_budget_errors(priming_candidates, budget_config)
+        @test length(over_budget) == 1
+        @test occursin("presubmit_budget_seconds=0.35", only(over_budget))
+        @test isempty(E2E.presubmit_budget_errors(priming_candidates, config))
+
+        smoke_config = E2E.CatalogueConfig(
+            0.25,
+            1.0,
+            Set{String}(),
+            ["primed"],
+            0.21,
+            ["same_configuration"],
+        )
+        smoke = E2E.select_records(
+            priming_candidates,
+            smoke_config,
+            E2E.Selection(:workflow, :presubmit),
+        )
+        @test [record.name for record in smoke.records] == ["same_configuration"]
+        @test isempty(E2E.presubmit_record_errors(priming_candidates, smoke_config))
+        @test isempty(E2E.presubmit_budget_errors(priming_candidates, smoke_config))
+        overfull_smoke = E2E.CatalogueConfig(
+            0.25,
+            1.0,
+            Set{String}(),
+            ["primed"],
+            0.35,
+            ["same_configuration", "uncovered"],
+        )
+        @test length(E2E.presubmit_budget_errors(priming_candidates, overfull_smoke)) == 1
+        for workflow in (:ci, :full)
+            selected = E2E.select_records(
+                priming_candidates,
+                smoke_config,
+                E2E.Selection(:workflow, workflow),
+            )
+            @test length(selected.records) == length(priming_candidates)
+        end
+        exact = E2E.select_records(
+            priming_candidates,
+            smoke_config,
+            E2E.Selection(:name, "uncovered"),
+        )
+        @test only(exact.records).name == "uncovered"
+        for (names, message) in (
+            (["unknown"], "unknown record"),
+            (["primed"], "also a priming record"),
+            (["threshold_boundary"], "runtime < presubmit_seconds"),
+        )
+            invalid = E2E.CatalogueConfig(0.25, 1.0, Set{String}(), ["primed"], 0.21, names)
+            errors = E2E.presubmit_record_errors(
+                [priming_candidates; threshold_boundary],
+                invalid,
+            )
+            @test occursin(message, only(errors))
+        end
 
         @test E2E.priming_configuration_key(primed, example) ==
               E2E.priming_configuration_key(same_configuration, example)
