@@ -78,6 +78,28 @@ end
     end
 end
 
+struct ProjectivePrecisionProbe end
+
+DeRham.calculate_precision_information(::ProjectivePrecisionProbe) =
+    ((; slopelengths = [1, 1]), [2, 1], [3, 2], 4)
+
+function DeRham.zeta_coefficients_with_precision(
+    ::ProjectivePrecisionProbe,
+    hodge_numbers::AbstractVector,
+    relative_precision::AbstractVector,
+    series_precision::AbstractVector,
+    algorithm_precision::Integer;
+    kwargs...,
+)
+    return (;
+        hodge_numbers,
+        relative_precision,
+        series_precision,
+        algorithm_precision,
+        options = Dict(kwargs),
+    )
+end
+
 module StubE2EExecutor
 const execute_calls = Ref(0)
 const compare_calls = Ref(0)
@@ -751,6 +773,31 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             capability_available = unavailable,
         )
         @test only(skipped_primer).skipped
+    end
+
+    @testset "projective zeta working precision" begin
+        exec = E2E.ZetaCoefficientsExecutor
+        probe = ProjectivePrecisionProbe()
+        for algorithm in ("akr", "akr_naive", "akr_levelbylevel")
+            worked = exec.execute(
+                probe,
+                Dict("algorithm" => algorithm, "algorithm_precision" => 12, "termorder" => "lex"),
+            )
+            @test worked.hodge_numbers == [1, 1]
+            @test worked.relative_precision == [2, 1]
+            @test worked.series_precision == [3, 2]
+            @test worked.algorithm_precision == 12
+            @test worked.options == Dict(:algorithm => Symbol(algorithm), :termorder => :lex)
+        end
+        @test_throws r"only for AKR" exec.execute(probe, Dict("algorithm_precision" => 12))
+        @test_throws r"only for AKR" exec.execute(
+            probe,
+            Dict("algorithm" => "depthfirst", "algorithm_precision" => 12),
+        )
+        @test_throws r"use automatic relative and series precisions" exec.execute(
+            probe,
+            Dict("algorithm" => "akr", "algorithm_precision" => 12, "series_precision" => 1),
+        )
     end
 
     @testset "zeta_coefficients executor validation" begin

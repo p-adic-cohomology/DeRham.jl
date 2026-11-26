@@ -111,6 +111,14 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 | `a_number` | `derham-invariants` notes value; plane curve | None |
 | `artin_invariant` | `derham-invariants` notes value; supersingular quartic K3 over an odd prime | None; note value must be in `1:10` |
 
+An `akr_frobenius_matrix` fixture stores a square array of matrix rows in
+the `derham-invariants` notes. Entries are integer residues lifted to
+`ZZ`, in DeRham's internal cohomology basis. To generate the reference,
+run `DeRham.frobenius_matrix_with_precision(F, 1; algorithm = :default)` with
+the same model and additional computation options as the record. Lift and
+store each row in the returned order. The record accepts `akr`, `akr_naive`,
+or `akr_levelbylevel` as the algorithm.
+
 All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
 `algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
@@ -123,9 +131,9 @@ common option parser also accepts
 integers, while `algorithm_precision` takes an integer. For a double-cover
 zeta record, `series_precision` and `algorithm_precision` are required;
 `relative_precision` defaults to the existing Weil-bound formula.
-For a projective `zeta_coefficients` record, setting `algorithm_precision` by
-itself overrides the automatically computed working precision while keeping
-the automatic relative and series precisions.
+For a projective `zeta_coefficients` record with `akr`, `akr_naive`, or
+`akr_levelbylevel`, `algorithm_precision` overrides working precision and
+the executor computes the relative and series precisions automatically.
 
 ## Reference an example from the pinned artifact
 

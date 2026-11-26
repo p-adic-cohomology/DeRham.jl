@@ -94,9 +94,16 @@ end
         DeRham.polynomial_to_vector(expected_reduced_polynomial, 3, params.termorder)
     @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
 
-    cached_map = DeRham._akr_bigint_reduction_map(table, m, f, params.termorder)
-    @test cached_map === DeRham._akr_bigint_reduction_map(table, m, f, params.termorder)
-    @test length(table.bigint_reduction_maps) == 1
+    cached_map = DeRham._akr_reduction_map(table, m, f, params.termorder)
+    @test cached_map === DeRham._akr_reduction_map(table, m, f, params.termorder)
+    @test length(table.reduction_maps) == 1
+    @test isempty(cached_map.derivative_positions)
+    @test isempty(cached_map.derivative_factors)
+
+    table.cached_map_bytes = DeRham._AKR_REDUCTION_MAP_CACHE_BYTES
+    DeRham._akr_reduction_map(table, m + 1, f, params.termorder)
+    @test length(table.reduction_maps) == 1
+    @test !haskey(table.reduction_maps, (m + 1, params.termorder))
 end
 
 @testset "AKR UInt64 reduction path" begin
@@ -149,6 +156,32 @@ end
     expected_reduced =
         DeRham._akr_pseudoinverse_derivative(expected_cofactors, m, f, [0, 1, 2], params)
     @test DeRham._reduce_akr_level(g, m, f, table, params) == expected_reduced
+
+    forced = (; params.termorder, always_use_bigints = true)
+    forced_table = DeRham._build_akr_picache(m, 2, 3, [0, 1, 2], f, nothing, nothing, forced, p)
+    forced_map = DeRham._akr_reduction_map(forced_table, m, f, params.termorder)
+    @test eltype(forced_map.factors) === BigInt
+    @test DeRham._reduce_akr_level(g, m, f, forced_table, forced) == expected_reduced
+end
+
+@testset "AKR UInt64 derivative and level-sum overflow" begin
+    modulus = UInt64(3)^40
+    precision_ring, = residue_ring(ZZ, modulus)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^4 + y^4 + z^4
+    table = DeRham._build_akr_relation_table(f, 3, 40)
+    reduction_map = DeRham._akr_reduction_map(table, 3, f, :invlex)
+
+    cofactors = zeros(UInt64, 3 * reduction_map.cofactor_length)
+    source = findfirst(==([6, 0, 0]), DeRham.gen_exp_vec(3, 6, :invlex))
+    cofactors[source] = modulus - 1
+    expected = zeros(UInt64, reduction_map.reduced_length)
+    target = findfirst(==([5, 0, 0]), DeRham.gen_exp_vec(3, 5, :invlex))
+    expected[target] = modulus - 6
+
+    @test DeRham._akr_derivative_residues(cofactors, reduction_map, modulus) == expected
+    @test DeRham._akr_add_residues!(UInt64[modulus - 1], UInt64[modulus - 1], modulus) ==
+          UInt64[modulus - 2]
 end
 
 @testset "AKR partial-variable fallback" begin
@@ -173,6 +206,21 @@ end
     for algorithm in (:akr_naive, :akr_levelbylevel)
         @test DeRham.zeta_coefficients(curve; algorithm = algorithm, S = S) == expected
     end
+end
+
+@testset "AKR interleaved cofactor blocks" begin
+    precision_ring, = residue_ring(ZZ, 5)
+    _, (x, y, z) = polynomial_ring(precision_ring, ["x", "y", "z"])
+    f = x^3 + y^3 + z^3
+    params = DeRham.default_params()
+    cofactor_blocks = vcat(
+        DeRham.polynomial_to_vector(x^4, 3, params.termorder),
+        DeRham.polynomial_to_vector(y^3, 3, params.termorder),
+        DeRham.polynomial_to_vector(z^4, 3, params.termorder),
+    )
+    expected = DeRham.polynomial_to_vector(4 * f, 3, params.termorder)
+    @test DeRham._akr_pseudoinverse_derivative(cofactor_blocks, 3, f, [0, 2], params) ==
+          expected
 end
 
 @testset "AKR full-variable fallback when characteristic divides degree" begin
