@@ -77,8 +77,12 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 
 - `name` must be nonempty and globally unique across every record file.
 - `runtime` is the measured execution time in seconds, used only for
-  `--workflow=` membership. Use Julia 1.13.2; update affected records in the
-  same change when an implementation change affects their speed.
+  `--workflow=` membership. Record the harness's `actual_runtime` from a primed
+  workflow on the shared development host under its usual load, where the tiers
+  run. Identify the workflow and source revision because their warmed paths can
+  differ. Use Julia 1.13.2; update
+  affected records in the same change when an implementation change affects
+  their speed.
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
 - `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
@@ -111,8 +115,8 @@ recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
 `algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
 `always_use_bigints`, `use_gpu`, `use_threads`, `linear_recurrence_algorithm`,
 and `sqrt_linear_recurrence_min_length`. `algorithm` accepts `default`,
-`depthfirst`, `varbyvar`, `pchunk`, `akr`, `akr_naive`, or `akr_levelbylevel`; `S` must be an
-array and `termorder` must be a string. The common option parser also accepts
+`depthfirst`, `varbyvar`, `pchunk`, `akr`, `akr_naive`, or `akr_levelbylevel`.
+`S` must be an array and `termorder` must be a string. The common option parser also accepts
 `relative_precision`, `series_precision`, and `algorithm_precision`;
 `relative_precision` and `series_precision` take an integer or an array of
 integers, while `algorithm_precision` takes an integer. For a double-cover
@@ -132,8 +136,15 @@ exactly as you would a local example; there is no separate syntax.
 selector may be given; a bare `Pkg.test()` defaults to `--workflow=ci`.
 An invocation with only a `--name=` or `--tag=` selector runs the selected E2E
 record(s) without running the conventional testsets, E2E harness tests, or
-quality gates. Bare `Pkg.test()` and `--workflow=` invocations still run those
-tests and gates.
+quality gates. Bare `Pkg.test()` and `--workflow=` invocations also run the
+unit test files of that workflow's tier (`UNIT_TEST_TIERS` in
+`test/runtests.jl`): `presubmit` runs the files marked `:presubmit`, while `ci`
+and `full` run every unit test file and the quality gates.
+
+`--unit=<file>` (a path relative to `test/`, repeatable) runs only those unit
+test files, whatever their tier, and can be combined with `--name=` and
+`--tag=` to run specific records as well. Use it to run the tests for the code
+you changed:
 
 ```julia
 Pkg.test("DeRham")                                    # --workflow=ci (default)
@@ -141,11 +152,24 @@ Pkg.test("DeRham"; test_args = ["--workflow=presubmit"])
 Pkg.test("DeRham"; test_args = ["--workflow=full"])
 Pkg.test("DeRham"; test_args = ["--name=my_new_example_default"])
 Pkg.test("DeRham"; test_args = ["--tag=bigint"])
+Pkg.test("DeRham"; test_args = ["--unit=reduction/AKR.jl"])
+Pkg.test("DeRham"; test_args = ["--unit=reduction/Selection.jl", "--name=pchunk__dim_1_deg_3_fermat_1"])
 ```
 
-`--workflow=` selects by each record's `runtime` against the configured
-`presubmit_seconds` / `ci_seconds` thresholds (`presubmit ⊆ ci ⊆ full`).
-`--name=` and `--tag=` ignore runtime thresholds; a `--tag=` selection (like
+`--workflow=presubmit` runs the explicit smoke records in `[presubmit].records`
+that declare `runtime < presubmit_seconds`. The list must contain known names,
+fit within `presubmit_budget_seconds` (the 35-second E2E share), and exclude
+priming records so that smoke execution stays inside the measured budget.
+Without an explicit list, legacy configurations select by the threshold alone.
+`ci` selects every record below `ci_seconds`, and `full` selects everything;
+`presubmit ⊆ ci ⊆ full` is preserved.
+
+Presubmit fails when the combined wall time of its selected E2E records and
+unit test files after priming exceeds 60 seconds, including any remaining
+compilation. Setup, loading and priming are reported separately. Choose fewer
+or faster smoke records when the tier exceeds its budget; do not raise the
+budget or move selected computations into priming.
+`--name=` and `--tag=` ignore workflow restrictions; a `--tag=` selection (like
 a workflow) silently skips cases whose capability (e.g. `gpu`) is
 unavailable, while an unavailable `--name=` selection fails.
 
@@ -158,7 +182,12 @@ execution time; the summary remains informational.
 
 `config.toml` lists the fixed priming set under `[priming].records`. The harness
 runs those ordinary records before `ci` and `full` workflows and before
-`--name=` or `--tag=` selections. `presubmit` does not run the priming set. Each
+`--name=` or `--tag=` selections. `presubmit` runs only the priming records
+whose configuration matches one of its selected records. In presubmit,
+priming and selected E2E execution happen together before the unit test files,
+so test method definitions do not intervene between priming and E2E execution.
+CI/full run their unit files after priming and before selected E2E execution,
+then run the quality gates. Each
 priming result is checked like any other record, and a priming record that is
 also selected runs only once. A priming-only record that requires an unavailable
 capability is skipped; when explicitly selected by `--name=`, it follows the
@@ -168,9 +197,10 @@ Keep the complete priming set under five minutes in one fresh Julia 1.13.2
 process. A validation guard requires a priming record for every configuration
 whose cheapest catalogue record has `runtime < ci_seconds`; configurations
 whose records all meet or exceed that threshold are exempt. A configuration
-uses variety dimension and the code-path options `algorithm`, `fastevaluation`,
-`changef`, `always_use_bigints`, `use_gpu`, `use_threads`, `termorder`, and
-`k`. Executors share the compiled pipeline for a dimension and option set, so
+uses variety dimension and the code-path options `algorithm`,
+`linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`,
+`fastevaluation`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
+`termorder`, and `k`. Executors share the compiled pipeline for a dimension and option set, so
 executor type does not split configurations. Integer `k` values are keyed by
 type, so `k=1` and `k=2` share a configuration while an absent `k` remains
 distinct. `S` is record data and does not split configurations.
@@ -225,3 +255,28 @@ added or changed, plus the prescribed workflow test tier. The end-of-run
 runtime table flags cases whose measured time is more than twice or less than
 half their declared runtime; this is informational and does not change a test
 result.
+
+The November 25, 2026 tier refresh uses 346 measured records from the loaded-host
+CI logs `20261124T142034Z-land-main-34f2ccb.log` and
+`20261125T042125Z-epic4-supportcone-0ea3750.log` (kept in the coordinator's
+`dispatch/medium-test-runs/logs/` evidence directory). Each declaration uses the
+smaller available post-priming measurement, rounded to milliseconds. Forty-two
+of those declarations are replaced by the newer post-priming measurements in
+`tiers-presubmit-codex-2.log`, on source `59bb6df` under the usual shared-host
+load; priming measurements are excluded. The later 40.155-second observation
+for `double_cover_hyperelliptic_g2_p11` on source `93618e6` supersedes its
+earlier measurement and moves it into `full`. Records without a measurement
+retain their existing declaration. Seventeen formerly CI-eligible records cross
+the unchanged 30-second CI threshold into `full`.
+
+The smoke pair `double_cover_conic_nonsplit_p3` and
+`double_cover_conic_split_p3` declares 14.574 and 12.009 seconds from the
+loaded-host presubmit run on source `87c4af3`. This replaces their older CI
+measurements, whose broader prefix had already warmed more paths. That run
+passed the combined post-priming budget in 31.857 seconds, including 4.806
+seconds of remaining compilation. Priming took 245.803 seconds separately.
+The presubmit unit files are HodgePolygon, CharPolyFrob and Refusals.
+Admit files using their timings after presubmit's own priming and preceding
+tests: a broad CI prefix can hide substantial compilation cost. Slower files
+remain in CI/full and are available individually through `--unit=<file>`.
+The complete smoke-plus-unit budget is checked in every presubmit run.

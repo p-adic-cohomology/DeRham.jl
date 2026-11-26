@@ -61,8 +61,13 @@ include("Run.jl")
 
 # Entry point called from test/runtests.jl with Base.ARGS (i.e. Pkg.test's
 # test_args). Bare Pkg.test() passes no args, which defaults to --workflow=ci.
-function run!(args::AbstractVector{<:AbstractString} = ARGS)
-    return run_e2e(@__DIR__, args)
+function run!(
+    args::AbstractVector{<:AbstractString} = ARGS;
+    primed::Union{Nothing,AbstractVector{<:AbstractString}} = nothing,
+)
+    return run_e2e(@__DIR__, args; primed = primed)
 end
+
+prime!(args::AbstractVector{<:AbstractString} = ARGS) = prime_e2e(@__DIR__, args)
 
 end # module E2E

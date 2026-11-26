@@ -1,48 +1,48 @@
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_1"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 1.954
 example = "dim_2_deg_3_many_1"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_2"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 1.825
 example = "dim_2_deg_3_many_2"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_3"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 0.98
 example = "dim_2_deg_3_many_3"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_4"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 1.215
 example = "dim_2_deg_3_many_4"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_5"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 1.557
 example = "dim_2_deg_3_many_5"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_6"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 1.713
 example = "dim_2_deg_3_many_6"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }
 
 [[test]]
 name = "cubic_surfaces__dim_2_deg_3_many_7"
 type = "zeta_coefficients"
-runtime = 0.5
+runtime = 2.303
 example = "dim_2_deg_3_many_7"
 parameters = { S = [1, 2], algorithm = "depthfirst", fastevaluation = true }

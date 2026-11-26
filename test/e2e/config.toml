@@ -1,6 +1,10 @@
 [thresholds]
-presubmit_seconds = 5.0
+presubmit_seconds = 25.0
 ci_seconds = 30.0
+presubmit_budget_seconds = 35.0
+
+[presubmit]
+records = ["double_cover_conic_nonsplit_p3", "double_cover_conic_split_p3"]
 
 [priming]
 records = [
@@ -21,7 +25,6 @@ records = [
     "derived_point_counts_cubic_surface_p11_k2",
     "artin_invariant_original_sigma_two_p3",
     "derived_k3_realization_k3f3_p3",
-    "derived_k3_picard_rank_p5_k2",
     "double_cover_hyperelliptic_g1_p3",
     "double_cover_P2_d4_fermat_p3_varbyvar",
     "double_cover_P2_d4_fermat_p3_pchunk",

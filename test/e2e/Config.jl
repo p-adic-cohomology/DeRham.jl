@@ -7,7 +7,26 @@ struct CatalogueConfig
     ci_seconds::Float64
     allowed_tags::Set{String}
     priming_records::Vector{String}
+    presubmit_budget_seconds::Float64
+    presubmit_records::Union{Nothing,Vector{String}}
 end
+
+CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records) =
+    CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records, Inf)
+
+CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records, budget) =
+    CatalogueConfig(
+        presubmit_seconds,
+        ci_seconds,
+        allowed_tags,
+        priming_records,
+        budget,
+        nothing,
+    )
+
+is_presubmit_record(record::ExecutionRecord, config::CatalogueConfig) =
+    record.runtime < config.presubmit_seconds &&
+    (config.presubmit_records === nothing || record.name in config.presubmit_records)
 
 function load_config(path::AbstractString)
     isfile(path) || error("E2E config not found: $(path)")
@@ -23,6 +42,27 @@ function load_config(path::AbstractString)
     presubmit_seconds > 0 || error("$(path): thresholds.presubmit_seconds must be > 0")
     ci_seconds > presubmit_seconds ||
         error("$(path): thresholds.ci_seconds must be > thresholds.presubmit_seconds")
+    presubmit_budget_seconds = Float64(get(thresholds, "presubmit_budget_seconds", Inf))
+    presubmit_budget_seconds > 0 ||
+        error("$(path): thresholds.presubmit_budget_seconds must be > 0")
+
+    presubmit_records = nothing
+    if haskey(raw, "presubmit")
+        smoke = raw["presubmit"]
+        smoke isa AbstractDict || error("$(path): [presubmit] must be a table")
+        haskey(smoke, "records") || error("$(path): presubmit.records is required")
+        names = smoke["records"]
+        names isa AbstractVector ||
+            error("$(path): presubmit.records must be an array of record names")
+        all(name -> name isa AbstractString, names) ||
+            error("$(path): presubmit.records must contain only strings")
+        presubmit_records = String.(names)
+        isempty(presubmit_records) && error("$(path): presubmit.records must not be empty")
+        any(isempty, presubmit_records) &&
+            error("$(path): presubmit.records must not contain empty names")
+        length(unique(presubmit_records)) == length(presubmit_records) ||
+            error("$(path): presubmit.records must not contain duplicate names")
+    end
 
     haskey(raw, "tags") || error("$(path): missing [tags] table")
     haskey(raw["tags"], "allowed") || error("$(path): tags.allowed is required")
@@ -43,5 +83,12 @@ function load_config(path::AbstractString)
     length(unique(priming_records)) == length(priming_records) ||
         error("$(path): priming.records must not contain duplicate names")
 
-    return CatalogueConfig(presubmit_seconds, ci_seconds, allowed_tags, priming_records)
+    return CatalogueConfig(
+        presubmit_seconds,
+        ci_seconds,
+        allowed_tags,
+        priming_records,
+        presubmit_budget_seconds,
+        presubmit_records,
+    )
 end

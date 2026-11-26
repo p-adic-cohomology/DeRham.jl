@@ -2,7 +2,7 @@
 name = "double_cover_P2_sextic_dense_p11"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 7.772
+runtime = 12.252
 example = "p11_dc_sextic_dense_001"
 p = 11
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [4, 4, 3], algorithm_precision = 6 }
@@ -11,7 +11,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_sparse_p11"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 6.672
+runtime = 23.099
 example = "p11_dc_sextic_sparse_fk_001"
 p = 11
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [6, 6, 5], algorithm_precision = 12 }
@@ -20,7 +20,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_dense_p13"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 5.669
+runtime = 23.792
 example = "p13_dc_sextic_dense_001"
 p = 13
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [4, 4, 3], algorithm_precision = 6 }
@@ -29,7 +29,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_sparse_p13"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 19.534
+runtime = 45.88
 example = "p13_dc_sextic_sparse_fk_001"
 p = 13
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [6, 6, 5], algorithm_precision = 12 }
@@ -38,7 +38,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_dense_p17"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 12.418
+runtime = 26.132
 example = "p17_dc_sextic_dense_001"
 p = 17
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [4, 4, 3], algorithm_precision = 6 }
@@ -47,7 +47,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_sparse_p17"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 26.031
+runtime = 56.465
 example = "p17_dc_sextic_sparse_fk_001"
 p = 17
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [6, 6, 5], algorithm_precision = 12 }
@@ -56,7 +56,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_dense_p19"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 13.4
+runtime = 28.436
 example = "p19_dc_sextic_dense_001"
 p = 19
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [4, 4, 3], algorithm_precision = 6 }
@@ -65,7 +65,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_
 name = "double_cover_P2_sextic_sparse_p19"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 18.225
+runtime = 54.059
 example = "p19_dc_sextic_sparse_fk_001"
 p = 19
 parameters = { algorithm = "depthfirst", relative_precision = [2, 3, 3], series_precision = [6, 6, 5], algorithm_precision = 12 }
@@ -83,7 +83,7 @@ parameters = { algorithm = "depthfirst", relative_precision = [1, 2, 3], series_
 name = "double_cover_P2_sextic_sparse_p23"
 type = "zeta_coefficients"
 tags = ["sextic_k3"]
-runtime = 26.507
+runtime = 103.126
 example = "p23_dc_sextic_sparse_fk_001"
 p = 23
 parameters = { algorithm = "depthfirst", relative_precision = [1, 2, 3], series_precision = [6, 6, 5], algorithm_precision = 12 }
