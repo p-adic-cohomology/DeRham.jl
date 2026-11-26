@@ -2,7 +2,7 @@
 name = "akr_nonfermat_k3_p7_matrix_akr"
 type = "akr_frobenius_matrix"
 tags = []
-runtime = 7.228
+runtime = 4.427
 example = "dim_2_deg_4_many_1"
 p = 7
 parameters = { algorithm = "akr", relative_precision = 1, changef = false, termorder = "invlex" }
@@ -11,7 +11,7 @@ parameters = { algorithm = "akr", relative_precision = 1, changef = false, termo
 name = "akr_nonfermat_k3_p7_matrix_akr_levelbylevel"
 type = "akr_frobenius_matrix"
 tags = []
-runtime = 3.573
+runtime = 3.164
 example = "dim_2_deg_4_many_1"
 p = 7
 parameters = { algorithm = "akr_levelbylevel", relative_precision = 1, changef = false, termorder = "invlex" }
@@ -20,7 +20,7 @@ parameters = { algorithm = "akr_levelbylevel", relative_precision = 1, changef =
 name = "akr_fermat_k3_p3_matrix_akr"
 type = "akr_frobenius_matrix"
 tags = []
-runtime = 8.0
+runtime = 3.295
 example = "dim2_deg_4_k3f3_1"
 p = 3
 parameters = { algorithm = "akr", relative_precision = 1, changef = false, termorder = "invlex" }
@@ -29,7 +29,7 @@ parameters = { algorithm = "akr", relative_precision = 1, changef = false, termo
 name = "akr_fermat_k3_p3_matrix_akr_levelbylevel"
 type = "akr_frobenius_matrix"
 tags = []
-runtime = 4.0
+runtime = 1.902
 example = "dim2_deg_4_k3f3_1"
 p = 3
 parameters = { algorithm = "akr_levelbylevel", relative_precision = 1, changef = false, termorder = "invlex" }
