@@ -397,8 +397,7 @@ end
         deepcopy(big_g),
     )
     big_actual = deepcopy(big_g)
-    big_sqrt_calls = Ref(0)
-    DeRham._with_sqrt_linear_recurrence_test_hook(() -> (big_sqrt_calls[] += 1)) do
+    _, big_sqrt_calls = logged_sqrt_recurrences() do
         DeRham.evaluate_linear_recurrence!(
             big_a,
             big_b,
@@ -412,7 +411,7 @@ end
         )
     end
     @test big_actual == big_expected
-    @test big_sqrt_calls[] > 0
+    @test big_sqrt_calls == 1
 
     unsupported_a = [1 2; 0 1]
     unsupported_b = [1 0; 3 2]
