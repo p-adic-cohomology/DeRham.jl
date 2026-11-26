@@ -199,6 +199,16 @@ function default_context(matspace, Ruv, params)
     end
 end
 
+function _precision_residue_modulus(p, precision, always_use_bigints)
+    modulus = BigInt(p)^precision
+    if always_use_bigints || modulus > typemax(UInt)
+        return modulus
+    elseif modulus > typemax(Int)
+        return UInt(modulus)
+    end
+    return Int(modulus)
+end
+
 """
     pregen_default_context(n, d, p, S; kwargs...)
 
@@ -259,7 +269,7 @@ function pregen_default_context(
     )
 
     m = pregen_precision_info(n, d, p)
-    M = Integer(p^m)
+    M = _precision_residue_modulus(p, m, params.always_use_bigints && !params.use_gpu)
     g_length = binomial(d*n, d*n-n)
     matspace = matrix_space(residue_ring(ZZ, M)[1], g_length, g_length)
 
@@ -342,7 +352,7 @@ function pregen_default_context(
         B = matspace()
         temp = matspace()
 
-        if params.always_use_bigints || ZZ(2)^64 <= ZZ(M)
+        if A isa ZZModMatrix
             # Big modulus
             # NOTE: can't use `similar` for a pointer type
             g = [ZZ(0) for i = 1:g_length]

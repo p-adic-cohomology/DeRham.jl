@@ -15,7 +15,7 @@ end
 const _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH = Val{:unspecified}()
 
 function _validate_linear_recurrence_options(algorithm, min_length)
-    algorithm in (:finitediff, :sqrt) ||
+    (algorithm === :finitediff || algorithm === :sqrt) ||
         throw(ArgumentError("linear_recurrence_algorithm must be :finitediff or :sqrt"))
     if min_length !== nothing
         min_length isa Integer && !(min_length isa Bool) && min_length > 0 || throw(

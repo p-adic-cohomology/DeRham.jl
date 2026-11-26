@@ -40,6 +40,11 @@ function MatrixReductionEngine(
     linear_recurrence_algorithm = :finitediff,
     sqrt_linear_recurrence_min_length = nothing,
 )
+    linear_recurrence_algorithm, sqrt_linear_recurrence_min_length =
+        _validate_linear_recurrence_options(
+            linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length,
+        )
     vector_type = typeof(_matrix_engine_vector(context.g))
     live = Dict{Int,MatrixReductionChainState{vector_type}}()
     return MatrixReductionEngine(

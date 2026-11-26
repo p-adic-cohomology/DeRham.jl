@@ -248,14 +248,7 @@ function zeta_coefficients(
         "We work modulo $p^$M, and compute up to the $N_m-th term of the Frobenius power series",
     )
 
-    if always_use_bigints || BigInt(2)^64 < BigInt(p)^M
-        residue = BigInt(p)^M
-    elseif BigInt(2)^63 < BigInt(p)^M
-        # If we use UInt, we get things between 2^63 and 2^64
-        residue = UInt(p)^M
-    else
-        residue = p^M
-    end
+    residue = _precision_residue_modulus(p, M, always_use_bigints)
 
     # FOR DEBUGGING
     #residue = BigInt(p)^M
@@ -471,6 +464,10 @@ INPUTS:
 * "p" -- a prime number, integer
 
 """
+_frontend_with_polynomial(fe::ZetaFrontend, f) = typeof(fe)(f)
+_frontend_with_polynomial(::ProjectiveHypersurface, f) = ProjectiveHypersurface(f)
+_frontend_with_polynomial(::DoubleCover, f) = DoubleCover(f)
+
 function zeta_coefficients(
     fe::ZetaFrontend,
     p;
@@ -497,7 +494,7 @@ function zeta_coefficients(
     PR = parent(f)
     _, hom = change_base_ring(GF(p), PR)
     return zeta_coefficients(
-        typeof(fe)(hom(f));
+        _frontend_with_polynomial(fe, hom(f));
         S = S,
         verbose = verbose,
         changef = changef,

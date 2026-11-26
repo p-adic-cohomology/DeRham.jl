@@ -33,6 +33,18 @@ function _pchunk_execution_setup_at_modulus(modulus; always_use_bigints = false)
     )
 end
 
+@testset "PChunk frontend at the CPU modulus boundary" begin
+    curve = DeRham.fermat_hypersurface(3, 3, 2)
+    basis = DeRham.get_basis_of_cohomology(curve)
+    hodge, relative, series, _ = DeRham.calculate_precision_information(curve, basis)
+    @test DeRham.zeta_coefficients(
+        curve;
+        algorithm = :pchunk,
+        changef = false,
+        precision_info = (hodge, relative, series, 64),
+    ) == BigInt[2, 0, 1]
+end
+
 @testset "pchunk CPU representations" begin
     oversized_chunk = BigInt(typemax(Int)) + 1
     policy = DeRham.PChunkPolicy(3, [2], oversized_chunk)

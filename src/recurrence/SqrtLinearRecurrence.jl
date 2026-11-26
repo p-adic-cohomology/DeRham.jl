@@ -11,8 +11,8 @@ Use square `zzModMatrix` inputs with `Vector{UInt}` vectors, or square
 `ZZModMatrix` inputs with `Vector{ZZRingElem}` vectors. The scratch matrix
 `temp` must match the input dimensions and modulus. Both vectors must have
 one entry per row. Supply separate scratch storage for `temp` and `g_temp`.
-With `ZZRingElem` vectors, initialize each input and scratch entry as a
-distinct object.
+Each `UInt` input entry must be less than the modulus. With `ZZRingElem`
+vectors, initialize each input and scratch entry as a distinct object.
 """
 function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
     start = Int(start)
@@ -45,12 +45,19 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
         throw(ArgumentError("linear recurrence BigInt vectors require initialized entries"))
     end
 
-    backend = small_modulus ? _NmodBGSEvaluationBackend() : _FmpzModBGSEvaluationBackend()
     ring = base_ring(parent(a))
     m = modulus(ring)
     m == modulus(base_ring(b)) == modulus(base_ring(temp)) ||
         throw(ArgumentError("linear recurrence matrices must share a modulus"))
-    poly_ring, x = polynomial_ring(ring, "x"; cached = false)
+    small_modulus &&
+        !all(value -> value < m, g) &&
+        throw(
+            ArgumentError("linear recurrence UInt input entries must be reduced modulo $m"),
+        )
+    rows == 0 && return g
+
+    backend = small_modulus ? _NmodBGSEvaluationBackend() : _FmpzModBGSEvaluationBackend()
+    poly_ring, _ = polynomial_ring(ring, "x"; cached = false)
     polynomial_matrix_space = matrix_space(poly_ring, rows, cols)
 
     block_length = isqrt(interval_length)
@@ -62,7 +69,7 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
         for j = 1:cols, i = 1:rows
             linear = ring(a[i, j])
             constant = ring(b[i, j]) + linear * ring_offset
-            factor[i, j] = poly_ring(linear) * x + poly_ring(constant)
+            factor[i, j] = poly_ring([constant, linear])
         end
     end
 
@@ -92,7 +99,11 @@ function sqrt_linear_recurrence!(a, b, start, stop, g, temp, g_temp)
                 evaluation_points,
             )
             for k = 1:blocks
-                evaluated_blocks[k][i, j] = ring(values[k])
+                if small_modulus
+                    evaluated_blocks[k][i, j] = ring(values[k])
+                else
+                    Oscar.Nemo.setindex_raw!(evaluated_blocks[k], values[k], i, j)
+                end
             end
         end
     finally

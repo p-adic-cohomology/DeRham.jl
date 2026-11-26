@@ -1,5 +1,5 @@
 @testset "matrix reduction engine" begin
-    function test_engine(fastevaluation)
+    function test_engine(fastevaluation; kwargs...)
         coefficient_ring, = residue_ring(ZZ, 5)
         matspace = matrix_space(coefficient_ring, 1, 1)
         params = DeRham.ZetaFunctionParams(
@@ -35,9 +35,13 @@
             preconfigured,
             fill_vector!;
             fastevaluation,
+            kwargs...,
         )
         return engine
     end
+
+    @test_throws ArgumentError test_engine(true; linear_recurrence_algorithm = :invalid)
+    @test_throws ArgumentError test_engine(true; sqrt_linear_recurrence_min_length = 0)
 
     for fastevaluation in (false, true)
         engine = test_engine(fastevaluation)

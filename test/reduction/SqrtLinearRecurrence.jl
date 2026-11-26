@@ -146,6 +146,37 @@ end
     )
 end
 
+@testset "square-root linear recurrence with empty matrices" begin
+    for (modulus, vector) in ((101, UInt[]), (big(101), ZZRingElem[]))
+        ring, = residue_ring(ZZ, modulus)
+        matrixspace = matrix_space(ring, 0, 0)
+        @test DeRham.sqrt_linear_recurrence!(
+            matrixspace(),
+            matrixspace(),
+            0,
+            0,
+            vector,
+            matrixspace(),
+            similar(vector),
+        ) === vector
+    end
+end
+
+@testset "square-root recurrence requires reduced UInt inputs" begin
+    ring, = residue_ring(ZZ, 101)
+    matrixspace = matrix_space(ring, 1, 1)
+    input = UInt[101]
+    @test_throws ArgumentError DeRham.sqrt_linear_recurrence!(
+        matrixspace(),
+        matrixspace(),
+        0,
+        0,
+        input,
+        matrixspace(),
+        similar(input),
+    )
+end
+
 @testset "square-root linear recurrence requires initialized BigInt entries" begin
     ring = Oscar.Nemo.ZZModRing(ZZ(49), false)
     matrixspace = matrix_space(ring, 1, 1)
@@ -418,6 +449,10 @@ end
     )
     @test_throws ArgumentError zeta_coefficients(
         frontend;
+        linear_recurrence_algorithm = missing,
+    )
+    @test_throws ArgumentError zeta_coefficients(
+        frontend;
         sqrt_linear_recurrence_min_length = 0,
     )
     @test_throws ArgumentError zeta_coefficients(
@@ -434,6 +469,13 @@ end
         7,
         [-1];
         linear_recurrence_algorithm = :invalid,
+    )
+    @test_throws ArgumentError DeRham.pregen_default_context(
+        1,
+        3,
+        7,
+        [-1];
+        linear_recurrence_algorithm = missing,
     )
     @test_throws ArgumentError DeRham.pregen_default_context(
         1,
@@ -530,6 +572,23 @@ end
     )
 end
 
+@testset "pre-generated CPU context residue representation" begin
+    context = DeRham.pregen_default_context(
+        2,
+        3,
+        7,
+        [-1];
+        algorithm = :depthfirst,
+        always_use_bigints = true,
+        lazy = true,
+    )
+    @test context.A isa DeRham.ZZModMatrix
+    @test context.B isa DeRham.ZZModMatrix
+    @test context.temp isa DeRham.ZZModMatrix
+    @test context.g isa Vector{ZZRingElem}
+    @test context.g_temp isa Vector{ZZRingElem}
+end
+
 @testset "square-root settings with fast evaluation disabled" begin
     _, (x, y, z) = polynomial_ring(GF(7), ["x", "y", "z"])
     frontend = DeRham.ProjectiveHypersurface(x^3 + y^3 + z^3)
@@ -574,4 +633,23 @@ end
         @test sqrt_coefficients == default_coefficients
         @test sqrt_calls[] > 0
     end
+end
+
+@testset "square-root linear recurrence with a separate prime" begin
+    _, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
+    sqrt_calls = Ref(0)
+    coefficients =
+        DeRham._with_sqrt_linear_recurrence_test_hook(() -> (sqrt_calls[] += 1)) do
+            zeta_coefficients(
+                x^3 + y^3 + z^3,
+                7;
+                algorithm = :depthfirst,
+                changef = false,
+                fastevaluation = true,
+                linear_recurrence_algorithm = :sqrt,
+                sqrt_linear_recurrence_min_length = 1,
+            )
+        end
+    @test coefficients == BigInt[7, 1, 1]
+    @test sqrt_calls[] > 0
 end

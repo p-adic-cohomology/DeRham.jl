@@ -541,6 +541,8 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             0.2,
             Dict{String,Any}(
                 "algorithm" => "default",
+                "linear_recurrence_algorithm" => "finitediff",
+                "sqrt_linear_recurrence_min_length" => nothing,
                 "fastevaluation" => true,
                 "changef" => true,
                 "always_use_bigints" => false,
@@ -557,6 +559,8 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
 
         for (option, value) in (
             "algorithm" => "pchunk",
+            "linear_recurrence_algorithm" => "sqrt",
+            "sqrt_linear_recurrence_min_length" => 1,
             "fastevaluation" => false,
             "changef" => false,
             "always_use_bigints" => true,
