@@ -21,6 +21,9 @@ B - the matrix which will store B in Ay + B
 temp - temporary matrix used for intermediate calculations
 g - the vector g which contains the vector which is being reduced
 g_temp - temporary vector used for intermediate calculations
+linear_recurrence_algorithm - default linear recurrence algorithm for reductions
+sqrt_linear_recurrence_min_length - minimum run length for the square-root method,
+  or `nothing` to use finite differences
 
 Current examples that are in use:
 
@@ -36,6 +39,45 @@ struct ControlledReductionContext{MatrixType,VectorType}
     temp::MatrixType
     g::VectorType
     g_temp::VectorType
+    linear_recurrence_algorithm::Symbol
+    sqrt_linear_recurrence_min_length::Union{Nothing,Int}
+end
+
+ControlledReductionContext(Ruv, A, B, temp, g, g_temp) =
+    ControlledReductionContext(Ruv, A, B, temp, g, g_temp, :finitediff, nothing)
+
+function ControlledReductionContext{MatrixType,VectorType}(
+    Ruv,
+    A,
+    B,
+    temp,
+    g,
+    g_temp,
+) where {MatrixType,VectorType}
+    return ControlledReductionContext{MatrixType,VectorType}(
+        Ruv,
+        A,
+        B,
+        temp,
+        g,
+        g_temp,
+        :finitediff,
+        nothing,
+    )
+end
+
+function _resolve_linear_recurrence_options(context, algorithm, min_length)
+    if min_length === _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH
+        min_length =
+            context isa ControlledReductionContext ?
+            context.sqrt_linear_recurrence_min_length : nothing
+    end
+    if context isa ControlledReductionContext
+        algorithm = something(algorithm, context.linear_recurrence_algorithm)
+    else
+        algorithm = something(algorithm, :finitediff)
+    end
+    return _validate_linear_recurrence_options(algorithm, min_length)
 end
 
 """
@@ -105,6 +147,8 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     elseif params.use_gpu == true
 
@@ -123,13 +167,15 @@ function default_context(matspace, Ruv, params)
             temp,
             g,
             g_temp,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     else # use the CPU
         A = matspace()
         B = matspace()
         temp = matspace()
 
-        if params.always_use_bigints || ZZ(2)^64 < ZZ(m)
+        if params.always_use_bigints || ZZ(2)^64 <= ZZ(m)
             # Big modulus
             # NOTE: can't use `similar` for a pointer type
             g = [ZZ(0) for i = 1:g_length]
@@ -140,8 +186,27 @@ function default_context(matspace, Ruv, params)
             g_temp = similar(g)
         end
 
-        return ControlledReductionContext(Ruv, A, B, temp, g, g_temp)
+        return ControlledReductionContext(
+            Ruv,
+            A,
+            B,
+            temp,
+            g,
+            g_temp,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
+        )
     end
+end
+
+function _precision_residue_modulus(p, precision, always_use_bigints)
+    modulus = BigInt(p)^precision
+    if always_use_bigints || modulus > typemax(UInt)
+        return modulus
+    elseif modulus > typemax(Int)
+        return UInt(modulus)
+    end
+    return Int(modulus)
 end
 
 """
@@ -154,8 +219,17 @@ is the prime characteristic, and `S` is a vector of integers.
 Keyword arguments and defaults:
 `verbose = 0`, `givefrobmat = false`, `algorithm = :naive`,
 `termorder = :invlex`, `vars_reversed = false`, `fastevaluation = false`,
-`always_use_bigints = false`, `use_gpu = false`, `use_threads = false`, and
-`lazy = false`.
+`always_use_bigints = false`, `use_gpu = false`, `use_threads = false`,
+`linear_recurrence_algorithm = :finitediff`,
+`sqrt_linear_recurrence_min_length = nothing`, and `lazy = false`.
+
+With `linear_recurrence_algorithm=:sqrt`, a positive
+`sqrt_linear_recurrence_min_length` enables the method at that interval length.
+A cutoff of `nothing` selects finite differences.
+
+DepthFirst reductions of projective hypersurfaces inherit omitted recurrence
+keywords from the supplied context. For CPU reductions, generate the context
+with the same working modulus and `always_use_bigints` setting as the reduction.
 """
 function pregen_default_context(
     n,
@@ -171,8 +245,15 @@ function pregen_default_context(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    linear_recurrence_algorithm = :finitediff,
+    sqrt_linear_recurrence_min_length = nothing,
     lazy = false,
 )
+    linear_recurrence_algorithm, sqrt_linear_recurrence_min_length =
+        _validate_linear_recurrence_options(
+            linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length,
+        )
     params = ZetaFunctionParams(
         verbose,
         givefrobmat,
@@ -183,10 +264,12 @@ function pregen_default_context(
         always_use_bigints,
         use_gpu,
         use_threads,
+        linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length,
     )
 
     m = pregen_precision_info(n, d, p)
-    M = Integer(p^m)
+    M = _precision_residue_modulus(p, m, params.always_use_bigints && !params.use_gpu)
     g_length = binomial(d*n, d*n-n)
     matspace = matrix_space(residue_ring(ZZ, M)[1], g_length, g_length)
 
@@ -242,6 +325,8 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     elseif params.use_gpu == true
 
@@ -259,13 +344,15 @@ function pregen_default_context(
             temp,
             g,
             g_temp,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
         )
     else # use the CPU
         A = matspace()
         B = matspace()
         temp = matspace()
 
-        if params.always_use_bigints || ZZ(2)^64 < ZZ(M)
+        if A isa ZZModMatrix
             # Big modulus
             # NOTE: can't use `similar` for a pointer type
             g = [ZZ(0) for i = 1:g_length]
@@ -276,7 +363,16 @@ function pregen_default_context(
             g_temp = similar(g)
         end
 
-        return ControlledReductionContext(Ruv, A, B, temp, g, g_temp)
+        return ControlledReductionContext(
+            Ruv,
+            A,
+            B,
+            temp,
+            g,
+            g_temp,
+            params.linear_recurrence_algorithm,
+            params.sqrt_linear_recurrence_min_length,
+        )
     end
 end
 
@@ -286,7 +382,7 @@ function default_context_type(matspace, params)
 
     if params.use_gpu == true
         ControlledReductionContext{CuModMatrix{Float64},CuModVector{Float64}}
-    elseif params.always_use_bigints || ZZ(2)^64 < ZZ(m)
+    elseif params.always_use_bigints || ZZ(2)^64 <= ZZ(m)
         ControlledReductionContext{ZZModMatrix,Vector{ZZRingElem}}
     else
         ControlledReductionContext{zzModMatrix,Vector{UInt}}

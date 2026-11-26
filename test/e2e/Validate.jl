@@ -18,6 +18,8 @@ end
 
 const PRIMING_CODE_PATH_DEFAULTS = (
     "algorithm" => "default",
+    "linear_recurrence_algorithm" => "finitediff",
+    "sqrt_linear_recurrence_min_length" => nothing,
     "fastevaluation" => true,
     "changef" => true,
     "always_use_bigints" => false,
@@ -28,7 +30,8 @@ const PRIMING_CODE_PATH_DEFAULTS = (
 )
 
 function _canonical_priming_option(key::String, value)
-    if key in ("algorithm", "termorder") && value isa AbstractString
+    if key in ("algorithm", "termorder", "linear_recurrence_algorithm") &&
+       value isa AbstractString
         return String(value)
     elseif key == "k" && value isa Integer
         return typeof(value)
@@ -37,9 +40,19 @@ function _canonical_priming_option(key::String, value)
 end
 
 function priming_configuration_key(record::ExecutionRecord, example::ExampleCase)
+    parameters = record.parameters
+    include_cutoff =
+        get(parameters, "linear_recurrence_algorithm", "finitediff") == "sqrt" &&
+        get(parameters, "fastevaluation", true) === true &&
+        get(parameters, "use_gpu", false) === false &&
+        get(parameters, "algorithm", "default") in ("default", "depthfirst", "pchunk")
+    cutoff_option = "sqrt_linear_recurrence_min_length"
     options = Tuple(
-        key => _canonical_priming_option(key, get(record.parameters, key, default)) for
-        (key, default) in PRIMING_CODE_PATH_DEFAULTS
+        key => _canonical_priming_option(
+            key,
+            key == cutoff_option && !include_cutoff ? default :
+            get(parameters, key, default),
+        ) for (key, default) in PRIMING_CODE_PATH_DEFAULTS
     )
     return (Int(example.variety["dim"]), options)
 end

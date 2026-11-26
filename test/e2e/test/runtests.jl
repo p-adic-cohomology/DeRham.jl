@@ -541,6 +541,8 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             0.2,
             Dict{String,Any}(
                 "algorithm" => "default",
+                "linear_recurrence_algorithm" => "finitediff",
+                "sqrt_linear_recurrence_min_length" => nothing,
                 "fastevaluation" => true,
                 "changef" => true,
                 "always_use_bigints" => false,
@@ -557,6 +559,7 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
 
         for (option, value) in (
             "algorithm" => "pchunk",
+            "linear_recurrence_algorithm" => "sqrt",
             "fastevaluation" => false,
             "changef" => false,
             "always_use_bigints" => true,
@@ -573,6 +576,32 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
             @test length(option_errors) == 1
             @test occursin("changed_$(option)", only(option_errors))
         end
+
+        sqrt_options = Dict{String,Any}("linear_recurrence_algorithm" => "sqrt")
+        for parameters in (
+            Dict{String,Any}(),
+            merge(sqrt_options, Dict("fastevaluation" => false)),
+            merge(sqrt_options, Dict("use_gpu" => true)),
+            merge(sqrt_options, Dict("algorithm" => "varbyvar")),
+        )
+            no_cutoff = record("no_cutoff", 0.2, parameters)
+            with_cutoff = record(
+                "inactive_cutoff",
+                0.2,
+                merge(parameters, Dict("sqrt_linear_recurrence_min_length" => 1)),
+            )
+            @test E2E.priming_configuration_key(no_cutoff, example) ==
+                  E2E.priming_configuration_key(with_cutoff, example)
+        end
+
+        sqrt_default = record("sqrt_default", 0.2, sqrt_options)
+        sqrt_cutoff = record(
+            "sqrt_cutoff",
+            0.2,
+            merge(sqrt_options, Dict("sqrt_linear_recurrence_min_length" => 1)),
+        )
+        @test E2E.priming_configuration_key(sqrt_default, example) !=
+              E2E.priming_configuration_key(sqrt_cutoff, example)
 
         k_one = record("k_one", 0.2, Dict{String,Any}("k" => 1))
         k_two = record("k_two", 0.2, Dict{String,Any}("k" => 2))
@@ -1406,6 +1435,37 @@ Test.finish(testset::IsolatedE2ETestSet) = testset
         @test occursin("r_bad_tag", joined)
         @test occursin("r_bad_type", joined)
         @test occursin("r_bad_runtime", joined)
+
+        for (option, value) in ("fastevaluation" => "true", "use_gpu" => 0)
+            malformed_flag = E2E.ExecutionRecord(
+                "r_bad_$option",
+                "zeta_coefficients",
+                String[],
+                cfg.ci_seconds,
+                "ok",
+                nothing,
+                Dict{String,Any}("linear_recurrence_algorithm" => "sqrt", option => value),
+                "flags.toml",
+            )
+            failure = try
+                E2E.validate_catalogue(catalogue, [records; malformed_flag], cfg)
+                nothing
+            catch exception
+                exception
+            end
+            @test failure isa E2E.CatalogueValidationError
+            if failure isa E2E.CatalogueValidationError
+                @test all(error -> error in failure.errors, err.errors)
+                @test occursin(
+                    "flags.toml (record \"r_bad_$option\"):",
+                    last(failure.errors),
+                )
+                @test occursin(
+                    "parameter \"$option\" must be a boolean",
+                    last(failure.errors),
+                )
+            end
+        end
 
         malformed_result = E2E.ExampleCase(
             "bad_result",

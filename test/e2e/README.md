@@ -85,11 +85,11 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
   their speed.
 - `example` must match an example `id`. If that example has more than one
   prime result, also set `p = <prime>` to disambiguate.
-- `tags` must be a subset of `config.toml`'s `[tags] allowed` list (currently
-  `gpu`, `multithreading`, `uint`, `bigint`, `karatsuba`, `sextic_k3`). The
-  `sextic_k3` tag selects the degree-2 K3 sextic records for an on-demand run.
-  A `gpu` tag (or `parameters.use_gpu = true`) marks the record as requiring a
-  functional CUDA device.
+- `tags` must be a subset of the `[tags]` allowed list in `config.toml`.
+  Use `--tag=sqrt_linear_recurrence` for the square-root DepthFirst and PChunk
+  cases, and `--tag=sextic_k3` for the degree-2 K3 sextic records. A `gpu` tag
+  (or `parameters.use_gpu = true`) marks the record as requiring a functional
+  CUDA device.
 - For `Lpoly`-derived records, common computation options are passed through as
   keyword arguments to the selected DeRham invariant. `point_counts` and
   `k3_picard_rank` also require a positive integer `k`; the notes-based
@@ -113,10 +113,14 @@ parameters = { algorithm = "depthfirst", fastevaluation = true }
 All `Lpoly`-derived record types accept the shared DeRham computation options
 recognized by the catalogue: `S`, `verbose`, `changef`, `givefrobmat`,
 `algorithm`, `termorder`, `vars_reversed`, `fastevaluation`,
-`always_use_bigints`, `use_gpu`, and `use_threads`. `algorithm` accepts
-`default`, `depthfirst`, `varbyvar`, `pchunk`, `akr`, `akr_naive`, or
-`akr_levelbylevel`; `S` must be an array and `termorder` must be a string. The
-common option parser also accepts
+`always_use_bigints`, `use_gpu`, `use_threads`, `linear_recurrence_algorithm`,
+and `sqrt_linear_recurrence_min_length`. `algorithm` accepts `default`,
+`depthfirst`, `varbyvar`, `pchunk`, `akr`, `akr_naive`, or `akr_levelbylevel`.
+`S` must be an array and `termorder` must be a string.
+`linear_recurrence_algorithm` accepts `"finitediff"` or `"sqrt"`. Set
+`sqrt_linear_recurrence_min_length` to a positive integer to enable the
+square-root method with `"sqrt"`. Omitting the cutoff uses finite differences.
+The common option parser also accepts
 `relative_precision`, `series_precision`, and `algorithm_precision`;
 `relative_precision` and `series_precision` take an integer or an array of
 integers, while `algorithm_precision` takes an integer. For a double-cover
@@ -197,12 +201,18 @@ Keep the complete priming set under five minutes in one fresh Julia 1.13.2
 process. A validation guard requires a priming record for every configuration
 whose cheapest catalogue record has `runtime < ci_seconds`; configurations
 whose records all meet or exceed that threshold are exempt. A configuration
-uses variety dimension and the code-path options `algorithm`, `fastevaluation`,
-`changef`, `always_use_bigints`, `use_gpu`, `use_threads`, `termorder`, and
-`k`. Executors share the compiled pipeline for a dimension and option set, so
-executor type does not split configurations. Integer `k` values are keyed by
-type, so `k=1` and `k=2` share a configuration while an absent `k` remains
-distinct. `S` is record data and does not split configurations.
+uses variety dimension and the code-path options `algorithm`,
+`linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`,
+`fastevaluation`, `changef`, `always_use_bigints`, `use_gpu`, `use_threads`,
+`termorder`, and `k`. The cutoff contributes when the record requests
+`linear_recurrence_algorithm="sqrt"`, enables fast evaluation on the CPU, and
+its `algorithm` is `default`, `depthfirst`, or `pchunk`. An omitted `algorithm`
+counts as `default` in the key even when it selects VarByVar at runtime, as it
+can for a projective hypersurface with `S=[n]`. Executors share the compiled pipeline
+for a dimension and option set, so executor type does not split configurations.
+Integer `k` values are keyed by type, so `k=1` and `k=2` share a configuration
+while an absent `k` remains distinct. `S` is record data and does not split
+configurations.
 
 When adding a record, check whether it creates a configuration that needs
 priming. Add the shortest suitable existing record for that configuration to

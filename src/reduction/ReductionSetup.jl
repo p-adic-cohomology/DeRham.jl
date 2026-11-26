@@ -33,9 +33,7 @@ function _validate_reduction_setup(fe, algorithm; use_gpu = false, context = not
     end
 
     if algorithm == :pchunk
-        use_gpu && throw(
-            ArgumentError("pchunk currently supports only small-modulus CPU execution"),
-        )
+        use_gpu && throw(ArgumentError("pchunk currently supports only CPU execution"))
         context === nothing ||
             throw(ArgumentError("custom reduction contexts are not supported for pchunk"))
     end
@@ -118,7 +116,7 @@ end
 function _reduction_backend(params, m)
     if params.use_gpu
         return ZZ(2)^25 < m < ZZ(2)^106 ? :gpu_karatsuba : :gpu_cumod
-    elseif params.always_use_bigints || ZZ(2)^64 < m
+    elseif params.always_use_bigints || ZZ(2)^64 <= m
         return :cpu_bigint
     end
     return :cpu_uint
@@ -178,9 +176,29 @@ function reduction_execution_setup(
     MS1 = matrix_space(coefficient_ring(parent(f)), g_length, g_length)
     m = Integer(modulus(base_ring(MS1)))
 
-    if configuration.policy == :pchunk &&
-       (params.use_gpu || params.always_use_bigints || context !== nothing || m >= ZZ(2)^64)
-        throw(ArgumentError("pchunk currently supports only small-modulus CPU execution"))
+    if configuration.policy == :pchunk && (params.use_gpu || context !== nothing)
+        throw(
+            ArgumentError(
+                "pchunk currently supports CPU execution without a custom context",
+            ),
+        )
+    end
+    if context !== nothing && !params.use_gpu
+        context isa default_context_type(MS1, params) || throw(
+            ArgumentError(
+                "the pre-generated context uses a different residue representation. " *
+                "Use matching `always_use_bigints` and `use_gpu` options in " *
+                "`pregen_default_context` and `zeta_coefficients`.",
+            ),
+        )
+        context_modulus = modulus(base_ring(context.A))
+        context_modulus == m || throw(
+            ArgumentError(
+                "the pre-generated context has working modulus $context_modulus, " *
+                "but this reduction requires $m. Regenerate the context for the " *
+                "same prime and working precision, or omit `context`.",
+            ),
+        )
     end
 
     ruv_function =

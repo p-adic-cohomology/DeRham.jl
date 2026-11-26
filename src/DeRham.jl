@@ -111,6 +111,7 @@ include("reduction/ReductionEngine.jl")
 include("reduction/AccountingReductionEngine.jl")
 include("recurrence/PEP.jl")
 include("recurrence/EvaluatePEP.jl")
+include("recurrence/SqrtLinearRecurrence.jl")
 include("reduction/ComputeRuv.jl")
 include("reduction/Context.jl")
 include("reduction/Steps.jl")
@@ -182,6 +183,7 @@ public fermat_hypersurface,
     tate_untwist,
     normalized_tate_twist,
     ibm_lattice_correction,
-    pregen_default_context
+    pregen_default_context,
+    sqrt_linear_recurrence!
 
 end

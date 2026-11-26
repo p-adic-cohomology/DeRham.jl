@@ -40,6 +40,7 @@ const UNIT_TEST_TIERS = [
     "reduction/Selection.jl" => :ci,
     "reduction/AKR.jl" => :ci,
     "reduction/FrontendMethods.jl" => :ci,
+    "reduction/SqrtLinearRecurrence.jl" => :ci,
     "reduction/EngineInterfaces.jl" => :ci,
     "reduction/AccountingEngine.jl" => :ci,
     "reduction/MatrixEngine.jl" => :ci,

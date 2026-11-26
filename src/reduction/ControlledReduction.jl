@@ -196,25 +196,17 @@ function _matrix_reduction_runtime_factory(
     params,
     directions,
 )
-    return () -> begin
-        fill_vector! =
-            (vector, key, input) ->
-                reduction_input_vector!(vector, fe, input, S, cache, params)
-        preconfigured = if execution_setup.preconfigured_engine === nothing
-            PreconfiguredReductionEngine(execution_setup.context_factory())
-        else
-            execution_setup.preconfigured_engine
-        end
-        engine = MatrixReductionEngine(
-            ReductionEngineGeometry(P),
+    return () -> MatrixReductionRuntime(
+        _configured_matrix_reduction_engine(
+            execution_setup,
+            fe,
+            P,
+            S,
+            cache,
+            params,
             directions,
-            preconfigured,
-            fill_vector!;
-            evaluation_kernel = execution_setup.kernel,
-            fastevaluation = params.fastevaluation,
-        )
-        return MatrixReductionRuntime(engine)
-    end
+        ),
+    )
 end
 
 function _reducepoly_matrix_policy!(

@@ -65,9 +65,7 @@ Keyword arguments:
   chooses automatically. Projective hypersurfaces also accept the experimental
   selectors `:akr`, `:akr_naive`, and `:akr_levelbylevel` (see
   [AKR pole reduction](@ref)). Double covers default to `:depthfirst` and also
-  support explicit CPU execution with `:varbyvar` and `S=[n]`, or `:pchunk`
-  when the working residue-ring modulus is below `2^64` with the default
-  integer representation.
+  support explicit CPU execution with `:varbyvar` and `S=[n]`, or `:pchunk`.
 - `relative_precision`, `series_precision`, and `algorithm_precision`: explicit,
   uncertified precision inputs for non-hypersurface frontends. Hypersurface
   frontends reject these keywords. ``DoubleCover`` requires `series_precision`
@@ -80,10 +78,24 @@ Keyword arguments:
   values are not accepted for any explicit precision keyword.
 - `use_gpu=false`: enables GPU execution for supported operations.
 - `use_threads=false`: enables threaded execution for supported operations.
+- `linear_recurrence_algorithm=:finitediff` selects finite differences or the
+  experimental square-root method (`:sqrt`) for linear recurrence evaluation
+  in CPU DepthFirst and PChunk reductions with `fastevaluation=true`.
+- `sqrt_linear_recurrence_min_length=nothing` sets the minimum run length for the
+  square-root method. Supply a positive integer to enable it for eligible runs
+  at or above that length. A cutoff of `nothing` selects finite differences.
+
+With a pre-generated `context` for a DepthFirst reduction of a projective
+hypersurface, omitting `linear_recurrence_algorithm` or passing `nothing` inherits
+the context's algorithm. Pass `:finitediff` explicitly to select finite
+differences. Omitting `sqrt_linear_recurrence_min_length` inherits the context's
+cutoff. Passing `nothing` explicitly resets the cutoff to the default and
+selects finite differences.
 
 The `termorder`, `vars_reversed`, `fastevaluation`, `always_use_bigints`,
-`context`, and `precision_info` keywords are internal or experimental and
-may change. Their current defaults are `:invlex`, `false`, `true`, `false`,
+`linear_recurrence_algorithm`, `sqrt_linear_recurrence_min_length`, `context`, and
+`precision_info` keywords are internal or experimental and may change. Their
+current defaults are `:invlex`, `false`, `true`, `false`, `:finitediff`, `nothing`,
 `nothing`, and `nothing`, respectively.
 
 The returned coefficients can be passed to [`L_polynomial`](@ref),
@@ -116,6 +128,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -123,6 +137,12 @@ function zeta_coefficients(
     algorithm_precision = nothing,
 )
     _validate_reduction_setup(fe, algorithm; use_gpu = use_gpu, context = context)
+    linear_recurrence_algorithm, sqrt_linear_recurrence_min_length =
+        _resolve_linear_recurrence_options(
+            context,
+            linear_recurrence_algorithm,
+            sqrt_linear_recurrence_min_length,
+        )
     if fe isa ProjectiveHypersurface
         if relative_precision !== nothing ||
            series_precision !== nothing ||
@@ -195,6 +215,8 @@ function zeta_coefficients(
         always_use_bigints,
         use_gpu,
         use_threads,
+        linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length,
     )
 
     cache = controlled_reduction_cache(n, d, S, params, P)
@@ -230,14 +252,7 @@ function zeta_coefficients(
         "We work modulo $p^$M, and compute up to the $N_m-th term of the Frobenius power series",
     )
 
-    if always_use_bigints || BigInt(2)^64 < BigInt(p)^M
-        residue = BigInt(p)^M
-    elseif BigInt(2)^63 < BigInt(p)^M
-        # If we use UInt, we get things between 2^63 and 2^64
-        residue = UInt(p)^M
-    else
-        residue = p^M
-    end
+    residue = _precision_residue_modulus(p, M, always_use_bigints)
 
     # FOR DEBUGGING
     #residue = BigInt(p)^M
@@ -414,6 +429,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     precision_info = nothing,
     relative_precision = nothing,
@@ -433,6 +450,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        linear_recurrence_algorithm = linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = sqrt_linear_recurrence_min_length,
         context = context,
         precision_info = precision_info,
         relative_precision = relative_precision,
@@ -440,6 +459,10 @@ function zeta_coefficients(
         algorithm_precision = algorithm_precision,
     )
 end
+
+_frontend_with_polynomial(fe::ZetaFrontend, f) = typeof(fe)(f)
+_frontend_with_polynomial(::ProjectiveHypersurface, f) = ProjectiveHypersurface(f)
+_frontend_with_polynomial(::DoubleCover, f) = DoubleCover(f)
 
 """
 a wrapper to zeta_coefficients
@@ -463,6 +486,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -473,7 +498,7 @@ function zeta_coefficients(
     PR = parent(f)
     _, hom = change_base_ring(GF(p), PR)
     return zeta_coefficients(
-        typeof(fe)(hom(f));
+        _frontend_with_polynomial(fe, hom(f));
         S = S,
         verbose = verbose,
         changef = changef,
@@ -485,6 +510,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        linear_recurrence_algorithm = linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = sqrt_linear_recurrence_min_length,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,
@@ -506,6 +533,8 @@ function zeta_coefficients(
     always_use_bigints = false,
     use_gpu = false,
     use_threads = false,
+    linear_recurrence_algorithm = nothing,
+    sqrt_linear_recurrence_min_length = _UNSPECIFIED_SQRT_LINEAR_RECURRENCE_MIN_LENGTH,
     context = nothing,
     relative_precision = nothing,
     series_precision = nothing,
@@ -525,6 +554,8 @@ function zeta_coefficients(
         always_use_bigints = always_use_bigints,
         use_gpu = use_gpu,
         use_threads = use_threads,
+        linear_recurrence_algorithm = linear_recurrence_algorithm,
+        sqrt_linear_recurrence_min_length = sqrt_linear_recurrence_min_length,
         context = context,
         relative_precision = relative_precision,
         series_precision = series_precision,
